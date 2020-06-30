@@ -54,6 +54,8 @@ public class Parser {
             result = parseVarDefine(tokens);
         } else if (tokens.match("if", false)) {
             result = parseIfStatement(tokens);
+        } else if (tokens.match("new", false)) {
+            result = parseNewStatement(tokens);
         } else if (tokens.match("return", false)) {
             result = parseReturn(tokens);
         } else if (tokens.match("for", false)) {
@@ -97,6 +99,15 @@ public class Parser {
         return null;
     }
 
+    private static Expression parseNewStatement(TokenStream stream){
+        Span opening = stream.expect("new").getSpan();
+        Token identifier = stream.expect(TokenType.Identifier);
+        List<Expression> arguments = new ArrayList<>();
+        arguments.addAll(parseArguments(stream));
+        Span closing = stream.expect(")").getSpan();
+        return new NewStatement(new Span(opening,closing),identifier.getText(),arguments);
+    }
+
     private static VariableDefine parseVarDefine(TokenStream stream) {
         Span opening = stream.expect("var").getSpan();
         TokenType expected = null;
@@ -107,7 +118,7 @@ public class Parser {
             expected = TokenType.Assignment;
             if (stream.hasMore()) {
                 stream.expect(expected);
-                Expression right = parseExpression(stream);
+                Expression right = stream.match("new",false) ? parseNewStatement(stream) : parseExpression(stream);
                 return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), variableName, right);
             }
         }

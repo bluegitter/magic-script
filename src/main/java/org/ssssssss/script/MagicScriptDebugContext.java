@@ -30,11 +30,8 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	private int timeout = 60;
 
-	public MagicScriptDebugContext() {
-	}
-
-	public MagicScriptDebugContext(Map<String, Object> variables) {
-		super(variables);
+	public MagicScriptDebugContext(){
+		super();
 		contextMap.put(this.id, this);
 	}
 

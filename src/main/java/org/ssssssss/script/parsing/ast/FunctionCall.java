@@ -3,7 +3,6 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AbstractReflection;
-import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Span;
 
 import java.util.List;
@@ -81,19 +80,6 @@ public class FunctionCall extends Expression {
             }
             if (function instanceof Function) {
                 return ((Function<Object[],Object>) function).apply(argumentValues);
-            }else if (function instanceof FunctionStatement) {
-                FunctionStatement statement = (FunctionStatement) function;
-                context.push();
-                List<String> parameters = statement.getParameters();
-                for (int i = 0; i < argumentValues.length && i < parameters.size(); i++) {
-                    context.setOnCurrentScope(parameters.get(i), argumentValues[i]);
-                }
-                Object retVal = AstInterpreter.interpretNodeList(statement.getChildNodes(), context);
-                context.pop();
-                if (retVal == Return.RETURN_SENTINEL)
-                    return ((Return.ReturnValue) retVal).getValue();
-                else
-                    return null;
             }
             if (function != null) {
                 Object method = getCachedFunction();

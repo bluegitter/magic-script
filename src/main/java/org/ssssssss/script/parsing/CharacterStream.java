@@ -44,22 +44,6 @@ public class CharacterStream {
 		}
 	}
 
-	public int getRowIndex(int index) {
-		int size = newLines.size();
-		int rowIndex = 1;
-		while (size > rowIndex) {
-			if (newLines.get(rowIndex) > index) {
-				break;
-			}
-			rowIndex++;
-		}
-		return rowIndex;
-	}
-
-	public int getCol(int row, int index) {
-		return index - newLines.get(row - 1);
-	}
-
 	public String substring(int startIndex, int endIndex) {
 		return this.source.substring(startIndex, endIndex);
 	}
@@ -233,10 +217,6 @@ public class CharacterStream {
 	 **/
 	public Span endSpan() {
 		return new Span(source, spanStart, index);
-	}
-
-	public boolean isSpanEmpty() {
-		return spanStart == this.index;
 	}
 
 	/**

@@ -5,7 +5,6 @@ import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.functions.ClassExtension;
 import org.ssssssss.script.parsing.Span;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class NewStatement extends Expression{

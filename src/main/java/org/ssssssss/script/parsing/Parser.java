@@ -126,34 +126,6 @@ public class Parser {
         return null;
     }
 
-    private static FunctionStatement parseFunctionStatement(TokenStream stream) {
-        Span openingFunction = stream.expect("function").getSpan();
-        stream.expect("(");
-        List<String> parameters = new ArrayList<>();
-        while (stream.hasMore() && stream.match(TokenType.Identifier, false)) {
-            Token token = stream.consume();
-            parameters.add(token.getSpan().getText());
-            if (!stream.hasMore()) {
-                MagicScriptError.error("function Did not closing ", stream.prev().getSpan());
-            }
-            if (!stream.match(TokenType.Comma, true)) {
-                if (!stream.match(TokenType.RightParantheses, false)) {
-                    MagicScriptError.error("Did not find closing ).", stream.prev().getSpan());
-                } else {
-                    break;
-                }
-            }
-        }
-        stream.expect(")");
-        stream.expect("{");
-        List<Node> childNodes = new ArrayList<>();
-        while (stream.hasMore() && !stream.match(false, "}")) {
-            childNodes.add(parseStatement(stream, true));
-        }
-        Span closingEnd = expectCloseing(stream);
-        return new FunctionStatement(new Span(openingFunction, closingEnd), childNodes, parameters);
-    }
-
     private static ForStatement parseForStatement(TokenStream stream) {
         Span openingFor = stream.expect("for").getSpan();
         stream.expect("(");
@@ -334,8 +306,6 @@ public class Parser {
     private static Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {
         if (expectRightCurly && stream.match("}", false)) {
             return null;
-        } else if (stream.match("function", false)) {
-            return parseFunctionStatement(stream);
         } else if (stream.match(TokenType.Identifier, false)) {
             return parseAccessOrCall(stream, TokenType.Identifier);
         } else if (stream.match(TokenType.LeftCurly, false)) {
@@ -366,8 +336,6 @@ public class Parser {
             return new IntegerLiteral(stream.expect(TokenType.IntegerLiteral).getSpan());
         } else if (stream.match(TokenType.LongLiteral, false)) {
             return new LongLiteral(stream.expect(TokenType.LongLiteral).getSpan());
-        } else if (stream.match(TokenType.CharacterLiteral, false)) {
-            return new CharacterLiteral(stream.expect(TokenType.CharacterLiteral).getSpan());
         } else if (stream.match(TokenType.NullLiteral, false)) {
             return new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
         } else {

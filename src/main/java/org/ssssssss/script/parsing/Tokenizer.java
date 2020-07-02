@@ -70,12 +70,16 @@ public class Tokenizer {
                     // Note: escape sequences like \n are parsed in StringLiteral
                     if (stream.match("\\", true)) {
                         stream.consume();
+                        continue;
                     }
                     if (stream.match(TokenType.SingleQuote.getLiteral(), true)) {
                         matchedEndQuote = true;
                         break;
                     }
-                    stream.consume();
+                    char ch = stream.consume();
+                    if (ch == '\r' || ch == '\n') {
+                        MagicScriptError.error("''定义的字符串不能换行", stream.endSpan(), new StringLiteralException());
+                    }
                 }
                 if (!matchedEndQuote) {
                     MagicScriptError.error("字符串没有结束符\'", stream.endSpan(), new StringLiteralException());
@@ -94,6 +98,7 @@ public class Tokenizer {
                     // Note: escape sequences like \n are parsed in StringLiteral
                     if (stream.match("\\", true)) {
                         stream.consume();
+                        continue;
                     }
                     if (stream.match("\"\"\"", true)) {
                         matchedEndQuote = true;
@@ -118,12 +123,16 @@ public class Tokenizer {
                     // Note: escape sequences like \n are parsed in StringLiteral
                     if (stream.match("\\", true)) {
                         stream.consume();
+                        continue;
                     }
                     if (stream.match(TokenType.DoubleQuote.getLiteral(), true)) {
                         matchedEndQuote = true;
                         break;
                     }
-                    stream.consume();
+                    char ch = stream.consume();
+                    if (ch == '\r' || ch == '\n') {
+                        MagicScriptError.error("\"\"定义的字符串不能换行", stream.endSpan(), new StringLiteralException());
+                    }
                 }
                 if (!matchedEndQuote) {
                     MagicScriptError.error("字符串没有结束符\"", stream.endSpan(), new StringLiteralException());

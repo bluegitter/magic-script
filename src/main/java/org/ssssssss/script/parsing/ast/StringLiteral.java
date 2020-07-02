@@ -25,6 +25,8 @@ public class StringLiteral extends Expression {
                 builder.append('\t');
             } else if (stream.match("\\\"", true)) {
                 builder.append('"');
+            } else if (stream.match("\\'", true)) {
+                builder.append("'");
             } else {
                 builder.append(stream.consume());
             }

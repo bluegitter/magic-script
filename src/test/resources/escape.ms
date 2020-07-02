@@ -1,0 +1,15 @@
+import 'java.lang.System' as system;
+system.out.print('\r\n');
+system.out.println('\\');
+system.out.println('\'');
+system.out.println('\"');
+system.out.println('\\\\');
+system.out.println('\\\\\"');
+system.out.println('\\\\\'');
+system.out.print("\r\n");
+system.out.println("\\");
+system.out.println("\'");
+system.out.println("\"");
+system.out.println("\\\\");
+system.out.println("\\\\\"");
+system.out.println("\\\\\'");

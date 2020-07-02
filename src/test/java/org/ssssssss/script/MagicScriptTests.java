@@ -30,6 +30,11 @@ public class MagicScriptTests extends BaseTest{
 	}
 
 	@Test
+	public void escapeTest() {
+		execute("escape.ms");
+	}
+
+	@Test
 	public void lambdaTest(){
 		Assert.assertEquals(execute("lambda.ms"),8);
 	}

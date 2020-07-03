@@ -4,7 +4,7 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.CharacterStream;
 import org.ssssssss.script.parsing.Span;
 
-public class StringLiteral extends Expression {
+public class StringLiteral extends Literal {
     private final String value;
 
     public StringLiteral(Span literal) {

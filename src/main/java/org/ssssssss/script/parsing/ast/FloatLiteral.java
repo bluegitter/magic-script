@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
-public class FloatLiteral extends Expression {
+public class FloatLiteral extends Literal {
     private final Float value;
 
     public FloatLiteral(Span literal) {

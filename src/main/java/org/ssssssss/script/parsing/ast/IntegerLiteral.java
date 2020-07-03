@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
-public class IntegerLiteral extends Expression {
+public class IntegerLiteral extends Literal {
     private final Integer value;
 
     public IntegerLiteral(Span literal) {

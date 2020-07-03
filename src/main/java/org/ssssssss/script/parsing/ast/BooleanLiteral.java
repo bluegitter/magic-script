@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
-public class BooleanLiteral extends Expression {
+public class BooleanLiteral extends Literal {
     private final Boolean value;
 
     public BooleanLiteral(Span literal) {

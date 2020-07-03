@@ -6,7 +6,7 @@ import org.ssssssss.script.parsing.Span;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListLiteral extends Expression {
+public class ListLiteral extends Literal {
     public final List<Expression> values;
 
     public ListLiteral(Span span, List<Expression> values) {

@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapLiteral extends Expression {
+public class MapLiteral extends Literal {
     private final List<Token> keys;
     private final List<Expression> values;
 

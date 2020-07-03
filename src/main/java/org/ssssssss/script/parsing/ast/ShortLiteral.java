@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
-public class ShortLiteral extends Expression {
+public class ShortLiteral extends Literal {
     private final Short value;
 
     public ShortLiteral(Span literal) {

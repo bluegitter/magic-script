@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
-public class DoubleLiteral extends Expression {
+public class DoubleLiteral extends Literal {
     private final Double value;
 
     public DoubleLiteral(Span literal) {

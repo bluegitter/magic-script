@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
-public class ByteLiteral extends Expression {
+public class ByteLiteral extends Literal {
     private final Byte value;
 
     public ByteLiteral(Span literal) {

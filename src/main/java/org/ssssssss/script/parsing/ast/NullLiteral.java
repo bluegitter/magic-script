@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
-public class NullLiteral extends Expression {
+public class NullLiteral extends Literal {
     public NullLiteral(Span span) {
         super(span);
     }

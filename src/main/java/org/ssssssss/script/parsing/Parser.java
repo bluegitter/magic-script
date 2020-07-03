@@ -35,10 +35,17 @@ public class Parser {
 		while (stream.hasMore()) {
 			Node node = parseStatement(stream);
 			if (node != null) {
+				validateNode(node);
 				nodes.add(node);
 			}
 		}
 		return nodes;
+	}
+
+	private static void validateNode(Node node) {
+		if (node instanceof Literal || node instanceof VariableAccess || node instanceof MapOrArrayAccess) {
+			MagicScriptError.error("literal cannot be used alone", node.getSpan());
+		}
 	}
 
 	private static Node parseStatement(TokenStream tokens) {
@@ -152,7 +159,9 @@ public class Parser {
 		stream.expect("{");
 		List<Node> body = new ArrayList<Node>();
 		while (stream.hasMore() && !stream.match(false, "}")) {
-			body.add(parseStatement(stream, true));
+			Node node = parseStatement(stream, true);
+			validateNode(node);
+			body.add(node);
 		}
 		Span closingEnd = expectCloseing(stream);
 		return new ForStatement(new Span(openingFor, closingEnd), index, value, mapOrArray, body);
@@ -173,6 +182,7 @@ public class Parser {
 		while (stream.hasMore() && !stream.match("}", false)) {
 			Node node = parseStatement(stream, true);
 			if (node != null) {
+				validateNode(node);
 				trueBlock.add(node);
 			}
 		}
@@ -188,6 +198,7 @@ public class Parser {
 				while (stream.hasMore() && !stream.match("}", false)) {
 					Node node = parseStatement(stream, true);
 					if (node != null) {
+						validateNode(node);
 						elseIfBlock.add(node);
 					}
 				}
@@ -197,7 +208,9 @@ public class Parser {
 			} else {
 				stream.expect("{");
 				while (stream.hasMore() && !stream.match("}", false)) {
-					falseBlock.add(parseStatement(stream, true));
+					Node node = parseStatement(stream, true);
+					validateNode(node);
+					falseBlock.add(node);
 				}
 				expectCloseing(stream);
 				break;
@@ -300,7 +313,9 @@ public class Parser {
 			stream.resetIndex(index);
 			if (stream.match(TokenType.LeftCurly, true)) {
 				while (stream.hasMore() && !stream.match(false, "}")) {
-					childNodes.add(parseStatement(stream, true));
+					Node node = parseStatement(stream, true);
+					validateNode(node);
+					childNodes.add(node);
 				}
 				Span closeSpan = expectCloseing(stream);
 				return new LambdaFunction(new Span(openSpan, closeSpan), parameters, childNodes);

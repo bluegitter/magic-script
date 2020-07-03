@@ -3,12 +3,14 @@ package org.ssssssss.script.parsing.ast;
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.functions.DynamicMethod;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.interpreter.JavaReflection;
 import org.ssssssss.script.parsing.Span;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 
 public class MethodCall extends Expression {
@@ -98,6 +100,17 @@ public class MethodCall extends Expression {
                 Expression expr = arguments.get(i);
                 argumentValues[i] = expr.evaluate(context);
             }
+            if(object instanceof DynamicMethod){
+                try {
+                    Object method = DynamicMethod.class.getDeclaredMethod("execute", String.class,List.class);
+                    Object[] newArgumentValues = new Object[]{getMethod().getName().getText(), Arrays.asList(argumentValues)};
+                    return AbstractReflection.getInstance().callMethod(object, method, newArgumentValues);
+                } catch (Throwable t) {
+                    MagicScriptError.error(t.getMessage(), getSpan(), t);
+                    return null; // never reached
+                }
+            }
+
             // Otherwise try to find a corresponding method or field pointing to a lambda.
             Object method = getCachedMethod();
             if (method != null) {

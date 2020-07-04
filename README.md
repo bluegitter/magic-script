@@ -146,23 +146,71 @@
 </table>
 
 ### 类型
-|类型|写法|
-|---|---|---|
-|byte|`123b`、`123B`|
-|short|`123s`、`123S`|
-|int|`123`|
-|long|`123l`、`123L`|
-|float|`123f`、`123F`|
-|double|`123d`、`123D`|
-|boolean|`true`、`false`|
-|string|`'hello'`|
-|string|`"hello"`|
-|string|`"""多行文本块,主要用于编写SQL"""`|
-|lambda|`()=>expr`、`(param1,param2....)=>{...}`|
-|list|`[1,2,3,4,5]`|
-|map|`{key : value,key1 : value}`|
-
-{$key : "value"}//$key表示动态从变量中获取key值
+<table>
+    <thead>
+        <tr>
+            <th>类型</th>
+            <th>写法</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>byte</td>
+            <td>`123b`、`123B`</td>
+        </tr>
+        <tr>
+            <td>short</td>
+            <td>`123s`、`123S`</td>
+        </tr>
+        <tr>
+            <td>int</td>
+            <td>`123`</td>
+        </tr>
+        <tr>
+            <td>long</td>
+            <td>`123l`、`123L`</td>
+        </tr>
+        <tr>
+            <td>float</td>
+            <td>`123f`、`123F`</td>
+        </tr>
+        <tr>
+            <td>double</td>
+            <td>`123d`、`123D`</td>
+        </tr>
+        <tr>
+            <td>boolean</td>
+            <td>`true`、`false`</td>
+        </tr>
+        <tr>
+            <td>string</td>
+            <td>`'hello'`</td>
+        </tr>
+        <tr>
+            <td>string</td>
+            <td>`"hello"`</td>
+        </tr>
+        <tr>
+            <td>string</td>
+            <td>`"""多行文本块,主要用于编写SQL"""`</td>
+        </tr>
+        <tr>
+            <td>lambda</td>
+            <td>`()=>expr`、`(param1,param2....)=>{...}`</td>
+        </tr>
+        <tr>
+            <td>list</td>
+            <td>`[1,2,3,4,5]`</td>
+        </tr>
+        <tr>
+            <td>map</td>
+            <td>{key : value,key1 : value}</td>
+        </tr>
+        <tr>
+            <td colspan="2">{$key : "value"}//$key表示动态从变量中获取key值</td>
+        </tr>
+    </tbody>
+</table>
 
 ### 一元运算符
 

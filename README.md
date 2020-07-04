@@ -9,25 +9,80 @@
 ## 脚本语法
 
 ### 关键字
-|关键字|含义|
-|---|---|---|
-|var|定义变量|
-|if|条件语句的引导词|
-|else|用在条件语句中，表明当条件不成立时的分支|
-|for|循环语句|
-|in|与for配合使用|
-|continue|执行下一次循环|
-|break|跳出循环|
-|return|终止当前过程的执行并正常退出到上一个执行过程中|
-|try|用于捕获可能发生异常的代码块|
-|catch|与try关键字配合使用，当发生异常时执行|
-|finally|与try关键字配合使用，finally块无论发生异常都会执行|
-|import|导入Java类或导入已定义好的模块|
-|as|与 import 关键字配合使用，用作将导入的 Java类或模块 命名为一个本地变量名|
-|new|创建对象|
-|true|基础类型之一，表示 Boolean 的：真值|
-|false|基础类型之一，表示 Boolean 的：假值|
-|null|基础类型之一，表示 NULL 值|
+<table>
+    <thead>
+        <tr>
+            <th>关键字</th>
+            <th>含义</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>var</td>
+            <td>定义变量</td>
+        </tr>
+        <tr>
+            <td>if</td>
+            <td>用在条件语句中，表明当条件不成立时的分支</td>
+        </tr>
+        <tr>
+            <td>for</td>
+            <td>循环语句</td>
+        </tr>
+        <tr>
+            <td>in</td>
+            <td>与 for 配合使用</td>
+        </tr>
+        <tr>
+            <td>continue</td>
+            <td>执行下一次循环</td>
+        </tr>
+        <tr>
+            <td>break</td>
+            <td>跳出循环</td>
+        </tr>
+        <tr>
+            <td>return</td>
+            <td>终止当前过程的执行并正常退出到上一个执行过程中</td>
+        </tr>
+        <tr>
+            <td>try</td>
+            <td>用于捕获可能发生异常的代码块</td>
+        </tr>
+        <tr>
+            <td>catch</td>
+            <td>与 try 关键字配合使用，当发生异常时执行</td>
+        </tr>
+        <tr>
+            <td>finally</td>
+            <td>与 try 关键字配合使用，finally 块无论发生异常都会执行</td>
+        </tr>
+        <tr>
+            <td>import</td>
+            <td>导入 Java 类或导入已定义好的模块</td>
+        </tr>
+        <tr>
+            <td>as</td>
+            <td>与 import 关键字配合使用，用作将导入的 Java类或模块 命名为一个本地变量名</td>
+        </tr>
+        <tr>
+            <td>new</td>
+            <td>创建对象</td>
+        </tr>
+        <tr>
+            <td>true</td>
+            <td>基础类型之一，表示 Boolean 的：真值</td>
+        </tr>
+        <tr>
+            <td>false</td>
+            <td>基础类型之一，表示 Boolean 的：假值</td>
+        </tr>
+        <tr>
+            <td>null</td>
+            <td>基础类型之一，表示 NULL 值</td>
+        </tr>
+    </tbody>
+</table>
 
 ### 运算符
 <table>

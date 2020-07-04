@@ -39,7 +39,7 @@ public class AstInterpreter {
             if (t instanceof MagicScriptException || t instanceof DebugTimeoutException) {
                 throw t;
             } else {
-                MagicScriptError.error("执行表达式出错 " + t.getMessage(), magicScript.getNodes().get(0).getSpan(), t);
+                MagicScriptError.error("执行脚本出错 " + t.getMessage(), magicScript.getNodes().get(0).getSpan(), t);
                 return null; // never reached
             }
         } finally {

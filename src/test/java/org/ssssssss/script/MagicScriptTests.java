@@ -20,6 +20,11 @@ public class MagicScriptTests extends BaseTest{
 	}
 
 	@Test
+	public void tryTest(){
+		Assert.assertEquals(execute("try.ms"),0);
+	}
+
+	@Test
 	public void newTest(){
 		Assert.assertEquals(execute("new.ms"),new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
 	}

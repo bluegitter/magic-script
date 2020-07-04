@@ -11,7 +11,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiFunction;
 
 public class MagicScriptEngine {
 
@@ -20,20 +19,6 @@ public class MagicScriptEngine {
 	private static ExecutorService service = Executors.newCachedThreadPool();
 
 	private static Map<String, ScriptClass> classMap = null;
-
-	static {
-		addDefaultImport("range", (BiFunction<Integer, Integer, Iterator<Integer>>) (from, to) -> new Iterator<Integer>() {
-			int idx = from;
-
-			public boolean hasNext() {
-				return idx <= to;
-			}
-
-			public Integer next() {
-				return idx++;
-			}
-		});
-	}
 
 	public static void addScriptClass(Class clazz) {
 		if (classMap == null) {

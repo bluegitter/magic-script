@@ -24,7 +24,7 @@ public class Parser {
 			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}};
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "new", "true", "false", "null", "else");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally");
 
 	/**
 	 * Parses a {@link Source} into a {@link MagicScript}.
@@ -68,6 +68,8 @@ public class Parser {
 			result = parseForStatement(tokens);
 		} else if (tokens.match("continue", false)) {
 			result = new Continue(tokens.consume().getSpan());
+		} else if (tokens.match("try", false)) {
+			result = parseTryStatement(tokens);
 		} else if (tokens.match("break", false)) {
 			result = new Break(tokens.consume().getSpan());
 		} else {
@@ -104,6 +106,39 @@ public class Parser {
 		}
 		MagicScriptError.error("Expected identifier or string, but got stream is EOF", stream.getPrev().getSpan());
 		return null;
+	}
+
+	private static TryStatement parseTryStatement(TokenStream stream) {
+		Token opening = stream.expect("try");
+		List<Node> tryBlocks = parseFunctionBody(stream);
+		List<Node> catchBlocks = new ArrayList<>();
+		List<Node> finallyBlocks = new ArrayList<>();
+		String exceptionName = null;
+		if (stream.match("catch", true)) {
+			if (stream.match("(", true)) {
+				exceptionName = stream.expect(TokenType.Identifier).getText();
+				stream.expect(")");
+			}
+			catchBlocks.addAll(parseFunctionBody(stream));
+		}
+		if (stream.match("finally", true)) {
+			finallyBlocks.addAll(parseFunctionBody(stream));
+		}
+		return new TryStatement(new Span(opening.getSpan(), stream.getPrev().getSpan()), exceptionName, tryBlocks, catchBlocks, finallyBlocks);
+	}
+
+	private static List<Node> parseFunctionBody(TokenStream stream) {
+		stream.expect("{");
+		List<Node> blocks = new ArrayList<Node>();
+		while (stream.hasMore() && !stream.match("}", false)) {
+			Node node = parseStatement(stream, true);
+			if (node != null) {
+				validateNode(node);
+				blocks.add(node);
+			}
+		}
+		expectCloseing(stream);
+		return blocks;
 	}
 
 	private static Expression parseNewStatement(TokenStream stream) {
@@ -156,15 +191,8 @@ public class Parser {
 
 		Expression mapOrArray = parseExpression(stream);
 		stream.expect(")");
-		stream.expect("{");
-		List<Node> body = new ArrayList<Node>();
-		while (stream.hasMore() && !stream.match(false, "}")) {
-			Node node = parseStatement(stream, true);
-			validateNode(node);
-			body.add(node);
-		}
-		Span closingEnd = expectCloseing(stream);
-		return new ForStatement(new Span(openingFor, closingEnd), index, value, mapOrArray, body);
+		List<Node> body = parseFunctionBody(stream);
+		return new ForStatement(new Span(openingFor, stream.getPrev().getSpan()), index, value, mapOrArray, body);
 	}
 
 	private static Span expectCloseing(TokenStream stream) {
@@ -177,42 +205,18 @@ public class Parser {
 	private static Node parseIfStatement(TokenStream stream) {
 		Span openingIf = stream.expect("if").getSpan();
 		Expression condition = parseExpression(stream);
-		stream.expect("{");
-		List<Node> trueBlock = new ArrayList<Node>();
-		while (stream.hasMore() && !stream.match("}", false)) {
-			Node node = parseStatement(stream, true);
-			if (node != null) {
-				validateNode(node);
-				trueBlock.add(node);
-			}
-		}
-		expectCloseing(stream);
+		List<Node> trueBlock = parseFunctionBody(stream);
 		List<IfStatement> elseIfs = new ArrayList<IfStatement>();
 		List<Node> falseBlock = new ArrayList<Node>();
 		while (stream.hasMore() && stream.match("else", true)) {
 			if (stream.hasMore() && stream.match("if", false)) {
 				Span elseIfOpening = stream.expect("if").getSpan();
 				Expression elseIfCondition = parseExpression(stream);
-				stream.expect("{");
-				List<Node> elseIfBlock = new ArrayList<Node>();
-				while (stream.hasMore() && !stream.match("}", false)) {
-					Node node = parseStatement(stream, true);
-					if (node != null) {
-						validateNode(node);
-						elseIfBlock.add(node);
-					}
-				}
-				expectCloseing(stream);
+				List<Node> elseIfBlock = parseFunctionBody(stream);
 				Span elseIfSpan = new Span(elseIfOpening, elseIfBlock.size() > 0 ? elseIfBlock.get(elseIfBlock.size() - 1).getSpan() : elseIfOpening);
-				elseIfs.add(new IfStatement(elseIfSpan, elseIfCondition, elseIfBlock, new ArrayList<IfStatement>(), new ArrayList<Node>()));
+				elseIfs.add(new IfStatement(elseIfSpan, elseIfCondition, elseIfBlock, new ArrayList<>(), new ArrayList<>()));
 			} else {
-				stream.expect("{");
-				while (stream.hasMore() && !stream.match("}", false)) {
-					Node node = parseStatement(stream, true);
-					validateNode(node);
-					falseBlock.add(node);
-				}
-				expectCloseing(stream);
+				falseBlock.addAll(parseFunctionBody(stream));
 				break;
 			}
 		}

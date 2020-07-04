@@ -5,7 +5,9 @@ import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.parsing.Span;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class FunctionCall extends Expression {
@@ -13,12 +15,23 @@ public class FunctionCall extends Expression {
     private final List<Expression> arguments;
     private final ThreadLocal<Object[]> cachedArguments;
     private Object cachedFunction;
+    private static final BiFunction<Integer, Integer, Iterator<Integer>> range =  (from, to) -> new Iterator<Integer>() {
+        int idx = from;
+
+        public boolean hasNext() {
+            return idx <= to;
+        }
+
+        public Integer next() {
+            return idx++;
+        }
+    };
 
     public FunctionCall(Span span, Expression function, List<Expression> arguments) {
         super(span);
         this.function = function;
         this.arguments = arguments;
-        this.cachedArguments = new ThreadLocal<Object[]>();
+        this.cachedArguments = new ThreadLocal<>();
     }
 
     public Expression getFunction() {
@@ -72,7 +85,9 @@ public class FunctionCall extends Expression {
             // if the function expression is a VariableAccess and if so, if it can be found
             // in the context.
             Object function = null;
-            if (getFunction() instanceof VariableAccess) {
+            if("range".equals(getFunction().getSpan().getText())){
+                function = range;
+            }else if (getFunction() instanceof VariableAccess) {
                 VariableAccess varAccess = (VariableAccess) getFunction();
                 function = context.get(varAccess.getVariableName().getText());
             }  else {

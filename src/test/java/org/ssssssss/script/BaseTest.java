@@ -25,6 +25,6 @@ public class BaseTest {
 
 	public static Object execute(String filename, MagicScriptContext context) {
 		String script = readScript(filename);
-		return MagicScriptEngine.execute(script, context);
+		return MagicScriptEngine.execute(MagicScript.create(script), context);
 	}
 }

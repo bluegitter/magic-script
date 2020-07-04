@@ -104,13 +104,10 @@ public class MagicScriptEngine {
 		defaultImports.put(name, target);
 	}
 
-	public static Object execute(String script, MagicScriptContext context) {
-		Iterator<Map.Entry<String, Object>> iterator = defaultImports.entrySet().iterator();
-		while (iterator.hasNext()) {
-			Map.Entry<String, Object> entry = iterator.next();
+	public static Object execute(MagicScript magicScript, MagicScriptContext context) {
+		for (Map.Entry<String, Object> entry : defaultImports.entrySet()) {
 			context.set(entry.getKey(), entry.getValue());
 		}
-		MagicScript magicScript = MagicScript.create(script);
 		if (context instanceof MagicScriptDebugContext) {
 			MagicScriptDebugContext debugContext = (MagicScriptDebugContext) context;
 			service.submit(() -> {

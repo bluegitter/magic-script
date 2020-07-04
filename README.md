@@ -207,7 +207,7 @@
             <td>{key : value,key1 : value}</td>
         </tr>
         <tr>
-            <td colspan="2">{$key : "value"}//$key表示动态从变量中获取key值</td>
+            <td colspan="2">{\$key : "value"}//$key表示动态从变量中获取key值</td>
         </tr>
     </tbody>
 </table>

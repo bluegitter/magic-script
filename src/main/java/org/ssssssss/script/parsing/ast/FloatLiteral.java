@@ -1,10 +1,11 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
 
 public class FloatLiteral extends Literal {
-    private final Float value;
+    private Float value;
 
     public FloatLiteral(Span literal) {
         super(literal);
@@ -12,7 +13,11 @@ public class FloatLiteral extends Literal {
         if (text.charAt(text.length() - 1) == 'f') {
             text = text.substring(0, text.length() - 1);
         }
-        this.value = Float.parseFloat(text);
+        try {
+            this.value = Float.parseFloat(text);
+        } catch (NumberFormatException e) {
+            MagicScriptError.error("定义float变量值不合法", literal, e);
+        }
     }
 
     public Float getValue() {

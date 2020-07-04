@@ -24,7 +24,6 @@ public class MapLiteral extends Literal {
 	public Object evaluate(MagicScriptContext context) {
 		Map<String, Object> map = new HashMap<>();
 		for (int i = 0, n = keys.size(); i < n; i++) {
-			Object value = values.get(i).evaluate(context);
 			Token tokenKey = keys.get(i);
 			String key = tokenKey.getSpan().getText();
 			if (tokenKey.getType() == TokenType.StringLiteral) {
@@ -40,6 +39,7 @@ public class MapLiteral extends Literal {
 					}
 				}
 			}
+			Object value = values.get(i).evaluate(context);
 			map.put(key, value);
 		}
 		return map;

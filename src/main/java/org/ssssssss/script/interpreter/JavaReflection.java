@@ -2,6 +2,7 @@ package org.ssssssss.script.interpreter;
 
 import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.functions.ClassExtension;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.functions.StreamExtension;
 
 import java.lang.reflect.*;
@@ -22,6 +23,7 @@ public class JavaReflection extends AbstractReflection {
 		registerExtensionClass(Object[].class, StreamExtension.class);
 		registerExtensionClass(Enumeration.class, StreamExtension.class);
 		registerExtensionClass(Iterator.class, StreamExtension.class);
+		registerExtensionClass(Object.class, ObjectConvertExtension.class);
 	}
 
 	public static Map<Class<?>, Class<?>> getExtensionMap() {

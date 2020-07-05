@@ -462,12 +462,11 @@ public class JavaReflection extends AbstractReflection {
 				return javaMethod.invoke(obj, arguments);
 			}
 		} catch (Throwable t) {
-			if (obj == null && t instanceof InvocationTargetException) {
+			if (t instanceof InvocationTargetException) {
 				Throwable t2 = ((InvocationTargetException) t).getTargetException();
 				throw new RuntimeException(t2);
 			} else {
-				throw new RuntimeException("Couldn't call method '" + javaMethod.getName() + "' with arguments '" + Arrays.toString(arguments)
-						+ "' on object of type '" + obj.getClass().getSimpleName() + "'.", t);
+				throw new RuntimeException(t);
 			}
 		}
 	}

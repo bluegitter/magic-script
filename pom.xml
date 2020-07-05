@@ -9,6 +9,8 @@
     <packaging>jar</packaging>
     <name>magic-script</name>
     <description>magic script</description>
+    <url>https://gitee.com/ssssssss-team/magic-script</url>
+    <inceptionYear>2020</inceptionYear>
     <licenses>
         <license>
             <name>The MIT License (MIT)</name>
@@ -26,6 +28,9 @@
         <connection>scm:git:https://gitee.com/ssssssss-team/magic-script.git</connection>
         <developerConnection>scm:git:https://gitee.com/ssssssss-team/magic-script.git</developerConnection>
     </scm>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.commons</groupId>

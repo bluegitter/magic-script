@@ -46,7 +46,9 @@ public class TryStatement extends Node {
                 context.push();
                 Object value = AstInterpreter.interpretNodeList(finallyBlock, context);
                 context.pop();
-                return value;
+                if(value == Return.RETURN_SENTINEL){
+                	return value;
+				}
             }
 		}
 	}

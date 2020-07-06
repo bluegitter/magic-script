@@ -2,14 +2,13 @@ package org.ssssssss.script;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ScriptClass {
 
 	private String className;
 
-	private List<ScriptMethod> methods = new ArrayList<>();
+	private Set<ScriptMethod> methods = new HashSet<>();
 
 	private List<ScriptAttribute> attributes = new ArrayList<>();
 
@@ -37,11 +36,11 @@ public class ScriptClass {
 		this.className = className;
 	}
 
-	public List<ScriptMethod> getMethods() {
+	public Set<ScriptMethod> getMethods() {
 		return methods;
 	}
 
-	public void setMethods(List<ScriptMethod> methods) {
+	public void setMethods(Set<ScriptMethod> methods) {
 		this.methods = methods;
 	}
 
@@ -89,7 +88,7 @@ public class ScriptClass {
 		}
 	}
 
-	static class ScriptMethod {
+	public static class ScriptMethod {
 
 		private String name;
 
@@ -120,6 +119,20 @@ public class ScriptClass {
 		public List<ScriptMethodParameter> getParameters() {
 			return parameters;
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			ScriptMethod that = (ScriptMethod) o;
+			return Objects.equals(name, that.name)  &&
+					Objects.equals(parameters, that.parameters);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(name, parameters);
+		}
 	}
 
 	static class ScriptMethodParameter {
@@ -140,6 +153,20 @@ public class ScriptClass {
 
 		public String getType() {
 			return type;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+			ScriptMethodParameter that = (ScriptMethodParameter) o;
+			return Objects.equals(name, that.name) &&
+					Objects.equals(type, that.type);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(name, type);
 		}
 	}
 }

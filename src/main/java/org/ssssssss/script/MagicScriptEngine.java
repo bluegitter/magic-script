@@ -90,10 +90,12 @@ public class MagicScriptEngine {
 		Method[] declaredMethods = clazz.getDeclaredMethods();
 		for (int i = 0; i < declaredMethods.length; i++) {
 			Method declaredMethod = declaredMethods[i];
-			if (Modifier.isPublic(declaredMethod.getModifiers()) && declaredMethod.getAnnotation(UnableCall.class) == null) {
-				boolean isStatic = Modifier.isStatic(declaredMethod.getModifiers());
-				if ((!publicAndStatic) || isStatic) {
-					methods.add(new ScriptMethod(declaredMethod));
+			if(!Modifier.isVolatile(declaredMethod.getModifiers())){
+				if (Modifier.isPublic(declaredMethod.getModifiers()) && declaredMethod.getAnnotation(UnableCall.class) == null) {
+					boolean isStatic = Modifier.isStatic(declaredMethod.getModifiers());
+					if ((!publicAndStatic) || isStatic) {
+						methods.add(new ScriptMethod(declaredMethod));
+					}
 				}
 			}
 		}

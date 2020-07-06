@@ -60,8 +60,6 @@ public class Parser {
 			result = parseVarDefine(tokens);
 		} else if (tokens.match("if", false)) {
 			result = parseIfStatement(tokens);
-		} else if (tokens.match("new", false)) {
-			result = parseNewStatement(tokens);
 		} else if (tokens.match("return", false)) {
 			result = parseReturn(tokens);
 		} else if (tokens.match("for", false)) {
@@ -141,8 +139,7 @@ public class Parser {
 		return blocks;
 	}
 
-	private static Expression parseNewStatement(TokenStream stream) {
-		Span opening = stream.expect("new").getSpan();
+	private static Expression parseNewExpression(Span opening,TokenStream stream) {
 		Token identifier = stream.expect(TokenType.Identifier);
 		List<Expression> arguments = new ArrayList<>();
 		arguments.addAll(parseArguments(stream));
@@ -161,8 +158,7 @@ public class Parser {
 			expected = TokenType.Assignment;
 			if (stream.hasMore()) {
 				stream.expect(expected);
-				Expression right = stream.match("new", false) ? parseNewStatement(stream) : parseExpression(stream);
-				return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), variableName, right);
+				return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), variableName, parseExpression(stream));
 			}
 		}
 		MagicScriptError.error("Expected " + expected.getError() + ", but got stream is EOF", stream.getPrev().getSpan());
@@ -414,6 +410,9 @@ public class Parser {
 		//Span identifier = stream.expect(TokenType.Identifier);
 		//Expression result = new VariableAccess(identifier);
 		Span identifier = stream.expect(tokenType).getSpan();
+		if(tokenType == TokenType.Identifier && "new".equals(identifier.getText())){
+			return parseNewExpression(identifier,stream);
+		}
 		if (tokenType == TokenType.Identifier && stream.match(TokenType.Lambda, true)) {
 			return parseLambdaBody(stream, identifier, Arrays.asList(identifier.getText()));
 		}

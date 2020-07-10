@@ -2,10 +2,7 @@ package org.ssssssss.script;
 
 import org.ssssssss.script.interpreter.AstInterpreter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -135,5 +132,14 @@ public class MagicScriptContext {
 		Map<String, Object> oldScope = scopes.remove(scopes.size() - 1);
 		oldScope.clear();
 		freeScopes.add(oldScope);
+	}
+
+	public void putMapIntoContext(Map<String,Object> map){
+		if (map != null && !map.isEmpty()) {
+			Set<Map.Entry<String, Object>> entries = map.entrySet();
+			for (Map.Entry<String, Object> entry : entries) {
+				set(entry.getKey(), entry.getValue());
+			}
+		}
 	}
 }

@@ -6,6 +6,9 @@ import org.ssssssss.script.parsing.ast.Expression;
 
 import java.util.Objects;
 
+/**
+ * == 操作
+ */
 public class EqualOperation extends BinaryOperation {
 
 	public EqualOperation(Expression leftOperand, Span span, Expression rightOperand) {

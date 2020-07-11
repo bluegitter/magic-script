@@ -7,6 +7,9 @@ import org.ssssssss.script.parsing.ast.Expression;
 
 import java.util.Objects;
 
+/**
+ * + 运算
+ */
 public class AddOperation extends BinaryOperation {
 
 	public AddOperation(Expression leftOperand, Span span, Expression rightOperand) {
@@ -17,14 +20,15 @@ public class AddOperation extends BinaryOperation {
 	public Object evaluate(MagicScriptContext context) {
 		Object left = getLeftOperand().evaluate(context);
 		Object right = getRightOperand().evaluate(context);
+		// 如果其中左右其中一个是String，则拼接字符串
 		if (left instanceof String || right instanceof String) {
 			return left + Objects.toString(right);
 		}
 		if (right == null) {
-			MagicScriptError.error(getRightOperand().getSpan().getText() + " is undefined.", getRightOperand().getSpan());
+			MagicScriptError.error(getRightOperand().getSpan().getText() + " 值为空，不能执行[+]操作", getRightOperand().getSpan());
 		}
 		if (left == null) {
-			MagicScriptError.error(getLeftOperand().getSpan().getText() + " is undefined.", getLeftOperand().getSpan());
+			MagicScriptError.error(getLeftOperand().getSpan().getText() + " 值为空，不能执行[+]操作", getLeftOperand().getSpan());
 		}
 		if (left instanceof Double || right instanceof Double) {
 			return ((Number) left).doubleValue() + ((Number) right).doubleValue();
@@ -44,8 +48,7 @@ public class AddOperation extends BinaryOperation {
 		if (left instanceof Byte || right instanceof Byte) {
 			return ((Number) left).byteValue() + ((Number) right).byteValue();
 		}
-
-		MagicScriptError.error("Operands for + operator must be numbers or strings, got " + left + ", " + right + ".", getSpan());
+		MagicScriptError.error("[+]操作的值必须是String或数值类型, 获得的值为： " + left + ", " + right, getSpan());
 		return null; // never reached
 	}
 }

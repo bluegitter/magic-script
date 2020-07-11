@@ -63,7 +63,7 @@ public abstract class BinaryOperation extends Expression {
 				expression = new OrOperation(left, span, right);
 				break;
 			default:
-				MagicScriptError.error("Binary operator " + operator + " not implemented", span);
+				MagicScriptError.error("[" + operator + "]操作符未实现", span);
 		}
 		return expression;
 	}

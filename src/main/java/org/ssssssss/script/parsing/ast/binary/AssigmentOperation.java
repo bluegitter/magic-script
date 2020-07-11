@@ -7,6 +7,9 @@ import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.VariableAccess;
 import org.ssssssss.script.parsing.ast.VariableSetter;
 
+/**
+ * = 操作
+ */
 public class AssigmentOperation extends BinaryOperation {
 
 	public AssigmentOperation(Expression leftOperand, Span span, Expression rightOperand) {

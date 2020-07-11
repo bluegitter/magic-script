@@ -6,6 +6,9 @@ import org.ssssssss.script.parsing.ast.Expression;
 
 import java.util.Objects;
 
+/**
+ * !=操作
+ */
 public class NotEqualOperation extends BinaryOperation {
 
 	public NotEqualOperation(Expression leftOperand, Span span, Expression rightOperand) {

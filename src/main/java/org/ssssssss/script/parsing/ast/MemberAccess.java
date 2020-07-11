@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-public class MemberAccess extends Expression {
+public class MemberAccess extends Expression implements VariableSetter {
 	private final Expression object;
 	private final Span name;
 	private Object cachedMember;
@@ -137,5 +137,56 @@ public class MemberAccess extends Expression {
 		}
 		setCachedMember(field);
 		return AbstractReflection.getInstance().getFieldValue(object, field);
+	}
+
+	@Override
+	public void setValue(MagicScriptContext context, Object value) {
+		Object object = getObject().evaluate(context);
+		if (object == null) {
+			// ?
+		} else if (object instanceof Map) {
+			Map map = (Map) object;
+			map.put(getName().getText(), value);
+		} else {
+			Object field = getCachedMember();
+			if (field != null) {
+				try {
+					AbstractReflection.getInstance().setFieldValue(object, field, value);
+				} catch (Throwable t) {
+					// fall through
+				}
+			}else{
+				String text = getName().getText();
+				field = AbstractReflection.getInstance().getField(object, text);
+				if (field == null) {
+					String methodName;
+					if (text.length() > 1) {
+						methodName = text.substring(0, 1).toUpperCase() + text.substring(1);
+					} else {
+						methodName = text.toUpperCase();
+					}
+					MemberAccess access = new MemberAccess(this.object, new Span("set" + methodName));
+					MethodCall methodCall = new MethodCall(getName(), access, Collections.singletonList(new Literal(null) {
+						@Override
+						public Object evaluate(MagicScriptContext context) {
+							return value;
+						}
+					}));
+					try {
+						methodCall.evaluate(context);
+					} catch (MagicScriptException e) {
+						if (ExceptionUtils.indexOfThrowable(e, InvocationTargetException.class) > -1) {
+							MagicScriptError.error(String.format("在%s中调用方法get%s发生异常"
+									, object.getClass()
+									, methodName), getSpan(), e);
+						}
+						MagicScriptError.error(String.format("在%s中找不到属性%s或者方法set%s"
+								, object.getClass()
+								, getName().getText()
+								, methodName), getSpan());
+					}
+				}
+			}
+		}
 	}
 }

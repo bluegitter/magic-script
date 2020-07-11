@@ -71,7 +71,7 @@ public class JavaReflection extends AbstractReflection {
 		return classScore + interfaceScore;
 	}
 
-	private static int matchTypes(Class<?>[] parameterTypes, Class<?>[] otherTypes,boolean matchCount) {
+	private static int matchTypes(Class<?>[] parameterTypes, Class<?>[] otherTypes, boolean matchCount) {
 		if (matchCount && parameterTypes.length != otherTypes.length) {
 			return -1;
 		}
@@ -104,13 +104,13 @@ public class JavaReflection extends AbstractReflection {
 		for (T executable : executables) {
 			// Check if the types match.
 			Class<?>[] otherTypes = executable.getParameterTypes();
-			int score = matchTypes(parameterTypes, otherTypes,true);
+			int score = matchTypes(parameterTypes, otherTypes, true);
 			if (score == -1 && executable.isVarArgs()) {
 				int fixedParaLength = otherTypes.length - 1;
 				if (parameterTypes.length >= fixedParaLength) {
 					Class<?>[] argTypes = new Class<?>[fixedParaLength];
 					System.arraycopy(parameterTypes, 0, argTypes, 0, fixedParaLength);
-					score = matchTypes(argTypes, otherTypes,false);
+					score = matchTypes(argTypes, otherTypes, false);
 					if (score > -1) {
 						Class<?> target = otherTypes[fixedParaLength].getComponentType();
 						for (int i = fixedParaLength; i < parameterTypes.length; i++) {
@@ -345,6 +345,16 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	@Override
+	public void setFieldValue(Object obj, Object field, Object value) {
+		Field javaField = (Field) field;
+		try {
+			javaField.set(obj, value);
+		} catch (Throwable e) {
+			throw new RuntimeException("Couldn't set value of field '" + javaField.getName() + "' from object of type '" + obj.getClass().getSimpleName() + "'");
+		}
+	}
+
+	@Override
 	public Object getExtensionMethod(Object obj, String name, Object... arguments) {
 		Class<?> cls = obj instanceof Class ? Class.class : obj.getClass();
 		if (cls.isArray()) {
@@ -366,7 +376,7 @@ public class JavaReflection extends AbstractReflection {
 				for (int i = 0; i < arguments.length; i++) {
 					parameterTypes[i + 1] = arguments[i] == null ? Null.class : arguments[i].getClass();
 				}
-				return findExecutable(methodList,  parameterTypes);
+				return findExecutable(methodList, parameterTypes);
 			}
 		}
 		if (cls != Object.class) {

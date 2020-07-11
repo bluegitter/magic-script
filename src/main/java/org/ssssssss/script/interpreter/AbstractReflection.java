@@ -44,6 +44,8 @@ public abstract class AbstractReflection {
      **/
     public abstract Object getFieldValue(Object obj, Object field);
 
+    public abstract void setFieldValue(Object obj, Object field,Object value);
+
     /**
      * Calls the method on the object with the given arguments. The method must have been previously retrieved via
      * {@link #getMethod(Object, String, Object...)}.

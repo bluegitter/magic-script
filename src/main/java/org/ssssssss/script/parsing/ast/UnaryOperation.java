@@ -5,6 +5,9 @@ import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
 
+/**
+ * 一元操作符
+ */
 public class UnaryOperation extends Expression {
 
     private final UnaryOperator operator;
@@ -20,7 +23,7 @@ public class UnaryOperation extends Expression {
         return operator;
     }
 
-    public Expression getOperand() {
+    private Expression getOperand() {
         return operand;
     }
 
@@ -42,12 +45,12 @@ public class UnaryOperation extends Expression {
             } else if (operand instanceof Long) {
                 return -(Long) operand;
             } else {
-                MagicScriptError.error("Operand of operator '" + getOperator().name() + "' must be a number, got " + operand, getSpan());
+                MagicScriptError.error("一元操作符[" + getOperator().name() + "]的值必须是数值类型，获得的值为：" + operand, getSpan());
                 return null; // never reached
             }
         } else if (getOperator() == UnaryOperator.Not) {
             if (!(operand instanceof Boolean)) {
-                MagicScriptError.error("Operand of operator '" + getOperator().name() + "' must be a boolean", getSpan());
+                MagicScriptError.error("一元操作符[" + getOperator().name() + "]的值必须是boolean类型，获得的值为：" + operand, getSpan());
             }
             return !(Boolean) operand;
         } else {
@@ -55,7 +58,7 @@ public class UnaryOperation extends Expression {
         }
     }
 
-    public static enum UnaryOperator {
+    public enum UnaryOperator {
         Not, Negate, Positive;
 
         public static UnaryOperator getOperator(Token op) {
@@ -68,7 +71,7 @@ public class UnaryOperation extends Expression {
             if (op.getType() == TokenType.Minus) {
                 return UnaryOperator.Negate;
             }
-            MagicScriptError.error("Unknown unary operator " + op + ".", op.getSpan());
+            MagicScriptError.error("不支持的一元操作符：" + op , op.getSpan());
             return null; // not reached
         }
     }

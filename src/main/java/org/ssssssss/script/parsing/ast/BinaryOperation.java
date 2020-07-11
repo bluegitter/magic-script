@@ -1,9 +1,10 @@
-package org.ssssssss.script.parsing.ast.binary;
+package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.parsing.ast.binary.*;
 
 public abstract class BinaryOperation extends Expression {
 

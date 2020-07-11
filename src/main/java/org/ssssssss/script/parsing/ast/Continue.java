@@ -3,7 +3,11 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
+/**
+ * continue语句
+ */
 public class Continue extends Node {
+
     public static final Object CONTINUE_SENTINEL = new Object();
 
     public Continue(Span span) {

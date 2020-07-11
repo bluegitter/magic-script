@@ -1,9 +1,13 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.Literal;
 
+/**
+ * long 常量
+ */
 public class LongLiteral extends Literal {
     private Long value;
 
@@ -14,10 +18,6 @@ public class LongLiteral extends Literal {
         } catch (NumberFormatException e) {
             MagicScriptError.error("定义long变量值不合法", literal, e);
         }
-    }
-
-    public Long getValue() {
-        return value;
     }
 
     @Override

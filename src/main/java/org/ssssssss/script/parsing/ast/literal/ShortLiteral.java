@@ -1,9 +1,13 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.Literal;
 
+/**
+ * short 常量
+ */
 public class ShortLiteral extends Literal {
     private Short value;
 
@@ -14,10 +18,6 @@ public class ShortLiteral extends Literal {
         } catch (NumberFormatException e) {
             MagicScriptError.error("定义short变量值不合法", literal, e);
         }
-    }
-
-    public Short getValue() {
-        return value;
     }
 
     @Override

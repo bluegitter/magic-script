@@ -4,7 +4,8 @@ package org.ssssssss.script.parsing;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.ast.*;
-import org.ssssssss.script.parsing.ast.binary.BinaryOperation;
+import org.ssssssss.script.parsing.ast.BinaryOperation;
+import org.ssssssss.script.parsing.ast.literal.*;
 
 import javax.xml.transform.Source;
 import java.util.ArrayList;

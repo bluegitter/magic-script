@@ -1,11 +1,16 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.parsing.ast.Literal;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * List常量
+ */
 public class ListLiteral extends Literal {
     public final List<Expression> values;
 

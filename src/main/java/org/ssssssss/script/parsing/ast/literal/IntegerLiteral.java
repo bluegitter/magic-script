@@ -1,9 +1,13 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.Literal;
 
+/**
+ * int常量
+ */
 public class IntegerLiteral extends Literal {
 	private Integer value;
 
@@ -14,10 +18,6 @@ public class IntegerLiteral extends Literal {
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义int变量值不合法", literal, e);
 		}
-	}
-
-	public Integer getValue() {
-		return value;
 	}
 
 	@Override

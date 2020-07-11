@@ -4,7 +4,13 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
 
+/**
+ * 节点
+ */
 public abstract class Node {
+    /**
+     * 对应的文本
+     */
     private final Span span;
 
     public Node(Span span) {
@@ -20,11 +26,11 @@ public abstract class Node {
         return span.getText();
     }
 
+    /**
+     *
+     * @param context
+     * @return
+     */
     public abstract Object evaluate(MagicScriptContext context);
 
-    protected void validate(boolean value, String message, Span location) {
-        if (value) {
-            MagicScriptError.error(message, location);
-        }
-    }
 }

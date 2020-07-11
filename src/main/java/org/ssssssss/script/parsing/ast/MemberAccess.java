@@ -7,6 +7,7 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.literal.StringLiteral;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;

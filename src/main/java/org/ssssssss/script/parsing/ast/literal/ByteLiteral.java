@@ -1,9 +1,13 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.Literal;
 
+/**
+ * byte常量
+ */
 public class ByteLiteral extends Literal {
     private Byte value;
 
@@ -14,10 +18,6 @@ public class ByteLiteral extends Literal {
         } catch (NumberFormatException e) {
             MagicScriptError.error("定义byte变量值不合法", literal, e);
         }
-    }
-
-    public Byte getValue() {
-        return value;
     }
 
     @Override

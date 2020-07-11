@@ -3,6 +3,7 @@ package org.ssssssss.script.parsing.ast.binary;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.VariableAccess;
 import org.ssssssss.script.parsing.ast.VariableSetter;

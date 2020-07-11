@@ -3,6 +3,9 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
+/**
+ * break 语句
+ */
 public class Break extends Node {
     public static final Object BREAK_SENTINEL = new Object();
 

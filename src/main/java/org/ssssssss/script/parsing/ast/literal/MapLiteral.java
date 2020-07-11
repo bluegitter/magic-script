@@ -1,15 +1,20 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
+import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.parsing.ast.Literal;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * map常量
+ */
 public class MapLiteral extends Literal {
 	private final List<Token> keys;
 	private final List<Expression> values;
@@ -28,19 +33,18 @@ public class MapLiteral extends Literal {
 			String key = tokenKey.getSpan().getText();
 			if (tokenKey.getType() == TokenType.StringLiteral) {
 				key = (String) new StringLiteral(tokenKey.getSpan()).evaluate(context);
-			} else if (key != null && key.startsWith("$")) {
+			} else if (key != null && key.startsWith("$")) {	//如果key是$开头的，则认为是动态key值
 				key = key.substring(1);
-				if (!key.startsWith("$")) {
+				if (!key.startsWith("$")) {	//如果是$$开头的变量，则认为是普通key..
 					Object objKey = context.get(key);
 					if (objKey != null) {
 						key = objKey.toString();
 					} else {
-						MagicScriptError.error("map key is null", tokenKey.getSpan());
+						MagicScriptError.error("map的key值不能为空", tokenKey.getSpan());
 					}
 				}
 			}
-			Object value = values.get(i).evaluate(context);
-			map.put(key, value);
+			map.put(key, values.get(i).evaluate(context));
 		}
 		return map;
 	}

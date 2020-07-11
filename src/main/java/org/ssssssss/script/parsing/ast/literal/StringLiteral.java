@@ -1,9 +1,13 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.CharacterStream;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.Literal;
 
+/**
+ * String 常量
+ */
 public class StringLiteral extends Literal {
     private final String value;
 
@@ -14,6 +18,7 @@ public class StringLiteral extends Literal {
         StringBuilder builder = new StringBuilder();
 
         CharacterStream stream = new CharacterStream(unescapedValue);
+        // 处理转义符
         while (stream.hasMore()) {
             if (stream.match("\\\\", true)) {
                 builder.append('\\');
@@ -35,8 +40,8 @@ public class StringLiteral extends Literal {
     }
 
     /**
-     * Returns the literal without quotes
-     **/
+     * 返回常量值
+     */
     public String getValue() {
         return value;
     }

@@ -1,8 +1,8 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.exception.ExceptionUtils;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;

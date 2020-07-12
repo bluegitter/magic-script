@@ -1,9 +1,7 @@
 package org.ssssssss.script.functions;
 
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.time.DateUtils;
-
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -24,7 +22,11 @@ public class ObjectConvertExtension {
 	 * @param defaultValue 默认值
 	 */
 	public static int asInt(Object val, int defaultValue) {
-		return NumberUtils.toInt(asString(val), defaultValue);
+		try {
+			return Integer.parseInt(asString(val));
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	/**
@@ -40,7 +42,11 @@ public class ObjectConvertExtension {
 	 * @param defaultValue 默认值
 	 */
 	public static double asDouble(Object val, double defaultValue) {
-		return NumberUtils.toDouble(asString(val), defaultValue);
+		try {
+			return Double.parseDouble(asString(val));
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	/**
@@ -56,7 +62,11 @@ public class ObjectConvertExtension {
 	 * @param defaultValue 默认值
 	 */
 	public static long asLong(Object val, long defaultValue) {
-		return NumberUtils.toLong(asString(val), defaultValue);
+		try {
+			return Long.parseLong(asString(val));
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	/**
@@ -72,7 +82,11 @@ public class ObjectConvertExtension {
 	 * @param defaultValue 默认值
 	 */
 	public static byte asByte(Object val, byte defaultValue) {
-		return NumberUtils.toByte(asString(val), defaultValue);
+		try {
+			return Byte.parseByte(asString(val));
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	/**
@@ -88,7 +102,11 @@ public class ObjectConvertExtension {
 	 * @param defaultValue 默认值
 	 */
 	public static short asShort(Object val, short defaultValue) {
-		return NumberUtils.toShort(asString(val), defaultValue);
+		try {
+			return Short.parseShort(asString(val), defaultValue);
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	/**
@@ -104,7 +122,11 @@ public class ObjectConvertExtension {
 	 * @param defaultValue 默认值
 	 */
 	public static float asFloat(Object val, float defaultValue) {
-		return NumberUtils.toFloat(asString(val), defaultValue);
+		try {
+			return Float.parseFloat(asString(val));
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	/**
@@ -117,17 +139,24 @@ public class ObjectConvertExtension {
 	/**
 	 * 转Date
 	 */
-	public static Date asDate(Object val, String... formats) {
+	public static Date asDate(Object val) {
+		return asDate(val, "yyyy-MM-dd HH:mm:ss");
+	}
+
+	/**
+	 * 转Date
+	 */
+	public static Date asDate(Object val, String format) {
 		if (val == null) {
 			return null;
 		}
 		if (val instanceof String) {
 			try {
-				return DateUtils.parseDate(val.toString(), formats);
+				return new SimpleDateFormat(format).parse(val.toString());
 			} catch (ParseException e) {
-				long longVal = NumberUtils.toLong(val.toString(), -1);
-				if(longVal > 0){
-					return asDate(longVal,formats);
+				long longVal = asLong(val, -1);
+				if (longVal > 0) {
+					return asDate(longVal, format);
 				}
 			}
 		} else if (val instanceof Date) {

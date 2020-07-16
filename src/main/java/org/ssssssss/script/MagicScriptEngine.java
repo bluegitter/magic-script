@@ -9,16 +9,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class MagicScriptEngine {
 
 	private static Map<String, Object> defaultImports = new ConcurrentHashMap<>();
 
-	private static ExecutorService service = Executors.newCachedThreadPool();
-
 	private static Map<String, ScriptClass> classMap = null;
+
 
 	public static void addScriptClass(Class clazz) {
 		if (classMap == null) {
@@ -90,7 +87,7 @@ public class MagicScriptEngine {
 		Method[] declaredMethods = clazz.getDeclaredMethods();
 		for (int i = 0; i < declaredMethods.length; i++) {
 			Method declaredMethod = declaredMethods[i];
-			if(!Modifier.isVolatile(declaredMethod.getModifiers())){
+			if (!Modifier.isVolatile(declaredMethod.getModifiers())) {
 				if (Modifier.isPublic(declaredMethod.getModifiers()) && declaredMethod.getAnnotation(UnableCall.class) == null) {
 					boolean isStatic = Modifier.isStatic(declaredMethod.getModifiers());
 					if ((!publicAndStatic) || isStatic) {
@@ -112,14 +109,15 @@ public class MagicScriptEngine {
 		}
 		if (context instanceof MagicScriptDebugContext) {
 			MagicScriptDebugContext debugContext = (MagicScriptDebugContext) context;
-			service.submit(() -> {
+			new Thread(() -> {
 				try {
+					debugContext.start();
 					debugContext.setReturnValue(magicScript.execute(debugContext));
 				} catch (Exception e) {
 					debugContext.setException(true);
 					debugContext.setReturnValue(e);
 				}
-			});
+			}, "magic-script").start();
 			try {
 				debugContext.await();
 			} catch (InterruptedException e) {

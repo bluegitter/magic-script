@@ -30,9 +30,19 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	private int timeout = 60;
 
+	private Runnable complete;
+
+	private Runnable start;
+
 	public MagicScriptDebugContext(){
 		super();
+	}
+
+	public void setId(String id) {
+		String oldId = this.id;
+		this.id = id;
 		contextMap.put(this.id, this);
+		contextMap.remove(oldId);
 	}
 
 	public void setTimeout(int timeout) {
@@ -66,11 +76,28 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		return returnValue;
 	}
 
+	public void onComplete(Runnable complete){
+		this.complete = complete;
+	}
+
+	public void start(){
+		if(this.start != null){
+			this.start.run();
+		}
+	}
+
+	public void onStart(Runnable start){
+		this.start = start;
+	}
+
 	public void setReturnValue(Object returnValue) {
 		this.running = false;
 		this.returnValue = returnValue;
 		contextMap.remove(this.id);
 		consumer.offer(this.id);
+		if(complete != null){
+			complete.run();
+		}
 	}
 
 	public boolean isRunning() {

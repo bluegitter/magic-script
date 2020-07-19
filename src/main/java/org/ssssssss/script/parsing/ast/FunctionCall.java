@@ -117,7 +117,7 @@ public class FunctionCall extends Expression {
                     return null; // never reached
                 }
             } else {
-                MagicScriptError.error("Couldn't find function " + getFunction(), getSpan());
+                MagicScriptError.error("找不到方法 " + getFunction(), getSpan());
                 return null; // never reached
             }
         } finally {

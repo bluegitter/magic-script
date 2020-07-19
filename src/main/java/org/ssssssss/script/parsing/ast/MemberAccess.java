@@ -63,7 +63,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 	public Object evaluate(MagicScriptContext context) {
 		Object object = getObject().evaluate(context);
 		if (object == null) {
-			return null;
+			MagicScriptError.error(String.format("对象[%s]为空",getObject().getSpan().getText()),getObject().getSpan());
 		}
 
 		// special case for array.length

@@ -36,7 +36,7 @@ public class MapOrArrayAccess extends Expression implements VariableSetter {
 	public Object evaluate(MagicScriptContext context) {
 		Object mapOrArray = getMapOrArray().evaluate(context);
 		if (mapOrArray == null) {
-			return null;
+			MagicScriptError.error(String.format("对象[%s]为空",getMapOrArray().getSpan().getText()),getMapOrArray().getSpan());
 		}
 		Object keyOrIndex = getKeyOrIndex().evaluate(context);
 		if (keyOrIndex == null) {

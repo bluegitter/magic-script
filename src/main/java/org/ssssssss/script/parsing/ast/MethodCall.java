@@ -91,7 +91,7 @@ public class MethodCall extends Expression {
 		try {
 			Object object = getObject().evaluate(context);
 			if (object == null) {
-				return null;
+				MagicScriptError.error(String.format("对象[%s]为空",getObject().getSpan().getText()),getObject().getSpan());
 			}
 			Object[] argumentValues = getCachedArguments();
 			List<Expression> arguments = getArguments();

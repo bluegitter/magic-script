@@ -43,6 +43,7 @@ public enum TokenType {
     SingleQuote("'", "'"),
     BooleanLiteral("true or false"),
     DoubleLiteral("a double floating point number"),
+    DecimalLiteral("a decimal point number"),
     FloatLiteral("a floating point number"),
     LongLiteral("a long integer number"),
     IntegerLiteral("an integer number"),

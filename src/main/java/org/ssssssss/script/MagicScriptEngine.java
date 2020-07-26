@@ -7,6 +7,7 @@ import org.ssssssss.script.exception.DebugTimeoutException;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,7 +28,7 @@ public class MagicScriptEngine {
 	public synchronized static Map<String, ScriptClass> getScriptClassMap() {
 		if (classMap == null) {
 			classMap = new HashMap<>();
-			Arrays.asList(String.class, Object.class, Date.class, Integer.class, Double.class, Float.class, Long.class, List.class, Short.class, Byte.class, Boolean.class).forEach(clazz -> {
+			Arrays.asList(String.class, Object.class, Date.class, Integer.class, Double.class, Float.class, Long.class, List.class, Short.class, Byte.class, Boolean.class, BigDecimal.class).forEach(clazz -> {
 				getScriptClass(clazz).forEach(scriptClass -> classMap.put(scriptClass.getClassName(), scriptClass));
 			});
 		}

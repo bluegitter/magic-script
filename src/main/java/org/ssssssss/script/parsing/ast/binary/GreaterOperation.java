@@ -2,9 +2,12 @@ package org.ssssssss.script.parsing.ast.binary;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
+
+import java.math.BigDecimal;
 
 /**
  *  > 运算
@@ -24,6 +27,9 @@ public class GreaterOperation extends BinaryOperation {
 		Object right = getRightOperand().evaluate(context);
 		if (right == null) {
 			MagicScriptError.error(getRightOperand().getSpan().getText() + "[>]操作的值不能为空", getRightOperand().getSpan());
+		}
+		if (left instanceof BigDecimal || right instanceof BigDecimal) {
+			return ObjectConvertExtension.asDecimal(left).compareTo(ObjectConvertExtension.asDecimal(right)) == 1;
 		}
 		if (left instanceof Double || right instanceof Double) {
 			return ((Number) left).doubleValue() > ((Number) right).doubleValue();

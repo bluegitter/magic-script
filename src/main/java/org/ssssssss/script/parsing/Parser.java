@@ -361,6 +361,8 @@ public class Parser {
 			return new IntegerLiteral(stream.expect(TokenType.IntegerLiteral).getSpan());
 		} else if (stream.match(TokenType.LongLiteral, false)) {
 			return new LongLiteral(stream.expect(TokenType.LongLiteral).getSpan());
+		} else if (stream.match(TokenType.DecimalLiteral, false)) {
+			return new BigDecimalLiteral(stream.expect(TokenType.DecimalLiteral).getSpan());
 		} else if (stream.match(TokenType.NullLiteral, false)) {
 			return new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
 		} else {

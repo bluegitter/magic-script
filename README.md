@@ -179,6 +179,10 @@
             <td>`123d`、`123D`</td>
         </tr>
         <tr>
+            <td>BigDecimal</td>
+            <td>`123m`、`123M`</td>
+        </tr>
+        <tr>
             <td>boolean</td>
             <td>`true`、`false`</td>
         </tr>

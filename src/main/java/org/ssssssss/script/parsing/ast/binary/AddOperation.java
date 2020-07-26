@@ -2,10 +2,12 @@ package org.ssssssss.script.parsing.ast.binary;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
@@ -30,6 +32,9 @@ public class AddOperation extends BinaryOperation {
 		}
 		if (left == null) {
 			MagicScriptError.error(getLeftOperand().getSpan().getText() + " 值为空，不能执行[+]操作", getLeftOperand().getSpan());
+		}
+		if (left instanceof BigDecimal || right instanceof BigDecimal) {
+			return ObjectConvertExtension.asDecimal(left).add(ObjectConvertExtension.asDecimal(right));
 		}
 		if (left instanceof Double || right instanceof Double) {
 			return ((Number) left).doubleValue() + ((Number) right).doubleValue();

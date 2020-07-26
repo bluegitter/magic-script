@@ -1,5 +1,6 @@
 package org.ssssssss.script.functions;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -141,6 +142,30 @@ public class ObjectConvertExtension {
 	 */
 	public static Date asDate(Object val) {
 		return asDate(val, "yyyy-MM-dd HH:mm:ss");
+	}
+
+	/**
+	 * 转BigDecimal
+	 */
+	public static BigDecimal asDecimal(Object val) {
+		if(val instanceof BigDecimal){
+			return (BigDecimal) val;
+		}
+		return new BigDecimal(asString(val));
+	}
+
+	/**
+	 * 转BigDecimal
+	 */
+	public static BigDecimal asDecimal(Object val,BigDecimal defaultVal) {
+		if(val instanceof BigDecimal){
+			return (BigDecimal) val;
+		}
+		try {
+			return new BigDecimal(asString(val));
+		} catch (Exception e) {
+			return defaultVal;
+		}
 	}
 
 	/**

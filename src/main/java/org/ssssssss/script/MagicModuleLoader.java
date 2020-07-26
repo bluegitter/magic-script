@@ -1,6 +1,7 @@
 package org.ssssssss.script;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,5 +43,9 @@ public class MagicModuleLoader {
 
 	public static Object loadClass(String className) {
 		return classLoader.apply(className);
+	}
+
+	public static Set<String> getModuleNames(){
+		return modules.keySet();
 	}
 }

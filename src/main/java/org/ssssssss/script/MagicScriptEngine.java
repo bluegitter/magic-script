@@ -4,6 +4,7 @@ import org.ssssssss.script.ScriptClass.ScriptAttribute;
 import org.ssssssss.script.ScriptClass.ScriptMethod;
 import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.exception.DebugTimeoutException;
+import org.ssssssss.script.interpreter.JavaReflection;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,6 +36,22 @@ public class MagicScriptEngine {
 		return classMap;
 	}
 
+	public static Map<String, ScriptClass> getExtensionScriptClass() {
+		Map<Class<?>, Class<?>> extensionMap = JavaReflection.getExtensionMap();
+		Map<String, ScriptClass> classMap = new HashMap<>();
+		for (Map.Entry<Class<?>, Class<?>> entry : extensionMap.entrySet()) {
+			ScriptClass clazz = classMap.get(entry.getKey().getName());
+			if (clazz == null) {
+				clazz = new ScriptClass();
+				classMap.put(entry.getKey().getName(), clazz);
+			}
+			for (ScriptMethod method : getMethod(entry.getValue(), true)) {
+				clazz.addMethod(method);
+			}
+		}
+		return classMap;
+	}
+
 	public static ScriptClass getScriptClassFromClass(Class clazz) {
 		Class<?> superClass = clazz.getSuperclass();
 		ScriptClass scriptClass = new ScriptClass();
@@ -60,6 +77,15 @@ public class MagicScriptEngine {
 			ScriptClass scriptClass = new ScriptClass();
 			scriptClass.setClassName(clazz.getName());
 			scriptClass.setSuperClass(superClass != null ? superClass.getName() : null);
+			Class[] interfaces = clazz.getInterfaces();
+			if(interfaces != null){
+				List<String> interfaceList = new ArrayList<>();
+				for (Class interfaceClazz : interfaces) {
+					classList.addAll(getScriptClass(interfaceClazz));
+					interfaceList.add(interfaceClazz.getName());
+				}
+				scriptClass.setInterfaces(interfaceList);
+			}
 			getMethod(clazz, false).forEach(method -> {
 				if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
 					String attributeName = method.getName().substring(3);

@@ -34,6 +34,8 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	private Runnable start;
 
+	private boolean stepInto = false;
+
 	public MagicScriptDebugContext(){
 		super();
 	}
@@ -98,6 +100,14 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		if(complete != null){
 			complete.run();
 		}
+	}
+
+	public boolean isStepInto() {
+		return stepInto;
+	}
+
+	public void setStepInto(boolean stepInto) {
+		this.stepInto = stepInto;
 	}
 
 	public boolean isRunning() {

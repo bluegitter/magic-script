@@ -50,17 +50,19 @@ public class AstInterpreter {
 
     public static Object interpretNodeList(List<Node> nodes, MagicScriptContext context) {
         if (nodes != null) {
-            for (int i = 0, n = nodes.size(); i < n; i++) {
-                Node node = nodes.get(i);
-                if(context instanceof MagicScriptDebugContext){
+            boolean step = false;
+            for (Node node : nodes) {
+                if (context instanceof MagicScriptDebugContext) {
                     MagicScriptDebugContext debugContext = (MagicScriptDebugContext) context;
                     Span.Line line = node.getSpan().getLine();
-                    if(debugContext.getBreakpoints().contains(line.getLineNumber())){
+                    if (step || debugContext.getBreakpoints().contains(line.getLineNumber())) {
                         try {
-                            if(debugContext.pause(line) == null){
+                            if (debugContext.pause(line) == null) {
                                 debugContext.setReturnValue(null);
                                 throw new DebugTimeoutException();
                             }
+                            step = debugContext.isStepInto();
+                            debugContext.setStepInto(false);
                         } catch (InterruptedException e) {
                             throw new DebugTimeoutException(e);
                         }

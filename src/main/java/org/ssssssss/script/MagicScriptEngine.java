@@ -6,18 +6,26 @@ import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.exception.DebugTimeoutException;
 import org.ssssssss.script.interpreter.JavaReflection;
 
+import javax.script.*;
+import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MagicScriptEngine {
+public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEngine, Compilable {
 
 	private static Map<String, Object> defaultImports = new ConcurrentHashMap<>();
 
 	private static Map<String, ScriptClass> classMap = null;
 
+	private MagicScriptEngineFactory magicScriptEngineFactory;
+
+	public MagicScriptEngine(MagicScriptEngineFactory magicScriptEngineFactory) {
+		this.magicScriptEngineFactory = magicScriptEngineFactory;
+	}
 
 	public static void addScriptClass(Class clazz) {
 		if (classMap == null) {
@@ -80,7 +88,7 @@ public class MagicScriptEngine {
 			scriptClass.setClassName(clazz.getName());
 			scriptClass.setSuperClass(superClass != null ? superClass.getName() : null);
 			Class[] interfaces = clazz.getInterfaces();
-			if(interfaces != null){
+			if (interfaces != null) {
 				List<String> interfaceList = new ArrayList<>();
 				for (Class interfaceClazz : interfaces) {
 					classList.addAll(getScriptClass(interfaceClazz));
@@ -132,6 +140,10 @@ public class MagicScriptEngine {
 		defaultImports.put(name, target);
 	}
 
+	public static Map<String, Object> getDefaultImports() {
+		return defaultImports;
+	}
+
 	public static Object execute(MagicScript magicScript, MagicScriptContext context) {
 		for (Map.Entry<String, Object> entry : defaultImports.entrySet()) {
 			context.set(entry.getKey(), entry.getValue());
@@ -155,5 +167,49 @@ public class MagicScriptEngine {
 			return debugContext.isRunning() ? debugContext.getDebugInfo() : debugContext.getReturnValue();
 		}
 		return magicScript.execute(context);
+	}
+
+	@Override
+	public Object eval(String script, ScriptContext context) throws ScriptException {
+		return compile(script).eval(context);
+	}
+
+	@Override
+	public Object eval(Reader reader, ScriptContext context) throws ScriptException {
+		return compile(reader).eval(context);
+	}
+
+	@Override
+	public Bindings createBindings() {
+		return new SimpleBindings();
+	}
+
+	@Override
+	public ScriptEngineFactory getFactory() {
+		return magicScriptEngineFactory;
+	}
+
+	@Override
+	public CompiledScript compile(String script) {
+		return MagicScript.create(script, this);
+	}
+
+	@Override
+	public CompiledScript compile(Reader script) {
+		return compile(readString(script));
+	}
+
+	private String readString(Reader reader) {
+		StringBuilder builder = new StringBuilder();
+		char[] buf = new char[1024];
+		int len;
+		try {
+			while ((len = reader.read(buf, 0, buf.length)) != -1) {
+				builder.append(buf, 0, len);
+			}
+		} catch (IOException ignored) {
+
+		}
+		return builder.toString();
 	}
 }

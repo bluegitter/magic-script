@@ -16,7 +16,7 @@ public class JavaReflection extends AbstractReflection {
 	private final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
 	private final Map<Class<?>, Map<MethodSignature, Method>> methodCache = new ConcurrentHashMap<Class<?>, Map<MethodSignature, Method>>();
 	private final Map<Class<?>, Map<String, List<Method>>> extensionmethodCache = new ConcurrentHashMap<>();
-	private static Map<Class<?>, Class<?>> extensionMap;
+	private static Map<Class<?>, List<Class<?>>> extensionMap;
 
 	public JavaReflection() {
 		registerExtensionClass(Class.class, ClassExtension.class);
@@ -28,7 +28,7 @@ public class JavaReflection extends AbstractReflection {
 		registerExtensionClass(Object.class, ObjectTypeConditionExtension.class);
 	}
 
-	public static Map<Class<?>, Class<?>> getExtensionMap() {
+	public static Map<Class<?>, List<Class<?>>> getExtensionMap() {
 		return extensionMap;
 	}
 
@@ -307,7 +307,12 @@ public class JavaReflection extends AbstractReflection {
 		if (extensionMap == null) {
 			extensionMap = new ConcurrentHashMap<>();
 		}
-		extensionMap.put(target, clazz);
+		List<Class<?>> classList = extensionMap.get(target);
+		if(classList == null){
+			classList = new ArrayList<>();
+			extensionMap.put(target,classList);
+		}
+		classList.add(clazz);
 		Method[] methods = clazz.getDeclaredMethods();
 		if (methods != null) {
 			Map<String, List<Method>> cachedMethodMap = extensionmethodCache.get(target);

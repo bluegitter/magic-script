@@ -37,16 +37,18 @@ public class MagicScriptEngine {
 	}
 
 	public static Map<String, ScriptClass> getExtensionScriptClass() {
-		Map<Class<?>, Class<?>> extensionMap = JavaReflection.getExtensionMap();
+		Map<Class<?>, List<Class<?>>> extensionMap = JavaReflection.getExtensionMap();
 		Map<String, ScriptClass> classMap = new HashMap<>();
-		for (Map.Entry<Class<?>, Class<?>> entry : extensionMap.entrySet()) {
+		for (Map.Entry<Class<?>, List<Class<?>>> entry : extensionMap.entrySet()) {
 			ScriptClass clazz = classMap.get(entry.getKey().getName());
 			if (clazz == null) {
 				clazz = new ScriptClass();
 				classMap.put(entry.getKey().getName(), clazz);
 			}
-			for (ScriptMethod method : getMethod(entry.getValue(), true)) {
-				clazz.addMethod(method);
+			for (Class<?> extensionClass : entry.getValue()) {
+				for (ScriptMethod method : getMethod(extensionClass, true)) {
+					clazz.addMethod(method);
+				}
 			}
 		}
 		return classMap;

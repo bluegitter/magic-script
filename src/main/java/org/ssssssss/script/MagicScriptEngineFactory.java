@@ -3,6 +3,7 @@ package org.ssssssss.script;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,12 +21,12 @@ public class MagicScriptEngineFactory implements ScriptEngineFactory {
 
 	@Override
 	public List<String> getExtensions() {
-		return Arrays.asList("ms");
+		return Collections.singletonList("ms");
 	}
 
 	@Override
 	public List<String> getMimeTypes() {
-		return Arrays.asList("application/magic-script");
+		return Collections.singletonList("application/magic-script");
 	}
 
 	@Override

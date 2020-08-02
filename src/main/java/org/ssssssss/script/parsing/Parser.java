@@ -4,7 +4,6 @@ package org.ssssssss.script.parsing;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.ast.*;
-import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.literal.*;
 
 import javax.xml.transform.Source;
@@ -140,7 +139,7 @@ public class Parser {
 		return blocks;
 	}
 
-	private static Expression parseNewExpression(Span opening,TokenStream stream) {
+	private static Expression parseNewExpression(Span opening, TokenStream stream) {
 		Token identifier = stream.expect(TokenType.Identifier);
 		List<Expression> arguments = new ArrayList<>();
 		arguments.addAll(parseArguments(stream));
@@ -378,16 +377,26 @@ public class Parser {
 		List<Token> keys = new ArrayList<>();
 		List<Expression> values = new ArrayList<>();
 		while (stream.hasMore() && !stream.match("}", false)) {
+			Token key;
 			if (stream.match(TokenType.StringLiteral, false)) {
-				keys.add(stream.expect(TokenType.StringLiteral));
+				key = stream.expect(TokenType.StringLiteral);
 			} else {
-				keys.add(stream.expect(TokenType.Identifier));
+				key = stream.expect(TokenType.Identifier);
 			}
-
-			stream.expect(":");
-			values.add(parseExpression(stream));
-			if (!stream.match("}", false)) {
-				stream.expect(TokenType.Comma);
+			keys.add(key);
+			if (stream.match(false, TokenType.Comma, TokenType.RightCurly)) {
+				stream.match(TokenType.Comma, true);
+				if (key.getType() == TokenType.Identifier) {
+					values.add(new VariableAccess(key.getSpan()));
+				} else {
+					values.add(new StringLiteral(key.getSpan()));
+				}
+			} else {
+				stream.expect(":");
+				values.add(parseExpression(stream));
+				if (!stream.match("}", false)) {
+					stream.expect(TokenType.Comma);
+				}
 			}
 		}
 		Span closeCurly = stream.expect("}").getSpan();
@@ -413,8 +422,8 @@ public class Parser {
 		//Span identifier = stream.expect(TokenType.Identifier);
 		//Expression result = new VariableAccess(identifier);
 		Span identifier = stream.expect(tokenType).getSpan();
-		if(tokenType == TokenType.Identifier && "new".equals(identifier.getText())){
-			return parseNewExpression(identifier,stream);
+		if (tokenType == TokenType.Identifier && "new".equals(identifier.getText())) {
+			return parseNewExpression(identifier, stream);
 		}
 		if (tokenType == TokenType.Identifier && stream.match(TokenType.Lambda, true)) {
 			return parseLambdaBody(stream, identifier, Arrays.asList(identifier.getText()));

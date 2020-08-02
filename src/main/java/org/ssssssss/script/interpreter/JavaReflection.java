@@ -445,6 +445,9 @@ public class JavaReflection extends AbstractReflection {
 						}
 						method.setAccessible(true);
 						methods.put(signature, method);
+						if(method != null){
+							break;
+						}
 					} catch (Throwable e) {
 						// fall through
 					}

@@ -71,7 +71,9 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 			if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
 				String attributeName = method.getName().substring(3);
 				attributeName = attributeName.substring(0, 1).toLowerCase() + attributeName.substring(1);
-				scriptClass.addAttribute(new ScriptAttribute(method.getReturnType(), attributeName));
+				if(!"class".equalsIgnoreCase(attributeName)){
+					scriptClass.addAttribute(new ScriptAttribute(method.getReturnType(), attributeName));
+				}
 			} else {
 				scriptClass.addMethod(method);
 			}
@@ -100,7 +102,9 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 				if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
 					String attributeName = method.getName().substring(3);
 					attributeName = attributeName.substring(0, 1).toLowerCase() + attributeName.substring(1);
-					scriptClass.addAttribute(new ScriptAttribute(method.getReturnType(), attributeName));
+					if(!"class".equalsIgnoreCase(attributeName)){
+						scriptClass.addAttribute(new ScriptAttribute(method.getReturnType(), attributeName));
+					}
 				} else {
 					scriptClass.addMethod(method);
 				}

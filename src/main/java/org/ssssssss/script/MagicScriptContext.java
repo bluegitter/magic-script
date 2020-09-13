@@ -94,7 +94,7 @@ public class MagicScriptContext {
 				return value;
 			}
 		}
-		return null;
+		return MagicPackageLoader.findClass(name);
 	}
 
 	public String getString(String name) {

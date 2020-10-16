@@ -103,11 +103,29 @@ public class JavaReflection extends AbstractReflection {
 	public static <T extends Executable> T findExecutable(List<T> executables, Class<?>[] parameterTypes) {
 		T foundExecutable = null;
 		int foundScore = 0;
+		List<T> executableWithVarArgs = new ArrayList<>();
 		for (T executable : executables) {
 			// Check if the types match.
 			Class<?>[] otherTypes = executable.getParameterTypes();
 			int score = matchTypes(parameterTypes, otherTypes, true);
-			if (score == -1 && executable.isVarArgs()) {
+			if (score > -1) {
+				if (foundExecutable == null) {
+					foundExecutable = executable;
+					foundScore = score;
+				} else {
+					if (score < foundScore) {
+						foundScore = score;
+						foundExecutable = executable;
+					}
+				}
+			} else if (executable.isVarArgs()){
+				executableWithVarArgs.add(executable);
+			}
+		}
+		if(foundExecutable == null){
+			for (T executable : executableWithVarArgs) {
+				Class<?>[] otherTypes = executable.getParameterTypes();
+				int score = -1;
 				int fixedParaLength = otherTypes.length - 1;
 				if (parameterTypes.length >= fixedParaLength) {
 					Class<?>[] argTypes = new Class<?>[fixedParaLength];
@@ -134,15 +152,15 @@ public class JavaReflection extends AbstractReflection {
 						}
 					}
 				}
-			}
-			if (score > -1) {
-				if (foundExecutable == null) {
-					foundExecutable = executable;
-					foundScore = score;
-				} else {
-					if (score < foundScore) {
-						foundScore = score;
+				if (score > -1) {
+					if (foundExecutable == null) {
 						foundExecutable = executable;
+						foundScore = score;
+					} else {
+						if (score < foundScore) {
+							foundScore = score;
+							foundExecutable = executable;
+						}
 					}
 				}
 			}

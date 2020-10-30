@@ -98,4 +98,13 @@ public class StreamExtension {
 		}
 		return toOriginType(target, results);
 	}
+
+	/**
+	 * 排序
+	 */
+	public static Object sort(Object target, Function<Object[], Object> function) {
+		List<Object> objects = arrayLikeToList(target);
+		objects.sort((o1, o2) -> ObjectConvertExtension.asInt(function.apply(new Object[]{o1, o2}), 0));
+		return toOriginType(target, objects);
+	}
 }

@@ -36,6 +36,8 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	private boolean stepInto = false;
 
+	private List<Map<String, Object>> cachedScopes;
+
 	public MagicScriptDebugContext(){
 		super();
 	}
@@ -60,9 +62,11 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 	}
 
 	public String pause(Span.Line line) throws InterruptedException {
+		cachedScopes = getScopes();
 		this.line = line;
 		consumer.offer(this.id);
-		return producer.poll(timeout, TimeUnit.SECONDS);
+		String val = producer.poll(timeout, TimeUnit.SECONDS);
+		return val;
 	}
 
 	public void await() throws InterruptedException {
@@ -70,6 +74,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 	}
 
 	public void singal() throws InterruptedException {
+		resetScopes();
 		producer.offer(this.id);
 		await();
 	}
@@ -160,6 +165,10 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	public void setException(boolean exception) {
 		this.exception = exception;
+	}
+
+	private void resetScopes() {
+		setScopes(cachedScopes);
 	}
 
 	public static MagicScriptDebugContext getDebugContext(String id) {

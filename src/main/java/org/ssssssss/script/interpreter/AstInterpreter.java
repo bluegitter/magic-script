@@ -31,7 +31,7 @@ public class AstInterpreter {
         try {
             MagicScriptContext.set(context);
             Object value = interpretNodeList(magicScript.getNodes(), context);
-            if (value == Return.RETURN_SENTINEL) {
+            if (value instanceof Return.ReturnValue) {
                 return ((Return.ReturnValue) value).getValue();
             }
             return null;
@@ -43,7 +43,6 @@ public class AstInterpreter {
                 return null; // never reached
             }
         } finally {
-            Return.RETURN_SENTINEL.setValue(null);
             MagicScriptContext.remove();
         }
     }
@@ -69,7 +68,7 @@ public class AstInterpreter {
                     }
                 }
                 Object value = node.evaluate(context);
-                if (value == Break.BREAK_SENTINEL || value == Continue.CONTINUE_SENTINEL || value == Return.RETURN_SENTINEL) {
+                if (value == Break.BREAK_SENTINEL || value == Continue.CONTINUE_SENTINEL || value instanceof Return.ReturnValue) {
                     return value;
                 }
             }

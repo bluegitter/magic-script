@@ -17,8 +17,8 @@ import java.util.*;
  * </p>
  */
 public class MagicScriptContext {
-	private final static ThreadLocal<MagicScriptContext> CONTEXT_THREAD_LOCAL = new ThreadLocal<>();
-	private final List<Map<String, Object>> scopes = new ArrayList<Map<String, Object>>();
+	private final static ThreadLocal<MagicScriptContext> CONTEXT_THREAD_LOCAL = new InheritableThreadLocal<>();
+	private final ThreadLocal<List<Map<String, Object>>> scopes = new InheritableThreadLocal<>();
 
 	/**
 	 * Keeps track of previously allocated, unused scopes. New scopes are first tried to be retrieved from this pool to avoid
@@ -56,8 +56,9 @@ public class MagicScriptContext {
 	 * set. Otherwise the variable is set on the last pushed scope.
 	 */
 	public MagicScriptContext set(String name, Object value) {
-		for (int i = scopes.size() - 1; i >= 0; i--) {
-			Map<String, Object> ctx = scopes.get(i);
+		List<Map<String, Object>> scopeList = scopes.get();
+		for (int i = scopeList.size() - 1; i >= 0; i--) {
+			Map<String, Object> ctx = scopeList.get(i);
 			if (ctx.isEmpty()) {
 				continue;
 			}
@@ -67,7 +68,7 @@ public class MagicScriptContext {
 			}
 		}
 
-		scopes.get(scopes.size() - 1).put(name, value);
+		scopeList.get(scopeList.size() - 1).put(name, value);
 		return this;
 	}
 
@@ -75,7 +76,8 @@ public class MagicScriptContext {
 	 * Sets the value of the variable with the given name on the last pushed scope
 	 **/
 	public MagicScriptContext setOnCurrentScope(String name, Object value) {
-		scopes.get(scopes.size() - 1).put(name, value);
+		List<Map<String, Object>> scopeList = scopes.get();
+		scopeList.get(scopeList.size() - 1).put(name, value);
 		return this;
 	}
 
@@ -84,8 +86,9 @@ public class MagicScriptContext {
 	 * scopes in programming languages are searched for variables.
 	 */
 	public Object get(String name) {
-		for (int i = scopes.size() - 1; i >= 0; i--) {
-			Map<String, Object> ctx = scopes.get(i);
+		List<Map<String, Object>> scopeList = scopes.get();
+		for (int i = scopeList.size() - 1; i >= 0; i--) {
+			Map<String, Object> ctx = scopeList.get(i);
 			if (ctx.isEmpty()) {
 				continue;
 			}
@@ -110,11 +113,25 @@ public class MagicScriptContext {
 	 * Internal. Returns all variables currently defined in this context.
 	 */
 	public Map<String, Object> getVariables() {
+		List<Map<String, Object>> scopeList = scopes.get();
 		Map<String, Object> variables = new HashMap<>();
-		for (Map<String, Object> scope : scopes) {
+		for (Map<String, Object> scope : scopeList) {
 			variables.putAll(scope);
 		}
 		return variables;
+	}
+
+	public List<Map<String, Object>> getScopes() {
+		List<Map<String, Object>> list = new ArrayList<>();
+		List<Map<String, Object>> scopeList = scopes.get();
+		for (Map<String, Object> item : scopeList) {
+			list.add(new HashMap<>(item));
+		}
+		return list;
+	}
+
+	public void setScopes(List<Map<String, Object>> scopeList) {
+		scopes.set(scopeList);
 	}
 
 	/**
@@ -122,16 +139,25 @@ public class MagicScriptContext {
 	 **/
 	public void push() {
 		Map<String, Object> newScope = freeScopes.size() > 0 ? freeScopes.remove(freeScopes.size() - 1) : new HashMap<String, Object>();
-		scopes.add(newScope);
+		List<Map<String, Object>> scopeList = scopes.get();
+		if (scopeList == null) {
+			scopeList = new ArrayList<>();
+			scopes.set(scopeList);
+			;
+		}
+		scopeList.add(newScope);
 	}
 
 	/**
 	 * Internal. Pops the top of the "scope" stack.
 	 **/
 	public void pop() {
-		Map<String, Object> oldScope = scopes.remove(scopes.size() - 1);
-		oldScope.clear();
-		freeScopes.add(oldScope);
+		List<Map<String, Object>> scopeList = scopes.get();
+		if (scopeList != null) {
+			Map<String, Object> oldScope = scopeList.remove(scopeList.size() - 1);
+			oldScope.clear();
+			freeScopes.add(oldScope);
+		}
 	}
 
 	public void putMapIntoContext(Map<String,Object> map){

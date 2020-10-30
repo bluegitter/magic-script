@@ -154,8 +154,10 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 		}
 		if (context instanceof MagicScriptDebugContext) {
 			MagicScriptDebugContext debugContext = (MagicScriptDebugContext) context;
+			List<Map<String, Object>> scopes = context.getScopes();
 			new Thread(() -> {
 				try {
+					debugContext.setScopes(scopes);
 					debugContext.start();
 					debugContext.setReturnValue(magicScript.execute(debugContext));
 				} catch (Exception e) {

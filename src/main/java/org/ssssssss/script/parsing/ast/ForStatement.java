@@ -63,7 +63,7 @@ public class ForStatement extends Node {
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
-                    if (breakOrContinueOrReturn == Return.RETURN_SENTINEL) {
+					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
                         context.pop();
                         return breakOrContinueOrReturn;
                     }
@@ -77,7 +77,7 @@ public class ForStatement extends Node {
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
-                    if (breakOrContinueOrReturn == Return.RETURN_SENTINEL) {
+					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
                         context.pop();
                         return breakOrContinueOrReturn;
                     }
@@ -97,7 +97,7 @@ public class ForStatement extends Node {
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
-                    if (breakOrContinueOrReturn == Return.RETURN_SENTINEL) {
+					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
                         context.pop();
                         return breakOrContinueOrReturn;
                     }
@@ -112,7 +112,7 @@ public class ForStatement extends Node {
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
-                    if (breakOrContinueOrReturn == Return.RETURN_SENTINEL) {
+					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
                         context.pop();
                         return breakOrContinueOrReturn;
                     }
@@ -131,7 +131,7 @@ public class ForStatement extends Node {
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
-                    if (breakOrContinueOrReturn == Return.RETURN_SENTINEL) {
+					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
                         context.pop();
                         return breakOrContinueOrReturn;
                     }
@@ -150,7 +150,7 @@ public class ForStatement extends Node {
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
-                    if (breakOrContinueOrReturn == Return.RETURN_SENTINEL) {
+					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
                         context.pop();
                         return breakOrContinueOrReturn;
                     }
@@ -164,7 +164,7 @@ public class ForStatement extends Node {
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
-                    if (breakOrContinueOrReturn == Return.RETURN_SENTINEL) {
+					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
                         context.pop();
                         return breakOrContinueOrReturn;
                     }

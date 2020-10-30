@@ -24,7 +24,7 @@ public class Parser {
 			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}};
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async");
 
 	/**
 	 * Parses a {@link Source} into a {@link MagicScript}.
@@ -66,6 +66,8 @@ public class Parser {
 			result = parseForStatement(tokens);
 		} else if (tokens.match("continue", false)) {
 			result = new Continue(tokens.consume().getSpan());
+		} else if (tokens.match("async", false)) {
+			result = parseAsync(tokens);
 		} else if (tokens.match("try", false)) {
 			result = parseTryStatement(tokens);
 		} else if (tokens.match("break", false)) {
@@ -78,6 +80,16 @@ public class Parser {
 			;
 		}
 		return result;
+	}
+
+	private static Expression parseAsync(TokenStream stream) {
+		Span opening = stream.expect("async").getSpan();
+		Expression expression = parseExpression(stream);
+		if (expression instanceof MethodCall || expression instanceof FunctionCall || expression instanceof LambdaFunction) {
+			return new AsyncCall(new Span(opening, stream.getPrev().getSpan()), expression);
+		}
+		MagicScriptError.error("Expected methodcall or functioncall", stream.getPrev().getSpan());
+		return null;
 	}
 
 	private static Import parseImport(TokenStream stream) {
@@ -237,6 +249,9 @@ public class Parser {
 	}
 
 	private static Expression parseTernaryOperator(TokenStream stream, boolean expectRightCurly) {
+		if (stream.match("async", false)) {
+			return parseAsync(stream);
+		}
 		Expression condition = parseBinaryOperator(stream, 0, expectRightCurly);
 		if (stream.match(TokenType.Questionmark, true)) {
 			Expression trueExpression = parseTernaryOperator(stream, expectRightCurly);

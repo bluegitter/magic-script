@@ -50,8 +50,10 @@ public class MagicScript extends CompiledScript {
 				}
 				if (rootContext instanceof MagicScriptDebugContext) {
 					MagicScriptDebugContext debugContext = (MagicScriptDebugContext) rootContext;
+					List<Map<String, Object>> scopes = rootContext.getScopes();
 					new Thread(() -> {
 						try {
+							debugContext.setScopes(scopes);
 							debugContext.start();
 							debugContext.setReturnValue(execute(debugContext));
 						} catch (Exception e) {

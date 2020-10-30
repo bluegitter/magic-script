@@ -5,7 +5,6 @@ import org.ssssssss.script.parsing.Span;
 
 public class Return extends Node {
 
-    public static final ReturnValue RETURN_SENTINEL = new ReturnValue();
     private final Node returnValue;
 
     public Return(Span span, Node returnValue) {
@@ -15,22 +14,21 @@ public class Return extends Node {
 
     @Override
     public Object evaluate(MagicScriptContext context) {
-        RETURN_SENTINEL.setValue(returnValue != null ? returnValue.evaluate(context) : null);
-        return RETURN_SENTINEL;
+		return new ReturnValue(returnValue.evaluate(context));
     }
 
     /**
      * A sentital of which only one instance exists. Uses thread local storage to store an (optional) return value. See
      **/
     public static class ReturnValue {
-        private final ThreadLocal<Object> value = new ThreadLocal<Object>();
+		private Object value;
+
+		public ReturnValue(Object value) {
+			this.value = value;
+		}
 
         public Object getValue() {
-            return value.get();
-        }
-
-        public void setValue(Object value) {
-            this.value.set(value);
+			return value;
         }
     }
 }

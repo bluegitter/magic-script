@@ -107,4 +107,44 @@ public class StreamExtension {
 		objects.sort((o1, o2) -> ObjectConvertExtension.asInt(function.apply(new Object[]{o1, o2}), 0));
 		return toOriginType(target, objects);
 	}
+
+	/**
+	 * 反转
+	 */
+	public static Object reserve(Object target) {
+		List<Object> objects = arrayLikeToList(target);
+		Collections.reverse(objects);
+		return toOriginType(target, objects);
+	}
+
+	/**
+	 * 将list打乱
+	 */
+	public static Object shuffle(Object target) {
+		List<Object> objects = arrayLikeToList(target);
+		Collections.shuffle(objects);
+		return toOriginType(target, objects);
+	}
+
+	/**
+	 * 将list拼接起来
+	 */
+	public static String join(Object target) {
+		return join(target, ",");
+	}
+
+	/**
+	 * 将list拼接起来
+	 */
+	public static String join(Object target, String separator) {
+		List<Object> objects = arrayLikeToList(target);
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0,len = objects.size();i < len;i++){
+			sb.append(objects.get(i));
+			if(i + 1 < len){
+				sb.append(separator);
+			}
+		}
+		return sb.toString();
+	}
 }

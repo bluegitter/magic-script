@@ -109,6 +109,9 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 					scriptClass.addMethod(method);
 				}
 			});
+			if(clazz.isEnum()){
+				scriptClass.setEnums(clazz.getEnumConstants());
+			}
 			classList.add(scriptClass);
 			clazz = superClass;
 		} while (superClass != null && superClass != Object.class && superClass != Class.class);

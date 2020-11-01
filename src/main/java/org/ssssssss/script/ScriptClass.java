@@ -16,6 +16,16 @@ public class ScriptClass {
 
 	private List<String> interfaces = new ArrayList<>();
 
+	private Object[] enums;
+
+	public Object[] getEnums() {
+		return enums;
+	}
+
+	public void setEnums(Object[] enums) {
+		this.enums = enums;
+	}
+
 	public void addAttribute(ScriptAttribute attribute) {
 		this.attributes.add(attribute);
 	}

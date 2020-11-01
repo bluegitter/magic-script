@@ -81,6 +81,10 @@
             <td>null</td>
             <td>基础类型之一，表示 NULL 值</td>
         </tr>
+        <tr>
+            <td>async</td>
+            <td>异步调用</td>
+        </tr>
     </tbody>
 </table>
 
@@ -312,4 +316,21 @@ return new Date();
 import log; //导入log模块，并定义一个与模块名相同的变量名
 //import log as logger; //导入log模块，并赋值给变量 logger
 log.info('Hello {}','Magic API!')
+```
+
+### 异步调用
+
+#### 异步调用方法
+```javascript
+var val = async db.select('.....'); // 异步调用，返回Future类型
+return val.get();   //调用Future的get方法
+```
+
+#### 异步调用lambda
+```javascript
+var list = [];
+for(index in range(1,10)){
+    list.add(async ()=>db.selectInt('select #{index}'));
+}
+return list.map(item=>item.get());  // 循环获取结果
 ```

@@ -1,8 +1,8 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 public class TernaryOperation extends Expression {
     private final Expression condition;
@@ -31,9 +31,6 @@ public class TernaryOperation extends Expression {
     @Override
     public Object evaluate(MagicScriptContext context) {
         Object condition = getCondition().evaluate(context);
-        if (!(condition instanceof Boolean)) {
-            MagicScriptError.error("Condition of ternary operator must be a boolean, got " + condition + ".", getSpan());
-        }
-        return ((Boolean) condition) ? getTrueExpression().evaluate(context) : getFalseExpression().evaluate(context);
+        return BooleanLiteral.isTrue(condition) ? getTrueExpression().evaluate(context) : getFalseExpression().evaluate(context);
     }
 }

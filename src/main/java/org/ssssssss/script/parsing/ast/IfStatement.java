@@ -1,9 +1,9 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.List;
 
@@ -40,9 +40,7 @@ public class IfStatement extends Node {
     @Override
     public Object evaluate(MagicScriptContext context) {
         Object condition = getCondition().evaluate(context);
-        if (!(condition instanceof Boolean))
-            MagicScriptError.error("Expected a condition evaluating to a boolean, got " + condition, getCondition().getSpan());
-        if ((Boolean) condition) {
+        if (BooleanLiteral.isTrue(condition)) {
             context.push();
             Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getTrueBlock(), context);
             context.pop();
@@ -52,9 +50,7 @@ public class IfStatement extends Node {
         if (getElseIfs().size() > 0) {
             for (IfStatement elseIf : getElseIfs()) {
                 condition = elseIf.getCondition().evaluate(context);
-                if (!(condition instanceof Boolean))
-                    MagicScriptError.error("Expected a condition evaluating to a boolean, got " + condition, elseIf.getCondition().getSpan());
-                if ((Boolean) condition) {
+                if (BooleanLiteral.isTrue(condition)) {
                     context.push();
                     Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(elseIf.getTrueBlock(), context);
                     context.pop();

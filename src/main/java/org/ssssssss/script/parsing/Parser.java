@@ -24,7 +24,7 @@ public class Parser {
 			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}};
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while");
 
 	/**
 	 * Parses a {@link Source} into a {@link MagicScript}.
@@ -64,6 +64,8 @@ public class Parser {
 			result = parseReturn(tokens);
 		} else if (tokens.match("for", false)) {
 			result = parseForStatement(tokens);
+		} else if (tokens.match("while", false)) {
+			result = parseWhileStatement(tokens);
 		} else if (tokens.match("continue", false)) {
 			result = new Continue(tokens.consume().getSpan());
 		} else if (tokens.match("async", false)) {
@@ -181,6 +183,15 @@ public class Parser {
 		if (keywords.contains(span.getText())) {
 			MagicScriptError.error("变量名不能定义为关键字", span);
 		}
+	}
+
+	private static WhileStatement parseWhileStatement(TokenStream stream){
+		Span openingWhile = stream.expect("while").getSpan();
+		Expression condition = parseExpression(stream);
+		List<Node> trueBlock = parseFunctionBody(stream);
+		Span closingEnd = stream.getPrev().getSpan();
+
+		return new WhileStatement(new Span(openingWhile, closingEnd), condition, trueBlock);
 	}
 
 	private static ForStatement parseForStatement(TokenStream stream) {

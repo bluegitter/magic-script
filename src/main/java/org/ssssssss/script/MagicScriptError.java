@@ -48,7 +48,9 @@ public class MagicScriptError {
 			}
 			parent = parent.getCause();
 		}
-		String errorMessage = "Script Error : " + message + "\n\n";
+		String errorMessage = "Script Error : " + message + " at Row:";
+		errorMessage += line.getLineNumber() + "~" + line.getEndLineNumber()+",Col:";
+		errorMessage += line.getStartCol() + "~" + line.getEndCol() + "\n\n";
 		errorMessage += line.getText();
 		errorMessage += "\n";
 		int errorStart = location.getStart() - line.getStart();

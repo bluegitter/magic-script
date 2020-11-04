@@ -1,10 +1,13 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
-import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.binary.*;
+
+import java.math.BigDecimal;
+import java.util.Date;
 
 public abstract class BinaryOperation extends Expression {
 
@@ -67,6 +70,50 @@ public abstract class BinaryOperation extends Expression {
 				MagicScriptError.error("[" + operator + "]操作符未实现", span);
 		}
 		return expression;
+	}
+
+	/**
+	 * 比较两个值
+	 * 1 左边大
+	 * 0 相等
+	 * -1 右边大
+	 * -2 无法比较
+	 */
+	public static int compare(Object left, Object right) {
+		if(left == null && right == null){
+			return -2;
+		}
+		if(left == null){
+			return -1;
+		}
+		if(right == null){
+			return 1;
+		}
+		if(left instanceof Number && right instanceof Number){
+			if (left instanceof BigDecimal || right instanceof BigDecimal) {
+				return ObjectConvertExtension.asDecimal(left).compareTo(ObjectConvertExtension.asDecimal(right));
+			} else if (left instanceof Double || right instanceof Double) {
+				return Double.compare(((Number) left).doubleValue(),((Number) right).doubleValue());
+			} else if (left instanceof Float || right instanceof Float) {
+				return Float.compare(((Number) left).floatValue(),((Number) right).floatValue());
+			} else if (left instanceof Long || right instanceof Long) {
+				return Long.compare(((Number) left).longValue(),((Number) right).longValue());
+			} else if (left instanceof Integer || right instanceof Integer) {
+				return Integer.compare(((Number) left).intValue(),((Number) right).intValue());
+			} else if (left instanceof Short || right instanceof Short) {
+				return Short.compare(((Number) left).shortValue(),((Number) right).shortValue());
+			} else if (left instanceof Byte || right instanceof Byte) {
+				return Byte.compare(((Number) left).byteValue(),((Number) right).byteValue());
+			}
+		}
+		if(left instanceof Date && right instanceof Date){
+			return ((Date)left).compareTo((Date) right);
+		}
+		if(left instanceof String && right instanceof String){
+			return ((String)left).compareTo((String) right);
+		}
+		return -2;
+
 	}
 
 	public Expression getLeftOperand() {

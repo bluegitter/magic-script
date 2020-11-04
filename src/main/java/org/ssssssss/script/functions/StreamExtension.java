@@ -1,10 +1,12 @@
 package org.ssssssss.script.functions;
 
 import org.ssssssss.script.exception.MagicScriptException;
+import org.ssssssss.script.parsing.ast.BinaryOperation;
 
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 public class StreamExtension {
@@ -139,12 +141,56 @@ public class StreamExtension {
 	public static String join(Object target, String separator) {
 		List<Object> objects = arrayLikeToList(target);
 		StringBuilder sb = new StringBuilder();
-		for(int i = 0,len = objects.size();i < len;i++){
+		for (int i = 0, len = objects.size(); i < len; i++) {
 			sb.append(objects.get(i));
-			if(i + 1 < len){
+			if (i + 1 < len) {
 				sb.append(separator);
 			}
 		}
 		return sb.toString();
 	}
+
+	/**
+	 * 取最大值
+	 */
+	public static Object max(Object target) {
+		return arrayLikeToList(target).stream()
+				.filter(Objects::nonNull)
+				.max(BinaryOperation::compare)
+				.orElse(null);
+	}
+
+	/**
+	 * 取最小值
+	 */
+	public static Object min(Object target) {
+		return arrayLikeToList(target).stream()
+				.filter(Objects::nonNull)
+				.min(BinaryOperation::compare)
+				.orElse(null);
+	}
+
+	/**
+	 * 取平均值
+	 */
+	public static Double avg(Object target) {
+		OptionalDouble average = arrayLikeToList(target).stream()
+				.filter(Objects::nonNull)
+				.filter(value -> value instanceof Number)
+				.mapToDouble(value -> ((Number) value).doubleValue())
+				.average();
+		return average.isPresent() ? average.getAsDouble() : null;
+	}
+
+	/**
+	 * 累计求和
+	 */
+	public static Number sum(Object target) {
+		return arrayLikeToList(target).stream()
+				.filter(Objects::nonNull)
+				.filter(value -> value instanceof Number)
+				.mapToDouble(value -> ((Number) value).doubleValue())
+				.sum();
+	}
+
 }

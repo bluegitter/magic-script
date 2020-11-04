@@ -71,6 +71,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	public void await() throws InterruptedException {
 		consumer.take();
+		resetScopes();
 	}
 
 	public void singal() throws InterruptedException {

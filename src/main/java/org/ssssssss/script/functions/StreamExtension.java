@@ -6,8 +6,9 @@ import org.ssssssss.script.parsing.ast.BinaryOperation;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.DoubleStream;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class StreamExtension {
 
@@ -175,8 +176,7 @@ public class StreamExtension {
 	 */
 	public static Double avg(Object target) {
 		OptionalDouble average = arrayLikeToList(target).stream()
-				.filter(Objects::nonNull)
-				.filter(value -> value instanceof Number)
+				.filter(v -> v instanceof Number)
 				.mapToDouble(value -> ((Number) value).doubleValue())
 				.average();
 		return average.isPresent() ? average.getAsDouble() : null;
@@ -193,4 +193,76 @@ public class StreamExtension {
 				.sum();
 	}
 
+	/**
+	 * 分组
+	 *
+	 * @param key key条件
+	 */
+	public static Map<Object, List<Object>> group(Object target, Function<Object[], Object> key) {
+		return arrayLikeToList(target).stream()
+				.collect(Collectors.groupingBy(item -> key.apply(Stream.of(item).toArray())));
+	}
+
+	/**
+	 * 分组
+	 *
+	 * @param condition 分组条件
+	 * @param mapping   结果映射
+	 */
+	public static Map<Object, Object> group(Object target, Function<Object[], Object> condition, Function<Object[], Object> mapping) {
+		return arrayLikeToList(target).stream()
+				.collect(Collectors.groupingBy(item -> condition.apply(Stream.of(item).toArray()),
+						Collectors.collectingAndThen(Collectors.toList(), list -> mapping.apply(Stream.of(list).toArray()))
+						)
+				);
+	}
+
+	/**
+	 * 合并两个集合，类似sql join 操作
+	 *
+	 * @param source    左表
+	 * @param target    右表
+	 * @param condition 条件
+	 */
+	public static List<Object> join(Object source, Object target, Function<Object[], Object> condition) {
+		return join(source, target, condition, (args) -> {
+			Object left = args[0];
+			Object right = args[1];
+			HashMap<Object, Object> map = new HashMap<>();
+			if (left instanceof Map) {
+				map.putAll((Map) left);
+			}
+			if (right instanceof Map) {
+				map.putAll((Map) right);
+			}
+			return map;
+		});
+	}
+
+	/**
+	 * 合并两个集合，类似 sql join 操作
+	 *
+	 * @param source    左表
+	 * @param target    右表
+	 * @param condition 条件
+	 * @param mapping   映射
+	 */
+	public static List<Object> join(Object source, Object target, Function<Object[], Object> condition, Function<Object[], Object> mapping) {
+		if (target == null) {
+			return null;
+		}
+		List<Object> targetList = arrayLikeToList(target);
+		return arrayLikeToList(source).stream()
+				// 将匹配结果进行映射
+				.map(left -> mapping.apply(
+						Stream.of(left,
+								targetList.stream()
+										// 匹配条件
+										.filter(right -> Objects.equals(true, condition.apply(Stream.of(left, right).toArray())))
+										// 只取第一条
+										.findFirst()
+										.orElse(null)
+						).toArray()
+				)).collect(Collectors.toList());
+	}
 }

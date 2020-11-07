@@ -78,7 +78,7 @@ public class ScriptClass {
 		this.attributes = attributes;
 	}
 
-	static class ScriptAttribute {
+	public static class ScriptAttribute {
 
 		private String type;
 
@@ -145,7 +145,7 @@ public class ScriptClass {
 		}
 	}
 
-	static class ScriptMethodParameter {
+	public static class ScriptMethodParameter {
 
 		private String name;
 

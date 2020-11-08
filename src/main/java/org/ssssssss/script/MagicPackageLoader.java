@@ -7,6 +7,11 @@ public class MagicPackageLoader {
 
 	private static final Set<String> packages = new HashSet<>();
 
+	static {
+		packages.add("java.util.*");
+		packages.add("java.lang.*");
+	}
+
 	public static void addPackage(String prefix) {
 		packages.add(prefix.replace("*", ""));
 	}

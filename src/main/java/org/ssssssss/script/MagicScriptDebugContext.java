@@ -65,8 +65,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		cachedScopes = getScopes();
 		this.line = line;
 		consumer.offer(this.id);
-		String val = producer.poll(timeout, TimeUnit.SECONDS);
-		return val;
+		return producer.poll(timeout, TimeUnit.SECONDS);
 	}
 
 	public void await() throws InterruptedException {
@@ -128,7 +127,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 			Map<String, Object> variable = new HashMap<>();
 			variable.put("name", entry.getKey());
 			if (value != null) {
-				variable.put("value", value.toString());
+				variable.put("value", getValue(value));
 				variable.put("type", value.getClass());
 			}else{
 				variable.put("value", "null");
@@ -174,5 +173,18 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	public static MagicScriptDebugContext getDebugContext(String id) {
 		return contextMap.get(id);
+	}
+
+	private Object getValue(Object object){
+		try {
+			return object.toString();
+		} catch (Exception ex) {
+			if(object instanceof Cloneable){
+				try {
+					return object.getClass().getMethod("clone").invoke(object).toString();
+				} catch (Exception ignored) {}
+			}
+			return "can't get value";
+		}
 	}
 }

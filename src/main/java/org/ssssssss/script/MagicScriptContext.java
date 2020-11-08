@@ -160,7 +160,7 @@ public class MagicScriptContext {
 		}
 	}
 
-	public void putMapIntoContext(Map<String,Object> map){
+	public void putMapIntoContext(Map<String, Object> map) {
 		if (map != null && !map.isEmpty()) {
 			Set<Map.Entry<String, Object>> entries = map.entrySet();
 			for (Map.Entry<String, Object> entry : entries) {

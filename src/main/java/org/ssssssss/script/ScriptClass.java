@@ -1,5 +1,7 @@
 package org.ssssssss.script;
 
+import org.ssssssss.script.annotation.Comment;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -104,10 +106,14 @@ public class ScriptClass {
 
 		private String returnType;
 
+		private String comment;
+
 		private List<ScriptMethodParameter> parameters = new ArrayList<>();
 
 		public ScriptMethod(Method method) {
 			this.name = method.getName();
+			Comment methodComment = method.getAnnotation(Comment.class);
+			comment = methodComment == null ? null : methodComment.value();
 			Class<?> returnType = method.getReturnType();
 			this.returnType = returnType.isArray() ? returnType.getSimpleName() : returnType.getName();
 			Parameter[] parameters = method.getParameters();
@@ -116,6 +122,10 @@ public class ScriptClass {
 					this.parameters.add(new ScriptMethodParameter(parameters[i]));
 				}
 			}
+		}
+
+		public String getComment() {
+			return comment;
 		}
 
 		public String getName() {
@@ -151,9 +161,16 @@ public class ScriptClass {
 
 		private String type;
 
+		private boolean varArgs;
+
+		private String comment;
+
 		public ScriptMethodParameter(Parameter parameter) {
 			this.name = parameter.getName();
 			Class<?> type = parameter.getType();
+			this.varArgs = parameter.isVarArgs();
+			Comment parameterComment = parameter.getAnnotation(Comment.class);
+			this.comment = parameterComment == null ? null : parameterComment.value();
 			this.type = type.isArray() ? type.getSimpleName() : type.getName();
 		}
 
@@ -163,6 +180,14 @@ public class ScriptClass {
 
 		public String getType() {
 			return type;
+		}
+
+		public boolean isVarArgs() {
+			return varArgs;
+		}
+
+		public String getComment() {
+			return comment;
 		}
 
 		@Override

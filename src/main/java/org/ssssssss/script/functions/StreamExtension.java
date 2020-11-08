@@ -1,5 +1,6 @@
 package org.ssssssss.script.functions;
 
+import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 
@@ -28,6 +29,7 @@ public class StreamExtension {
 	/**
 	 * 将对象转为List
 	 */
+	@Comment("将对象转为List")
 	public static List<Object> arrayLikeToList(Object arrayLike) {
 		if (arrayLike != null && arrayLike.getClass().isArray()) {
 			int len = Array.getLength(arrayLike);
@@ -59,7 +61,8 @@ public class StreamExtension {
 	 *
 	 * @param function 回调函数
 	 */
-	public static Object map(Object target, Function<Object[], Object> function) {
+	@Comment("将集合进行转换，并返回新集合")
+	public static Object map(Object target, @Comment("转换函数，如提取属性(item)=>item.xxx") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		List<Object> results = new ArrayList<>(objects.size());
 		for (int i = 0, len = objects.size(); i < len; i++) {
@@ -74,7 +77,8 @@ public class StreamExtension {
 	 *
 	 * @param function 回调函数
 	 */
-	public static Object filter(Object target, Function<Object[], Object> function) {
+	@Comment("将集合进行过滤，并返回新集合")
+	public static Object filter(Object target, @Comment("过滤条件，如(item)=>item.xxx == 1") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		List<Object> results = new ArrayList<>(objects.size());
 		for (int i = 0, len = objects.size(); i < len; i++) {
@@ -91,7 +95,8 @@ public class StreamExtension {
 	 *
 	 * @param function 回调函数
 	 */
-	public static Object each(Object target, Function<Object[], Object> function) {
+	@Comment("将集合进行循环操作，并返回新集合")
+	public static Object each(Object target, @Comment("循环函数，如循环添加属性(item)=>{item.xxx = 'newVal'}") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		List<Object> results = new ArrayList<>(objects.size());
 		for (int i = 0, len = objects.size(); i < len; i++) {
@@ -105,7 +110,8 @@ public class StreamExtension {
 	/**
 	 * 排序
 	 */
-	public static Object sort(Object target, Function<Object[], Object> function) {
+	@Comment("将集合进行排序，并返回新集合")
+	public static Object sort(Object target, @Comment("排序函数，如从大到小(a,b)=>a-b") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		objects.sort((o1, o2) -> ObjectConvertExtension.asInt(function.apply(new Object[]{o1, o2}), 0));
 		return toOriginType(target, objects);
@@ -114,6 +120,7 @@ public class StreamExtension {
 	/**
 	 * 反转
 	 */
+	@Comment("将集合进行反转操作")
 	public static Object reserve(Object target) {
 		List<Object> objects = arrayLikeToList(target);
 		Collections.reverse(objects);
@@ -123,6 +130,7 @@ public class StreamExtension {
 	/**
 	 * 将list打乱
 	 */
+	@Comment("将集合的顺序打乱")
 	public static Object shuffle(Object target) {
 		List<Object> objects = arrayLikeToList(target);
 		Collections.shuffle(objects);
@@ -132,6 +140,7 @@ public class StreamExtension {
 	/**
 	 * 将list拼接起来
 	 */
+	@Comment("将集合使用`,`拼接起来")
 	public static String join(Object target) {
 		return join(target, ",");
 	}
@@ -139,7 +148,8 @@ public class StreamExtension {
 	/**
 	 * 将list拼接起来
 	 */
-	public static String join(Object target, String separator) {
+	@Comment("将集合使用连接符拼接起来")
+	public static String join(Object target, @Comment("拼接符，如`,`") String separator) {
 		List<Object> objects = arrayLikeToList(target);
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0, len = objects.size(); i < len; i++) {
@@ -154,6 +164,7 @@ public class StreamExtension {
 	/**
 	 * 取最大值
 	 */
+	@Comment("取出集合最大值，如果找不到返回null")
 	public static Object max(Object target) {
 		return arrayLikeToList(target).stream()
 				.filter(Objects::nonNull)
@@ -164,6 +175,7 @@ public class StreamExtension {
 	/**
 	 * 取最小值
 	 */
+	@Comment("取出集合最小值，如果找不到返回null")
 	public static Object min(Object target) {
 		return arrayLikeToList(target).stream()
 				.filter(Objects::nonNull)
@@ -174,6 +186,7 @@ public class StreamExtension {
 	/**
 	 * 取平均值
 	 */
+	@Comment("取出集合平均值，如果无法计算返回null")
 	public static Double avg(Object target) {
 		OptionalDouble average = arrayLikeToList(target).stream()
 				.filter(v -> v instanceof Number)
@@ -185,6 +198,7 @@ public class StreamExtension {
 	/**
 	 * 累计求和
 	 */
+	@Comment("对集合进行累加操作")
 	public static Number sum(Object target) {
 		return arrayLikeToList(target).stream()
 				.filter(Objects::nonNull)
@@ -198,7 +212,8 @@ public class StreamExtension {
 	 *
 	 * @param key key条件
 	 */
-	public static Map<Object, List<Object>> group(Object target, Function<Object[], Object> key) {
+	@Comment("对集合进行分组")
+	public static Map<Object, List<Object>> group(Object target, @Comment("分组条件，如item=>item.xxx + '_' + item.yyy") Function<Object[], Object> key) {
 		return arrayLikeToList(target).stream()
 				.collect(Collectors.groupingBy(item -> key.apply(Stream.of(item).toArray())));
 	}
@@ -209,7 +224,9 @@ public class StreamExtension {
 	 * @param condition 分组条件
 	 * @param mapping   结果映射
 	 */
-	public static Map<Object, Object> group(Object target, Function<Object[], Object> condition, Function<Object[], Object> mapping) {
+	@Comment("对集合进行分组并转换")
+	public static Map<Object, Object> group(Object target, @Comment("分组条件，如item=>item.xxx + '_' + item.yyy") Function<Object[], Object> condition,
+											@Comment("转换函数，如分组求和(list)=>list.sum()") Function<Object[], Object> mapping) {
 		return arrayLikeToList(target).stream()
 				.collect(Collectors.groupingBy(item -> condition.apply(Stream.of(item).toArray()),
 						Collectors.collectingAndThen(Collectors.toList(), list -> mapping.apply(Stream.of(list).toArray()))
@@ -224,7 +241,8 @@ public class StreamExtension {
 	 * @param target    右表
 	 * @param condition 条件
 	 */
-	public static List<Object> join(Object source, Object target, Function<Object[], Object> condition) {
+	@Comment("将两个集合关联起来")
+	public static List<Object> join(Object source, @Comment("另一个集合") Object target, @Comment("关联条件，如:(left,right)=>left.xxx = right.xxx") Function<Object[], Object> condition) {
 		return join(source, target, condition, (args) -> {
 			Object left = args[0];
 			Object right = args[1];
@@ -247,7 +265,10 @@ public class StreamExtension {
 	 * @param condition 条件
 	 * @param mapping   映射
 	 */
-	public static List<Object> join(Object source, Object target, Function<Object[], Object> condition, Function<Object[], Object> mapping) {
+	@Comment("将两个集合关联并转换")
+	public static List<Object> join(Object source, @Comment("另一个集合") Object target,
+									@Comment("关联条件，如:(left,right)=>left.xxx == right.xxx") Function<Object[], Object> condition,
+									@Comment("映射函数，如:(left,right)=>{xxx : left.xxx, yyy : right.yyy}") Function<Object[], Object> mapping) {
 		if (target == null) {
 			return null;
 		}

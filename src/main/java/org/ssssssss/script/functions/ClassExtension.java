@@ -13,8 +13,8 @@ public class ClassExtension {
 		return clazz.newInstance();
 	}
 
-	public static Object newInstance(Class<?> clazz,Object ... values) throws IllegalAccessException, InstantiationException, InvocationTargetException {
-		if(values == null || values.length ==0){
+	public static Object newInstance(Class<?> clazz, Object... values) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+		if (values == null || values.length == 0) {
 			return newInstance(clazz);
 		}
 		Class<?>[] parametersTypes = new Class<?>[values.length];

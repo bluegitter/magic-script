@@ -201,7 +201,6 @@ public class StreamExtension {
 	@Comment("对集合进行累加操作")
 	public static Number sum(Object target) {
 		return arrayLikeToList(target).stream()
-				.filter(Objects::nonNull)
 				.filter(value -> value instanceof Number)
 				.mapToDouble(value -> ((Number) value).doubleValue())
 				.sum();
@@ -210,12 +209,12 @@ public class StreamExtension {
 	/**
 	 * 分组
 	 *
-	 * @param key key条件
+	 * @param condition 分组条件
 	 */
 	@Comment("对集合进行分组")
-	public static Map<Object, List<Object>> group(Object target, @Comment("分组条件，如item=>item.xxx + '_' + item.yyy") Function<Object[], Object> key) {
+	public static Map<Object, List<Object>> group(Object target, @Comment("分组条件，如item=>item.xxx + '_' + item.yyy") Function<Object[], Object> condition) {
 		return arrayLikeToList(target).stream()
-				.collect(Collectors.groupingBy(item -> key.apply(Stream.of(item).toArray())));
+				.collect(Collectors.groupingBy(item -> condition.apply(Stream.of(item).toArray())));
 	}
 
 	/**

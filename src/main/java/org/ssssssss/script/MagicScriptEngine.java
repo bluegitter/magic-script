@@ -3,7 +3,6 @@ package org.ssssssss.script;
 import org.ssssssss.script.ScriptClass.ScriptAttribute;
 import org.ssssssss.script.ScriptClass.ScriptMethod;
 import org.ssssssss.script.annotation.UnableCall;
-import org.ssssssss.script.exception.DebugTimeoutException;
 import org.ssssssss.script.interpreter.JavaReflection;
 
 import javax.script.*;
@@ -152,30 +151,9 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 	}
 
 	public static Object execute(MagicScript magicScript, MagicScriptContext context) {
-		for (Map.Entry<String, Object> entry : defaultImports.entrySet()) {
-			context.set(entry.getKey(), entry.getValue());
-		}
-		if (context instanceof MagicScriptDebugContext) {
-			MagicScriptDebugContext debugContext = (MagicScriptDebugContext) context;
-			List<Map<String, Object>> scopes = context.getScopes();
-			new Thread(() -> {
-				try {
-					debugContext.setScopes(scopes);
-					debugContext.start();
-					debugContext.setReturnValue(magicScript.execute(debugContext));
-				} catch (Exception e) {
-					debugContext.setException(true);
-					debugContext.setReturnValue(e);
-				}
-			}, "magic-script").start();
-			try {
-				debugContext.await();
-			} catch (InterruptedException e) {
-				throw new DebugTimeoutException(e);
-			}
-			return debugContext.isRunning() ? debugContext.getDebugInfo() : debugContext.getReturnValue();
-		}
-		return magicScript.execute(context);
+		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
+		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
+		return magicScript.eval(simpleScriptContext);
 	}
 
 	@Override

@@ -5,7 +5,6 @@ import org.junit.Test;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 
 public class MagicScriptTests extends BaseTest{
 
@@ -21,17 +20,17 @@ public class MagicScriptTests extends BaseTest{
 
 	@Test
 	public void tryTest(){
-		Assert.assertEquals(execute("try.ms"),0);
+		Assert.assertEquals(0, execute("try.ms"));
 	}
 
 	@Test
 	public void newTest(){
-		Assert.assertEquals(execute("new.ms"),new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+		Assert.assertEquals(new SimpleDateFormat("yyyy-MM-dd").format(new Date()), execute("new.ms"));
 	}
 
 	@Test
 	public void forTest(){
-		Assert.assertEquals(execute("for.ms"),2700);
+		Assert.assertEquals(2700, execute("for.ms"));
 	}
 
 	@Test
@@ -41,35 +40,25 @@ public class MagicScriptTests extends BaseTest{
 
 	@Test
 	public void lambdaTest(){
-		Assert.assertEquals(execute("lambda.ms"),8);
+		Assert.assertEquals(8, execute("lambda.ms"));
 	}
 	@Test
 	public void loopListTest(){
 		Assert.assertEquals(execute("loopList.ms"),15);
 	}
+
+	@Test
+	public void loop1() {
+		Assert.assertEquals(2700, execute("loop_1.ms"));
+	}
+
+	@Test
+	public void async() {
+		Assert.assertEquals(5050.0, execute("async.ms"));
+	}
 	@Test
 	public void loopMapTest(){
-		Assert.assertEquals(execute("loopMap.ms"),"key1key2key3-6");
+		Assert.assertEquals("key1key2key3-6", execute("loopMap.ms"));
 	}
-	@Test
-	public void ifTest(){
-		MagicScriptContext context1 = new MagicScriptContext(new HashMap<String,Object>() {
-			{
-				put("a", 1);
-			}
-		});
-		MagicScriptContext context2 = new MagicScriptContext(new HashMap<String,Object>() {
-			{
-				put("a", 2);
-			}
-		});
-		MagicScriptContext context3 = new MagicScriptContext(new HashMap<String,Object>() {
-			{
-				put("a", 3);
-			}
-		});
-		Assert.assertEquals(execute("if.ms",context1),1);
-		Assert.assertEquals(execute("if.ms",context2),2);
-		Assert.assertEquals(execute("if.ms",context3),0);
-	}
+
 }

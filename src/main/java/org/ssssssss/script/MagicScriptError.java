@@ -4,8 +4,6 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.TokenStream;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * All errors reported by the library go through the static functions of this class.
  */
@@ -35,21 +33,14 @@ public class MagicScriptError {
 	 * error happened. Throws a {@link MagicScriptException}
 	 **/
 	public static void error(String message, Span location, Throwable cause) {
-
-		Span.Line line = location.getLine();
-		Throwable parent = cause == null ? null : cause.getCause();
-		while (parent != null) {
-			if (parent instanceof InvocationTargetException) {
-				cause = parent.getCause();
-				if (cause != null) {
-					message += ";" + cause.getMessage();
-				}
-				break;
-			}
-			parent = parent.getCause();
+		cause = unwrap(cause);
+		if (cause instanceof MagicScriptException) {
+			message = ((MagicScriptException) cause).getSimpleMessage();
+			location = ((MagicScriptException) cause).getLocation();
 		}
-		String errorMessage = "Script Error : " + message + " at Row:";
-		errorMessage += line.getLineNumber() + "~" + line.getEndLineNumber()+",Col:";
+		Span.Line line = location.getLine();
+		String errorMessage = message + " at Row:";
+		errorMessage += line.getLineNumber() + "~" + line.getEndLineNumber() + ",Col:";
 		errorMessage += line.getStartCol() + "~" + line.getEndCol() + "\n\n";
 		errorMessage += line.getText();
 		errorMessage += "\n";
@@ -60,9 +51,11 @@ public class MagicScriptError {
 			errorMessage += i >= errorStart && i <= errorEnd ? "^" : useTab ? "\t" : " ";
 		}
 		if (cause == null) {
-			throw new MagicScriptException(errorMessage, message, line);
+			throw new MagicScriptException(errorMessage, message, location);
+		} else if (cause instanceof MagicScriptException) {
+			throw (MagicScriptException) cause;
 		} else {
-			throw new MagicScriptException(errorMessage, message, cause, line);
+			throw new MagicScriptException(errorMessage, message, cause, location);
 		}
 	}
 
@@ -72,6 +65,17 @@ public class MagicScriptError {
 	 **/
 	public static void error(String message, Span location) {
 		error(message, location, null);
+	}
+
+	public static Throwable unwrap(Throwable root) {
+		Throwable parent = root;
+		while (parent != null) {
+			if (parent instanceof MagicScriptException) {
+				root = parent;
+			}
+			parent = parent.getCause();
+		}
+		return root;
 	}
 
 }

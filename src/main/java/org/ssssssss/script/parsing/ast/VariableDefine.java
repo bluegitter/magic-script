@@ -1,23 +1,24 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.VarNode;
 import org.ssssssss.script.parsing.Span;
 
 public class VariableDefine extends Node {
 
     private Expression right;
 
-    private String variableName;
+	private VarNode varNode;
 
-    public VariableDefine(Span span, String variableName, Expression right) {
+	public VariableDefine(Span span, VarNode varNode, Expression right) {
         super(span);
-        this.variableName = variableName;
+		this.varNode = varNode;
         this.right = right;
     }
 
     @Override
     public Object evaluate(MagicScriptContext context) {
-        context.set(variableName, right.evaluate(context));
+		varNode.setValue(context, right.evaluate(context));
         return null;
     }
 }

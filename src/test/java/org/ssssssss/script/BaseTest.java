@@ -20,11 +20,7 @@ public class BaseTest {
 	}
 
 	public static Object execute(String filename) {
-		return execute(filename, new MagicScriptContext());
-	}
-
-	public static Object execute(String filename, MagicScriptContext context) {
-		String script = readScript(filename);
-		return MagicScriptEngine.execute(MagicScript.create(script,null), context);
+		MagicScript script = MagicScript.create(readScript(filename), null);
+		return MagicScriptEngine.execute(script, new MagicScriptContext());
 	}
 }

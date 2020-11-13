@@ -12,21 +12,24 @@ import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import java.util.List;
-import java.util.Map;
 
 public class MagicScript extends CompiledScript {
 
 	public static final String CONTEXT_ROOT = "ROOT";
 	private final List<Node> nodes;
 	private final ScriptEngine scriptEngine;
+	private VariableContext variableContext;
 
-	private MagicScript(List<Node> nodes, ScriptEngine scriptEngine) {
+	private MagicScript(List<Node> nodes, ScriptEngine scriptEngine, VariableContext variableContext) {
 		this.nodes = nodes;
 		this.scriptEngine = scriptEngine;
+		this.variableContext = variableContext;
 	}
 
 	public static MagicScript create(String source, ScriptEngine scriptEngine) {
-		return new MagicScript(Parser.parse(source), scriptEngine);
+		VariableContext variableContext = new VariableContext();
+		Parser parser = new Parser(variableContext);
+		return new MagicScript(parser.parse(source), scriptEngine, variableContext);
 	}
 
 	public List<Node> getNodes() {
@@ -45,15 +48,12 @@ public class MagicScript extends CompiledScript {
 			Object root = bindings.get(CONTEXT_ROOT);
 			if (root instanceof MagicScriptContext) {
 				MagicScriptContext rootContext = (MagicScriptContext) root;
-				for (Map.Entry<String, Object> entry : MagicScriptEngine.getDefaultImports().entrySet()) {
-					rootContext.set(entry.getKey(), entry.getValue());
-				}
+				rootContext.putMapIntoContext(MagicScriptEngine.getDefaultImports());
+				rootContext.setVariableContext(variableContext.copy());
 				if (rootContext instanceof MagicScriptDebugContext) {
 					MagicScriptDebugContext debugContext = (MagicScriptDebugContext) rootContext;
-					List<Map<String, Object>> scopes = rootContext.getScopes();
 					new Thread(() -> {
 						try {
-							debugContext.setScopes(scopes);
 							debugContext.start();
 							debugContext.setReturnValue(execute(debugContext));
 						} catch (Exception e) {
@@ -68,7 +68,7 @@ public class MagicScript extends CompiledScript {
 					}
 					return debugContext.isRunning() ? debugContext.getDebugInfo() : debugContext.getReturnValue();
 				}
-				return execute((MagicScriptContext) root);
+				return execute(rootContext);
 			} else {
 				throw new MagicScriptException("参数不正确！");
 			}
@@ -76,6 +76,7 @@ public class MagicScript extends CompiledScript {
 		MagicScriptContext magicScriptContext = new MagicScriptContext();
 		magicScriptContext.putMapIntoContext(context.getBindings(ScriptContext.GLOBAL_SCOPE));
 		magicScriptContext.putMapIntoContext(context.getBindings(ScriptContext.ENGINE_SCOPE));
+		magicScriptContext.setVariableContext(variableContext.copy());
 		return execute(magicScriptContext);
 	}
 

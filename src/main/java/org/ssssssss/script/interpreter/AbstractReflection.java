@@ -50,5 +50,5 @@ public abstract class AbstractReflection {
      * Calls the method on the object with the given arguments. The method must have been previously retrieved via
      * {@link #getMethod(Object, String, Object...)}.
      **/
-    public abstract Object callMethod(Object obj, Object method, Object... arguments);
+    public abstract Object callMethod(Object obj, Object method, Object... arguments) throws Throwable;
 }

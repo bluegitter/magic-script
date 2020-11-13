@@ -29,7 +29,7 @@ public class AssigmentOperation extends BinaryOperation {
 			MagicScriptError.error("Can only assign to top-level variables in context.", getLeftOperand().getSpan());
 		}
 		Object value = getRightOperand().evaluate(context);
-		context.set(((VariableAccess) getLeftOperand()).getVariableName().getText(), value);
+		((VariableAccess) getLeftOperand()).getVarNode().setValue(context, value);
 		return null;
 	}
 }

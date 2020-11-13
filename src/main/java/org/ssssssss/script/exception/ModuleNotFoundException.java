@@ -4,7 +4,7 @@ import org.ssssssss.script.parsing.Span;
 
 public class ModuleNotFoundException extends MagicScriptException {
 
-	public ModuleNotFoundException(String errorMessage, Span.Line line) {
-		super(errorMessage, line);
+	public ModuleNotFoundException(String errorMessage, Span location) {
+		super(errorMessage, location);
 	}
 }

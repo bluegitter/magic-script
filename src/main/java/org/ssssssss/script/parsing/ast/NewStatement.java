@@ -2,6 +2,7 @@ package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.VarNode;
 import org.ssssssss.script.functions.ClassExtension;
 import org.ssssssss.script.parsing.Span;
 
@@ -11,9 +12,9 @@ public class NewStatement extends Expression{
 
 	private List<Expression> arguments;
 
-	private String target;
+	private VarNode target;
 
-	public NewStatement(Span span,String target, List<Expression> arguments) {
+	public NewStatement(Span span, VarNode target, List<Expression> arguments) {
 		super(span);
 		this.target = target;
 		this.arguments = arguments;
@@ -21,7 +22,7 @@ public class NewStatement extends Expression{
 
 	@Override
 	public Object evaluate(MagicScriptContext context) {
-		Object clazz = context.get(target);
+		Object clazz = target.getValue(context);
 		if(clazz instanceof Class){
 			Class<?> cls = (Class<?>) clazz;
 			Object[] args = new Object[arguments.size()];

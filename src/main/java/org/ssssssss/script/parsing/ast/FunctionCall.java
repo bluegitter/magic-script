@@ -31,7 +31,7 @@ public class FunctionCall extends Expression {
         super(span);
         this.function = function;
         this.arguments = arguments;
-        this.cachedArguments = new ThreadLocal<>();
+        this.cachedArguments = new InheritableThreadLocal<>();
     }
 
     public Expression getFunction() {
@@ -89,7 +89,7 @@ public class FunctionCall extends Expression {
                 function = range;
             }else if (getFunction() instanceof VariableAccess) {
                 VariableAccess varAccess = (VariableAccess) getFunction();
-                function = context.get(varAccess.getVariableName().getText());
+                function = varAccess.getVarNode().getValue(context);
             }  else {
                 function = getFunction().evaluate(context);
             }

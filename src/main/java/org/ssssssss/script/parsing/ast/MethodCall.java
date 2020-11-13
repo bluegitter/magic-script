@@ -23,7 +23,7 @@ public class MethodCall extends Expression {
 		super(span);
 		this.method = method;
 		this.arguments = arguments;
-		this.cachedArguments = new ThreadLocal<>();
+		this.cachedArguments = new InheritableThreadLocal<>();
 	}
 
 	/**
@@ -189,7 +189,4 @@ public class MethodCall extends Expression {
 		return cachedMethodStatic;
 	}
 
-	public void setCachedMethodStatic(boolean cachedMethodStatic) {
-		this.cachedMethodStatic = cachedMethodStatic;
-	}
 }

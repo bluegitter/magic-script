@@ -478,7 +478,7 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	@Override
-	public Object callMethod(Object obj, Object method, Object... arguments) {
+	public Object callMethod(Object obj, Object method, Object... arguments) throws Throwable {
 		Method javaMethod = (Method) method;
 		try {
 			if (javaMethod.isVarArgs()) {
@@ -502,9 +502,9 @@ public class JavaReflection extends AbstractReflection {
 		} catch (Throwable t) {
 			if (t instanceof InvocationTargetException) {
 				Throwable t2 = ((InvocationTargetException) t).getTargetException();
-				throw new RuntimeException(t2);
+				throw t2;
 			} else {
-				throw new RuntimeException(t);
+				throw t;
 			}
 		}
 	}

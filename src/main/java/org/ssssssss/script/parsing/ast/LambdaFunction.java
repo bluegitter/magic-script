@@ -1,6 +1,7 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.VarNode;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Span;
 
@@ -8,10 +9,10 @@ import java.util.List;
 import java.util.function.Function;
 
 public class LambdaFunction extends Expression {
-	private List<String> parameters;
+	private List<VarNode> parameters;
 	private List<Node> childNodes;
 
-	public LambdaFunction(Span span, List<String> parameters, List<Node> childNodes) {
+	public LambdaFunction(Span span, List<VarNode> parameters, List<Node> childNodes) {
 		super(span);
 		this.parameters = parameters;
 		this.childNodes = childNodes;
@@ -19,29 +20,17 @@ public class LambdaFunction extends Expression {
 
 	@Override
 	public Object evaluate(MagicScriptContext context) {
-		return (Function<Object[], Object>) args -> {
-			context.push();
-			Object value = evaluate(context, args);
-			context.pop();
-			return value;
-		};
+		return (Function<Object[], Object>) args -> evaluate(context, args);
 	}
 
-	/**
-	 * 内部调用，按形参取值
-	 */
-	Object internalCall(MagicScriptContext context) {
-		Object[] args = new Object[parameters.size()];
-		for (int i = 0; i < args.length; i++) {
-			args[i] = context.get(parameters.get(i));
-		}
-		return evaluate(context, args);
+	public List<VarNode> getParameters() {
+		return parameters;
 	}
 
-	private Object evaluate(MagicScriptContext context, Object[] args) {
+	Object evaluate(MagicScriptContext context, Object[] args) {
 		Object value;
 		for (int i = 0; i < parameters.size() && i < args.length; i++) {
-			context.setOnCurrentScope(parameters.get(i), args[i]);
+			parameters.get(i).setValue(context, args[i]);
 		}
 		value = AstInterpreter.interpretNodeList(childNodes, context);
 		if (value instanceof Return.ReturnValue) {

@@ -21,16 +21,13 @@ public class WhileStatement extends Node {
 	@Override
 	public Object evaluate(MagicScriptContext context) {
 		while (BooleanLiteral.isTrue(condition.evaluate(context))){
-			context.push();
 			Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(trueBlock, context);
 			if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
 				break;
 			}
 			if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-				context.pop();
 				return breakOrContinueOrReturn;
 			}
-			context.pop();
 		}
 		return null;
 	}

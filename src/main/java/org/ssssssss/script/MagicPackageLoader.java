@@ -8,8 +8,8 @@ public class MagicPackageLoader {
 	private static final Set<String> packages = new HashSet<>();
 
 	static {
-		packages.add("java.util.*");
-		packages.add("java.lang.*");
+		addPackage("java.util.*");
+		addPackage("java.lang.*");
 	}
 
 	public static void addPackage(String prefix) {

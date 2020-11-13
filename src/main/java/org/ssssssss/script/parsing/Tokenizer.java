@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Tokenizer {
 
-	public List<Token> tokenize(String source) {
+	public static TokenStream tokenize(String source) {
 		CharacterStream stream = new CharacterStream(source, 0, source.length());
 		List<Token> tokens = new ArrayList<Token>();
 		int leftCount = 0;
@@ -183,6 +183,6 @@ public class Tokenizer {
 				MagicScriptError.error("Unknown token", stream.getSpan(stream.getPosition(), stream.getPosition() + 1));
 			}
 		}
-		return tokens;
+		return new TokenStream(tokens);
 	}
 }

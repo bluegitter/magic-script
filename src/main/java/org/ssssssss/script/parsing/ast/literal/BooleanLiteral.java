@@ -7,6 +7,11 @@ import org.ssssssss.script.parsing.ast.Literal;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * boolean常量

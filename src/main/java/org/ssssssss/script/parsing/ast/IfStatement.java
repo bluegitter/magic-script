@@ -41,29 +41,20 @@ public class IfStatement extends Node {
     public Object evaluate(MagicScriptContext context) {
         Object condition = getCondition().evaluate(context);
         if (BooleanLiteral.isTrue(condition)) {
-            context.push();
-            Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getTrueBlock(), context);
-            context.pop();
-            return breakOrContinueOrReturn;
+			return AstInterpreter.interpretNodeList(getTrueBlock(), context);
         }
 
         if (getElseIfs().size() > 0) {
             for (IfStatement elseIf : getElseIfs()) {
                 condition = elseIf.getCondition().evaluate(context);
                 if (BooleanLiteral.isTrue(condition)) {
-                    context.push();
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(elseIf.getTrueBlock(), context);
-                    context.pop();
-                    return breakOrContinueOrReturn;
+					return AstInterpreter.interpretNodeList(elseIf.getTrueBlock(), context);
                 }
             }
         }
 
         if (getFalseBlock().size() > 0) {
-            context.push();
-            Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getFalseBlock(), context);
-            context.pop();
-            return breakOrContinueOrReturn;
+			return AstInterpreter.interpretNodeList(getFalseBlock(), context);
         }
         return null;
     }

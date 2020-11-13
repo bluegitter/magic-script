@@ -5,6 +5,7 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.exception.DebugTimeoutException;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Break;
 import org.ssssssss.script.parsing.ast.Continue;
@@ -26,10 +27,11 @@ import java.util.List;
  * </p>
  **/
 public class AstInterpreter {
-    public static Object interpret(MagicScript magicScript, MagicScriptContext context) {
+    public static Object interpret(MagicScript magicScript, MagicScriptContext context, Scope scope) {
         try {
             MagicScriptContext.set(context);
-            Object value = interpretNodeList(magicScript.getNodes(), context);
+            context.setVarScope(scope);
+            Object value = interpretNodeList(magicScript.getNodes(), context, scope);
             if (value instanceof Return.ReturnValue) {
                 return ((Return.ReturnValue) value).getValue();
             }
@@ -38,11 +40,12 @@ public class AstInterpreter {
             MagicScriptError.error("执行脚本出错 " + t.getMessage(), magicScript.getNodes().get(0).getSpan(), t);
             return null; // never reached
         } finally {
+            context.removeVarScope();
             MagicScriptContext.remove();
         }
     }
 
-    public static Object interpretNodeList(List<Node> nodes, MagicScriptContext context) {
+    public static Object interpretNodeList(List<Node> nodes, MagicScriptContext context, Scope scope) {
         if (nodes != null) {
             boolean step = false;
             for (Node node : nodes) {
@@ -51,7 +54,7 @@ public class AstInterpreter {
                     Span.Line line = node.getSpan().getLine();
                     if (step || debugContext.getBreakpoints().contains(line.getLineNumber())) {
                         try {
-                            if (debugContext.pause(line) == null) {
+                            if (debugContext.pause(line, scope) == null) {
                                 debugContext.setReturnValue(null);
                                 throw new DebugTimeoutException();
                             }
@@ -62,7 +65,7 @@ public class AstInterpreter {
                         }
                     }
                 }
-                Object value = node.evaluate(context);
+                Object value = node.evaluate(context, scope);
                 if (value == Break.BREAK_SENTINEL || value == Continue.CONTINUE_SENTINEL || value instanceof Return.ReturnValue) {
                     return value;
                 }

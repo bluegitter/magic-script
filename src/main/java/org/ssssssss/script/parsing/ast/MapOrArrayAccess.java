@@ -2,6 +2,7 @@ package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 
 import java.util.List;
@@ -33,12 +34,12 @@ public class MapOrArrayAccess extends Expression implements VariableSetter {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object evaluate(MagicScriptContext context) {
-		Object mapOrArray = getMapOrArray().evaluate(context);
+	public Object evaluate(MagicScriptContext context, Scope scope) {
+		Object mapOrArray = getMapOrArray().evaluate(context, scope);
 		if (mapOrArray == null) {
 			MagicScriptError.error(String.format("对象[%s]为空",getMapOrArray().getSpan().getText()),getMapOrArray().getSpan());
 		}
-		Object keyOrIndex = getKeyOrIndex().evaluate(context);
+		Object keyOrIndex = getKeyOrIndex().evaluate(context, scope);
 		if (keyOrIndex == null) {
 			return null;
 		}
@@ -86,10 +87,10 @@ public class MapOrArrayAccess extends Expression implements VariableSetter {
 	}
 
 	@Override
-	public void setValue(MagicScriptContext context, Object value) {
-		Object mapOrArray = getMapOrArray().evaluate(context);
+	public void setValue(MagicScriptContext context, Scope scope, Object value) {
+		Object mapOrArray = getMapOrArray().evaluate(context, scope);
 		if (mapOrArray != null) {
-			Object keyOrIndex = getKeyOrIndex().evaluate(context);
+			Object keyOrIndex = getKeyOrIndex().evaluate(context, scope);
 			if (keyOrIndex != null) {
 				if (mapOrArray instanceof Map) {
 					((Map) mapOrArray).put(keyOrIndex, value);

@@ -1,24 +1,25 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.VarNode;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.VarIndex;
 
 public class VariableDefine extends Node {
 
     private Expression right;
 
-	private VarNode varNode;
+	private VarIndex varIndex;
 
-	public VariableDefine(Span span, VarNode varNode, Expression right) {
+	public VariableDefine(Span span, VarIndex varIndex, Expression right) {
         super(span);
-		this.varNode = varNode;
+		this.varIndex = varIndex;
         this.right = right;
     }
 
     @Override
-    public Object evaluate(MagicScriptContext context) {
-		varNode.setValue(context, right.evaluate(context));
+	public Object evaluate(MagicScriptContext context, Scope scope) {
+		scope.setValue(varIndex, right.evaluate(context, scope));
         return null;
     }
 }

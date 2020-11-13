@@ -3,8 +3,6 @@ package org.ssssssss.script.parsing;
 
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.VarNode;
-import org.ssssssss.script.VariableContext;
 import org.ssssssss.script.parsing.ast.*;
 import org.ssssssss.script.parsing.ast.literal.*;
 
@@ -12,6 +10,7 @@ import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Stack;
 
 
 /**
@@ -28,17 +27,12 @@ public class Parser {
 
 	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while");
 
-	private VariableContext variableContext = new VariableContext();
+	private Stack<List<String>> varNames = new Stack<>();
 
-	public Parser() {
-	}
+	private List<String> current = new ArrayList<>();
 
-	public Parser(VariableContext variableContext) {
-		this.variableContext = variableContext;
-	}
-
-	public VariableContext getVariableContext() {
-		return variableContext;
+	public int getTopVarCount() {
+		return current.size();
 	}
 
 	/**
@@ -99,6 +93,33 @@ public class Parser {
 		return result;
 	}
 
+	private VarIndex add(String name) {
+		int index = current.lastIndexOf(name);
+		if (index > -1) {
+			return new VarIndex(name, index, true);
+		}
+		index = current.size();
+		current.add(name);
+		return new VarIndex(name, index, true);
+	}
+
+	private VarIndex forceAdd(String name) {
+		int index = current.size();
+		current.add(name);
+		return new VarIndex(name, index, false);
+	}
+
+	private void push() {
+		varNames.push(current);
+		current = new ArrayList<>();
+	}
+
+	private int pop() {
+		int count = current.size();
+		current = varNames.pop();
+		return count;
+	}
+
 	private Expression parseAsync(TokenStream stream) {
 		Span opening = stream.expect("async").getSpan();
 		Expression expression = parseExpression(stream);
@@ -129,7 +150,7 @@ public class Parser {
 				checkKeyword(expected.getSpan());
 				varName = expected.getSpan().getText();
 			}
-			return new Import(new Span(opening, expected.getSpan()), packageName, variableContext.add(varName), !isStringLiteral);
+			return new Import(new Span(opening, expected.getSpan()), packageName, add(varName), !isStringLiteral);
 		}
 		MagicScriptError.error("Expected identifier or string, but got stream is EOF", stream.getPrev().getSpan());
 		return null;
@@ -140,10 +161,10 @@ public class Parser {
 		List<Node> tryBlocks = parseFunctionBody(stream);
 		List<Node> catchBlocks = new ArrayList<>();
 		List<Node> finallyBlocks = new ArrayList<>();
-		VarNode exceptionVarNode = null;
+		VarIndex exceptionVarNode = null;
 		if (stream.match("catch", true)) {
 			if (stream.match("(", true)) {
-				exceptionVarNode = variableContext.add(stream.expect(TokenType.Identifier).getText());
+				exceptionVarNode = add(stream.expect(TokenType.Identifier).getText());
 				stream.expect(")");
 			}
 			catchBlocks.addAll(parseFunctionBody(stream));
@@ -156,7 +177,6 @@ public class Parser {
 
 	private List<Node> parseFunctionBody(TokenStream stream) {
 		stream.expect("{");
-		variableContext.push();
 		List<Node> blocks = new ArrayList<Node>();
 		while (stream.hasMore() && !stream.match("}", false)) {
 			Node node = parseStatement(stream, true);
@@ -166,7 +186,6 @@ public class Parser {
 			}
 		}
 		expectCloseing(stream);
-		variableContext.pop();
 		return blocks;
 	}
 
@@ -175,7 +194,7 @@ public class Parser {
 		List<Expression> arguments = new ArrayList<>();
 		arguments.addAll(parseArguments(stream));
 		Span closing = stream.expect(")").getSpan();
-		return new NewStatement(new Span(opening, closing), variableContext.add(identifier.getText()), arguments);
+		return new NewStatement(new Span(opening, closing), add(identifier.getText()), arguments);
 	}
 
 	private VariableDefine parseVarDefine(TokenStream stream) {
@@ -189,7 +208,7 @@ public class Parser {
 			expected = TokenType.Assignment;
 			if (stream.hasMore()) {
 				stream.expect(expected);
-				return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), variableContext.add(variableName), parseExpression(stream));
+				return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), add(variableName), parseExpression(stream));
 			}
 		}
 		MagicScriptError.error("Expected " + expected.getError() + ", but got stream is EOF", stream.getPrev().getSpan());
@@ -214,6 +233,7 @@ public class Parser {
 	private ForStatement parseForStatement(TokenStream stream) {
 		Span openingFor = stream.expect("for").getSpan();
 		stream.expect("(");
+		push();
 		Span index = null;
 		Span value = stream.expect(TokenType.Identifier).getSpan();
 		checkKeyword(value);
@@ -222,18 +242,16 @@ public class Parser {
 			value = stream.expect(TokenType.Identifier).getSpan();
 			checkKeyword(value);
 		}
-		variableContext.push();
-		VarNode indexOrKeyNode = null;
+		VarIndex indexOrKeyNode = null;
 		if (index != null) {
-			indexOrKeyNode = variableContext.forceAdd(index.getText());
+			indexOrKeyNode = forceAdd(index.getText());
 		}
-		VarNode valueNode = variableContext.forceAdd(value.getText());
+		VarIndex valueNode = forceAdd(value.getText());
 		stream.expect("in");
 		Expression mapOrArray = parseExpression(stream);
 		stream.expect(")");
 		List<Node> body = parseFunctionBody(stream);
-		variableContext.pop();
-		return new ForStatement(new Span(openingFor, stream.getPrev().getSpan()), indexOrKeyNode, valueNode, mapOrArray, body);
+		return new ForStatement(new Span(openingFor, stream.getPrev().getSpan()), indexOrKeyNode, valueNode, pop(), mapOrArray, body);
 	}
 
 	private static Span expectCloseing(TokenStream stream) {
@@ -322,13 +340,13 @@ public class Parser {
 			if (stream.match(TokenType.LeftParantheses, false)) {    //(
 				Span openSpan = stream.expect(TokenType.LeftParantheses).getSpan();
 				int index = stream.makeIndex();
-				List<VarNode> parameters = new ArrayList<>();
-				variableContext.push();
+				List<VarIndex> parameters = new ArrayList<>();
+				push();
 				try {
 					while (stream.match(TokenType.Identifier, false)) {
 						Token identifier = stream.expect(TokenType.Identifier);
 						checkKeyword(identifier.getSpan());
-						parameters.add(variableContext.forceAdd(identifier.getSpan().getText()));
+						parameters.add(forceAdd(identifier.getSpan().getText()));
 						if (stream.match(TokenType.Comma, true)) { //,
 							continue;
 						}
@@ -343,7 +361,7 @@ public class Parser {
 						return parseLambdaBody(stream, openSpan, parameters);
 					}
 				} finally {
-					variableContext.pop();
+					pop();
 				}
 				stream.resetIndex(index);
 				Expression expression = parseExpression(stream);
@@ -355,29 +373,29 @@ public class Parser {
 		}
 	}
 
-	private Expression parseLambdaBody(TokenStream stream, Span openSpan, List<VarNode> parameters) {
+	private Expression parseLambdaBody(TokenStream stream, Span openSpan, List<VarIndex> parameters) {
 		int index = stream.makeIndex();
 		List<Node> childNodes = new ArrayList<>();
 		try {
 			Expression expression = parseExpression(stream);
 			childNodes.add(new Return(new Span("return", 0, 6), expression));
-			return new LambdaFunction(new Span(openSpan, expression.getSpan()), parameters, childNodes);
+			return new LambdaFunction(new Span(openSpan, expression.getSpan()), parameters, current.size(), childNodes);
 		} catch (Exception e) {
 			stream.resetIndex(index);
 			if (stream.match(TokenType.LeftCurly, true)) {
-				variableContext.push();
+				push();
 				while (stream.hasMore() && !stream.match(false, "}")) {
 					Node node = parseStatement(stream, true);
 					validateNode(node);
 					childNodes.add(node);
 				}
-				variableContext.pop();
+				int count = pop();
 				Span closeSpan = expectCloseing(stream);
-				return new LambdaFunction(new Span(openSpan, closeSpan), parameters, childNodes);
+				return new LambdaFunction(new Span(openSpan, closeSpan), parameters, count, childNodes);
 			} else {
 				Node node = parseStatement(stream);
 				childNodes.add(new Return(new Span("return", 0, 6), node));
-				return new LambdaFunction(new Span(openSpan, node.getSpan()), parameters, childNodes);
+				return new LambdaFunction(new Span(openSpan, node.getSpan()), parameters, current.size(), childNodes);
 			}
 		}
 	}
@@ -442,7 +460,7 @@ public class Parser {
 			if (stream.match(false, TokenType.Comma, TokenType.RightCurly)) {
 				stream.match(TokenType.Comma, true);
 				if (key.getType() == TokenType.Identifier) {
-					values.add(new VariableAccess(key.getSpan(), variableContext.add(key.getText())));
+					values.add(new VariableAccess(key.getSpan(), add(key.getText())));
 				} else {
 					values.add(new StringLiteral(key.getSpan()));
 				}
@@ -481,12 +499,12 @@ public class Parser {
 			return parseNewExpression(identifier, stream);
 		}
 		if (tokenType == TokenType.Identifier && stream.match(TokenType.Lambda, true)) {
-			variableContext.push();
-			Expression expression = parseLambdaBody(stream, identifier, Arrays.asList(variableContext.forceAdd(identifier.getText())));
-			variableContext.pop();
+			push();
+			Expression expression = parseLambdaBody(stream, identifier, Arrays.asList(forceAdd(identifier.getText())));
+			pop();
 			return expression;
 		}
-		Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) : new VariableAccess(identifier, variableContext.add(identifier.getText()));
+		Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) : new VariableAccess(identifier, add(identifier.getText()));
 
 		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period)) {
 

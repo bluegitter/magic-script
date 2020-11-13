@@ -1,7 +1,7 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 
 /**
@@ -31,6 +31,6 @@ public abstract class Node {
      * @param context
      * @return
      */
-    public abstract Object evaluate(MagicScriptContext context);
+    public abstract Object evaluate(MagicScriptContext context, Scope scope);
 
 }

@@ -1,5 +1,6 @@
 package org.ssssssss.script;
 
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 
 import java.util.*;
@@ -36,6 +37,8 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	private boolean stepInto = false;
 
+	private Scope scope;
+
 	public void setId(String id) {
 		String oldId = this.id;
 		this.id = id;
@@ -55,7 +58,8 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		this.breakpoints = breakpoints;
 	}
 
-	public String pause(Span.Line line) throws InterruptedException {
+	public synchronized String pause(Span.Line line, Scope scope) throws InterruptedException {
+		this.scope = scope;
 		this.line = line;
 		consumer.offer(this.id);
 		return producer.poll(timeout, TimeUnit.SECONDS);
@@ -112,7 +116,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	public Map<String, Object> getDebugInfo() {
 		List<Map<String, Object>> varList = new ArrayList<>();
-		Set<Map.Entry<String, Object>> entries = super.getVariables().entrySet();
+		Set<Map.Entry<String, Object>> entries = scope.getVariables().entrySet();
 		for (Map.Entry<String, Object> entry : entries) {
 			Object value = entry.getValue();
 			Map<String, Object> variable = new HashMap<>();

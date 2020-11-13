@@ -1,32 +1,19 @@
 package org.ssssssss.script.parsing.ast.literal;
 
-import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Literal;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * boolean常量
  */
 public class BooleanLiteral extends Literal {
-    private final Boolean value;
 
     public BooleanLiteral(Span literal) {
-        super(literal);
-        this.value = Boolean.parseBoolean(literal.getText());
-    }
-
-    @Override
-    public Object evaluate(MagicScriptContext context) {
-        return value;
+        super(literal, Boolean.parseBoolean(literal.getText()));
     }
 
     public static boolean isTrue(Object object){

@@ -2,6 +2,7 @@ package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.interpreter.AstInterpreter;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
@@ -19,9 +20,9 @@ public class WhileStatement extends Node {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context) {
-		while (BooleanLiteral.isTrue(condition.evaluate(context))){
-			Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(trueBlock, context);
+	public Object evaluate(MagicScriptContext context, Scope scope) {
+		while (BooleanLiteral.isTrue(condition.evaluate(context, scope))) {
+			Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(trueBlock, context, scope);
 			if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
 				break;
 			}

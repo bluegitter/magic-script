@@ -6,6 +6,7 @@ import org.ssssssss.script.exception.ExceptionUtils;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.StringLiteral;
 
@@ -60,10 +61,10 @@ public class MemberAccess extends Expression implements VariableSetter {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object evaluate(MagicScriptContext context) {
-		Object object = getObject().evaluate(context);
+	public Object evaluate(MagicScriptContext context, Scope scope) {
+		Object object = getObject().evaluate(context, scope);
 		if (object == null) {
-			MagicScriptError.error(String.format("对象[%s]为空",getObject().getSpan().getText()),getObject().getSpan());
+			MagicScriptError.error(String.format("对象[%s]为空", getObject().getSpan().getText()), getObject().getSpan());
 		}
 
 		// special case for array.length
@@ -97,7 +98,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 			MemberAccess access = new MemberAccess(this.object, new Span("get" + methodName));
 			MethodCall methodCall = new MethodCall(getName(), access, Collections.emptyList());
 			try {
-				return methodCall.evaluate(context);
+				return methodCall.evaluate(context, scope);
 			} catch (MagicScriptException e) {
 				if (ExceptionUtils.indexOfThrowable(e, InvocationTargetException.class) > -1) {
 					MagicScriptError.error(String.format("在%s中调用方法get%s发生异常"
@@ -108,7 +109,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 				access = new MemberAccess(this.object, new Span("get"));
 				methodCall = new MethodCall(getName(), access, Arrays.asList(new StringLiteral(getName())));
 				try {
-					return methodCall.evaluate(context);
+					return methodCall.evaluate(context, scope);
 				} catch (MagicScriptException e3) {
 					if (ExceptionUtils.indexOfThrowable(e3, InvocationTargetException.class) > -1) {
 						MagicScriptError.error(String.format("在%s中调用方法get发生异常"
@@ -119,7 +120,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 					access = new MemberAccess(this.object, new Span("is" + methodName));
 					methodCall = new MethodCall(getName(), access, Collections.emptyList());
 					try {
-						return methodCall.evaluate(context);
+						return methodCall.evaluate(context, scope);
 					} catch (MagicScriptException e1) {
 						if (ExceptionUtils.indexOfThrowable(e1, InvocationTargetException.class) > -1) {
 							MagicScriptError.error(String.format("在%s中调用方法is%s发生异常"
@@ -141,8 +142,8 @@ public class MemberAccess extends Expression implements VariableSetter {
 	}
 
 	@Override
-	public void setValue(MagicScriptContext context, Object value) {
-		Object object = getObject().evaluate(context);
+	public void setValue(MagicScriptContext context, Scope scope, Object value) {
+		Object object = getObject().evaluate(context, scope);
 		if (object == null) {
 			// ?
 		} else if (object instanceof Map) {
@@ -156,7 +157,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 				} catch (Throwable t) {
 					// fall through
 				}
-			}else{
+			} else {
 				String text = getName().getText();
 				field = AbstractReflection.getInstance().getField(object, text);
 				if (field == null) {
@@ -169,12 +170,12 @@ public class MemberAccess extends Expression implements VariableSetter {
 					MemberAccess access = new MemberAccess(this.object, new Span("set" + methodName));
 					MethodCall methodCall = new MethodCall(getName(), access, Collections.singletonList(new Literal(null) {
 						@Override
-						public Object evaluate(MagicScriptContext context) {
+						public Object evaluate(MagicScriptContext context, Scope scope) {
 							return value;
 						}
 					}));
 					try {
-						methodCall.evaluate(context);
+						methodCall.evaluate(context, scope);
 					} catch (MagicScriptException e) {
 						if (ExceptionUtils.indexOfThrowable(e, InvocationTargetException.class) > -1) {
 							MagicScriptError.error(String.format("在%s中调用方法get%s发生异常"

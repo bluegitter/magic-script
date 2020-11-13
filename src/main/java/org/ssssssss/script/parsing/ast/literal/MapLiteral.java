@@ -2,6 +2,7 @@ package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
@@ -26,16 +27,16 @@ public class MapLiteral extends Literal {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context) {
+	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Map<String, Object> map = new HashMap<>();
 		for (int i = 0, n = keys.size(); i < n; i++) {
 			Token tokenKey = keys.get(i);
 			String key = tokenKey.getSpan().getText();
 			if (tokenKey.getType() == TokenType.StringLiteral) {
-				key = (String) new StringLiteral(tokenKey.getSpan()).evaluate(context);
-			} else if (key != null && key.startsWith("$")) {	//如果key是$开头的，则认为是动态key值
+				key = (String) new StringLiteral(tokenKey.getSpan()).evaluate(context, scope);
+			} else if (key != null && key.startsWith("$")) {    //如果key是$开头的，则认为是动态key值
 				key = key.substring(1);
-				if (!key.startsWith("$")) {	//如果是$$开头的变量，则认为是普通key..
+				if (!key.startsWith("$")) {    //如果是$$开头的变量，则认为是普通key..
 					Object objKey = context.get(key);
 					if (objKey != null) {
 						key = objKey.toString();
@@ -44,7 +45,7 @@ public class MapLiteral extends Literal {
 					}
 				}
 			}
-			map.put(key, values.get(i).evaluate(context));
+			map.put(key, values.get(i).evaluate(context, scope));
 		}
 		return map;
 	}

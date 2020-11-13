@@ -23,14 +23,14 @@ public class GenericTokenParser {
 		while (stream.hasMore()) {
 			builder.append(parseStream(stream, null, handler));
 		}
-		return builder.toString();
+		return builder.toString().trim();
 	}
 
 	private String parseStream(CharacterStream stream, String expect, Function<String, String> handler) {
 		StringBuilder builder = new StringBuilder();
 		while (stream.hasMore()) {
 			if (expect != null && stream.match(expect, true)) {
-				return builder.toString();
+				return builder.toString().trim();
 			}
 			if (stream.match(open, true)) {
 				String value = handler.apply(parseStream(stream, close, handler));
@@ -49,7 +49,7 @@ public class GenericTokenParser {
 				}
 			}
 		}
-		return builder.toString();
+		return builder.toString().trim();
 	}
 
 	private String consumeUntil(CharacterStream stream, String str) {

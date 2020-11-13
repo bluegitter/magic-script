@@ -2,6 +2,7 @@ package org.ssssssss.script.parsing.ast.binary;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
@@ -18,18 +19,18 @@ public class AssigmentOperation extends BinaryOperation {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context) {
+	public Object evaluate(MagicScriptContext context, Scope scope) {
 		if (getLeftOperand() instanceof VariableSetter) {
 			VariableSetter variableSetter = (VariableSetter) getLeftOperand();
-			Object value = getRightOperand().evaluate(context);
-			variableSetter.setValue(context, value);
+			Object value = getRightOperand().evaluate(context, scope);
+			variableSetter.setValue(context, scope, value);
 			return null;
 		}
 		if (!(getLeftOperand() instanceof VariableAccess)) {
 			MagicScriptError.error("Can only assign to top-level variables in context.", getLeftOperand().getSpan());
 		}
-		Object value = getRightOperand().evaluate(context);
-		((VariableAccess) getLeftOperand()).getVarNode().setValue(context, value);
+		Object value = getRightOperand().evaluate(context, scope);
+		scope.setValue(((VariableAccess) getLeftOperand()).getVarIndex(), value);
 		return null;
 	}
 }

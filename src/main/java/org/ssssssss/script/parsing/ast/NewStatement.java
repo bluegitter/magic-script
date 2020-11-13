@@ -2,40 +2,44 @@ package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.VarNode;
 import org.ssssssss.script.functions.ClassExtension;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.VarIndex;
 
 import java.util.List;
 
-public class NewStatement extends Expression{
+public class NewStatement extends Expression {
 
 	private List<Expression> arguments;
 
-	private VarNode target;
+	private VarIndex target;
 
-	public NewStatement(Span span, VarNode target, List<Expression> arguments) {
+	private VariableAccess variableAccess;
+
+	public NewStatement(Span span, VarIndex target, List<Expression> arguments) {
 		super(span);
 		this.target = target;
 		this.arguments = arguments;
+		this.variableAccess = new VariableAccess(span, target);
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context) {
-		Object clazz = target.getValue(context);
-		if(clazz instanceof Class){
+	public Object evaluate(MagicScriptContext context, Scope scope) {
+		Object clazz = variableAccess.evaluate(context, scope);
+		if (clazz instanceof Class) {
 			Class<?> cls = (Class<?>) clazz;
 			Object[] args = new Object[arguments.size()];
 			for (int i = 0; i < args.length; i++) {
-				args[i] = arguments.get(i).evaluate(context);
+				args[i] = arguments.get(i).evaluate(context, scope);
 			}
 			try {
-				return ClassExtension.newInstance(cls,args);
+				return ClassExtension.newInstance(cls, args);
 			} catch (Throwable t) {
-				MagicScriptError.error("class "+target+" can not newInstance." ,getSpan() ,t);
+				MagicScriptError.error("class " + target.getName() + " can not newInstance.", getSpan(), t);
 			}
-		}else{
-			MagicScriptError.error("class "+target+" not found" ,getSpan());
+		} else {
+			MagicScriptError.error("class " + target.getName() + " not found", getSpan());
 		}
 		return null;
 	}

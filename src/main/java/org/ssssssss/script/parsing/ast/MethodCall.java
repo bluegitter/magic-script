@@ -6,6 +6,7 @@ import org.ssssssss.script.functions.DynamicMethod;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.interpreter.JavaReflection;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 
 import java.lang.reflect.Array;
@@ -17,7 +18,6 @@ public class MethodCall extends Expression {
 	private final List<Expression> arguments;
 	private final ThreadLocal<Object[]> cachedArguments;
 	private Object cachedMethod;
-	private boolean cachedMethodStatic;
 
 	public MethodCall(Span span, MemberAccess method, List<Expression> arguments) {
 		super(span);
@@ -87,9 +87,9 @@ public class MethodCall extends Expression {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context) {
+	public Object evaluate(MagicScriptContext context, Scope scope) {
 		try {
-			Object object = getObject().evaluate(context);
+			Object object = getObject().evaluate(context, scope);
 			if (object == null) {
 				MagicScriptError.error(String.format("对象[%s]为空",getObject().getSpan().getText()),getObject().getSpan());
 			}
@@ -97,7 +97,7 @@ public class MethodCall extends Expression {
 			List<Expression> arguments = getArguments();
 			for (int i = 0, n = argumentValues.length; i < n; i++) {
 				Expression expr = arguments.get(i);
-				argumentValues[i] = expr.evaluate(context);
+				argumentValues[i] = expr.evaluate(context, scope);
 			}
 			if (object instanceof DynamicMethod) {
 				try {
@@ -114,9 +114,6 @@ public class MethodCall extends Expression {
 			Object method = getCachedMethod();
 			if (method != null) {
 				try {
-					if (isCachedMethodStatic()) {
-						return AbstractReflection.getInstance().callMethod(null, method, object, argumentValues);
-					}
 					return AbstractReflection.getInstance().callMethod(object, method, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
@@ -183,10 +180,6 @@ public class MethodCall extends Expression {
 		} finally {
 			clearCachedArguments();
 		}
-	}
-
-	public boolean isCachedMethodStatic() {
-		return cachedMethodStatic;
 	}
 
 }

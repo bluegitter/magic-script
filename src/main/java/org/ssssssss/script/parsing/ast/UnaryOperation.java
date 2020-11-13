@@ -2,6 +2,7 @@ package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
 
@@ -28,8 +29,8 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public Object evaluate(MagicScriptContext context) {
-        Object operand = getOperand().evaluate(context);
+	public Object evaluate(MagicScriptContext context, Scope scope) {
+		Object operand = getOperand().evaluate(context, scope);
 
         if (getOperator() == UnaryOperator.Negate) {
             if (operand instanceof Integer) {

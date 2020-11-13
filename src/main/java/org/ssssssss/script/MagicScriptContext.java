@@ -3,14 +3,13 @@ package org.ssssssss.script;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Parser;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Tokenizer;
 import org.ssssssss.script.parsing.ast.Expression;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Objects;
 
 
 /**
@@ -28,11 +27,9 @@ public class MagicScriptContext {
 
 	private final static ThreadLocal<MagicScriptContext> CONTEXT_THREAD_LOCAL = new InheritableThreadLocal<>();
 
-	private final ThreadLocal<Stack<Integer>> THREAD_ID = new InheritableThreadLocal<>();
-	private VariableContext variableContext = null;
-	private Map<String, Object> tempVariables = new HashMap<>();
-	private Map<Integer, VariableContext> threadVariables = new ConcurrentHashMap<>();
-	private AtomicInteger thread = new AtomicInteger(0);
+	private final ThreadLocal<Scope> CONTEXT_VAR_SCOPE = new InheritableThreadLocal<>();
+
+	private Map<String, Object> rootVariables = new HashMap<>();
 
 	public MagicScriptContext() {
 	}
@@ -57,50 +54,45 @@ public class MagicScriptContext {
 		CONTEXT_THREAD_LOCAL.set(context);
 	}
 
+
+	public String getString(String name) {
+		return Objects.toString(get(name), null);
+	}
+
+	public Object get(String name) {
+		Scope scope = CONTEXT_VAR_SCOPE.get();
+		if (scope != null) {
+			return scope.getValue(name);
+		}
+		return null;
+	}
+
 	/**
 	 * Sets the value of the variable with the given name. If the variable already exists in one of the scopes, that variable is
 	 * set. Otherwise the variable is set on the last pushed scope.
 	 */
 	public MagicScriptContext set(String name, Object value) {
-		tempVariables.put(name, value);
+		rootVariables.put(name, value);
 		return this;
 	}
 
-
-	/**
-	 * Internal. Returns the value of the variable with the given name, walking the scope stack from top to bottom, similar to how
-	 * scopes in programming languages are searched for variables.
-	 */
-	public Object get(String name) {
-		VarNode varNode = variableContext.get(name);
-		return wrapValue(name,varNode.getValue());
+	public void setVarScope(Scope scope) {
+		CONTEXT_VAR_SCOPE.set(scope);
 	}
 
-	public String getString(String name) {
-		return getString(name, null);
-	}
-
-	public String getString(String name, String defaultValue) {
-		Object value = get(name);
-		return value == null ? defaultValue : value.toString();
+	public void removeVarScope() {
+		CONTEXT_VAR_SCOPE.remove();
 	}
 
 	/**
 	 * Internal. Returns all variables currently defined in this context.
 	 */
-	public Map<String, Object> getVariables() {
-		return getVariableContext().getCurrentVariables(this);
-	}
 
 	public Object eval(String script) {
 		try {
-			VariableContext variableContext = getVariableContext().copy(true);
-			variableContext.setCurrentScope(variableContext.getRuntimeScope());
-			Parser parser = new Parser(variableContext);
+			Parser parser = new Parser();
 			Expression expression = parser.parseExpression(Tokenizer.tokenize(script));
-			MagicScriptContext context = new MagicScriptContext();
-			context.setVariableContext(variableContext);
-			return expression.evaluate(context);
+			return expression.evaluate(this, CONTEXT_VAR_SCOPE.get().create(parser.getTopVarCount()));
 		} catch (Exception e) {
 			Throwable throwable = MagicScriptError.unwrap(e);
 			if (throwable instanceof MagicScriptException) {
@@ -110,94 +102,13 @@ public class MagicScriptContext {
 		}
 	}
 
+	public Map<String, Object> getRootVariables() {
+		return rootVariables;
+	}
 
 	public void putMapIntoContext(Map<String, Object> map) {
 		if (map != null && !map.isEmpty()) {
-			tempVariables.putAll(map);
+			rootVariables.putAll(map);
 		}
-	}
-
-	public Object getValue(VarNode varNode) {
-		Integer threadId = getThreadId();
-		if (threadId != null) {
-			return wrapValue(varNode.getName(), threadVariables.get(threadId).get(varNode.getScopeIndex(), varNode.getVarIndex()));
-		}
-		return wrapValue(varNode.getName(), variableContext.get(varNode.getScopeIndex(), varNode.getVarIndex()));
-	}
-
-	public Object findAndGet(VarNode varNode) {
-		Integer threadId = getThreadId();
-		if (threadId != null) {
-			return wrapValue(varNode.getName(), threadVariables.get(threadId).findAndGet(varNode));
-		}
-		return wrapValue(varNode.getName(), variableContext.findAndGet(varNode));
-	}
-
-	Object wrapValue(String name, Object value) {
-		value = value == null ? tempVariables.get(name) : value;
-		value = value == null ? MagicPackageLoader.findClass(name) : value;
-		return value == null ? MagicModuleLoader.loadModule(name) : value;
-	}
-
-	private Integer getThreadId() {
-		Stack<Integer> stack = THREAD_ID.get();
-		if (stack != null && !stack.isEmpty()) {
-			return stack.peek();
-		}
-		return null;
-	}
-
-	public void setValue(VarNode varNode, Object value) {
-		Integer threadId = getThreadId();
-		if (threadId != null) {
-			threadVariables.get(threadId).set(varNode.getScopeIndex(), varNode.getVarIndex(), value);
-			return;
-		}
-		variableContext.set(varNode.getScopeIndex(), varNode.getVarIndex(), value);
-	}
-
-	public void pushThread(Integer threadId) {
-		Stack<Integer> stack = THREAD_ID.get();
-		if (stack != null) {
-			stack.push(threadId);
-		} else {
-			stack = new Stack<>();
-			stack.push(threadId);
-		}
-		THREAD_ID.set(stack);
-	}
-
-	public void popThread(Integer threadId) {
-		Stack<Integer> stack = THREAD_ID.get();
-		if (stack != null) {
-			stack.remove(threadId);
-		}
-	}
-
-	public synchronized Integer copyThreadVariables() {
-		Integer id = thread.incrementAndGet();
-		Integer threadId = getThreadId();
-		if (threadId != null) {
-			threadVariables.put(id, threadVariables.get(threadId).copy(true));
-		} else {
-			threadVariables.put(id, variableContext.copy(true));
-		}
-		return id;
-	}
-
-	public void deleteThreadVariables(Integer threadId) {
-		threadVariables.remove(threadId);
-	}
-
-	public VariableContext getVariableContext() {
-		Integer threadId = getThreadId();
-		if (threadId != null) {
-			return threadVariables.get(threadId);
-		}
-		return variableContext;
-	}
-
-	void setVariableContext(VariableContext variableContext) {
-		this.variableContext = variableContext;
 	}
 }

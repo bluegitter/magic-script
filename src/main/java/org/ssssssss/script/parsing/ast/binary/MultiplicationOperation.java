@@ -3,6 +3,7 @@ package org.ssssssss.script.parsing.ast.binary;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.functions.ObjectConvertExtension;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
@@ -19,12 +20,12 @@ public class MultiplicationOperation extends BinaryOperation {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context) {
-		Object left = getLeftOperand().evaluate(context);
+	public Object evaluate(MagicScriptContext context, Scope scope) {
+		Object left = getLeftOperand().evaluate(context, scope);
 		if (left == null) {
 			MagicScriptError.error(getLeftOperand().getSpan().getText() + "[*]操作的值不能为空", getLeftOperand().getSpan());
 		}
-		Object right = getRightOperand().evaluate(context);
+		Object right = getRightOperand().evaluate(context, scope);
 		if (right == null) {
 			MagicScriptError.error(getRightOperand().getSpan().getText() + "[*]操作的值不能为空", getRightOperand().getSpan());
 		}

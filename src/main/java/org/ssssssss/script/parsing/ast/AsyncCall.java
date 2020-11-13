@@ -1,8 +1,9 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.VarNode;
+import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.VarIndex;
 
 import java.util.List;
 import java.util.concurrent.*;
@@ -37,30 +38,30 @@ public class AsyncCall extends Expression {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context) {
+	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Object[] args = null;
 		if (expression instanceof LambdaFunction) {
 			LambdaFunction lambdaFunction = (LambdaFunction) expression;
-			List<VarNode> parameters = lambdaFunction.getParameters();
-			args = parameters.stream().map(item -> {
-				Object value = context.findAndGet(item);
-				item.setValue(context, value);
-				return value;
-			}).toArray();
+			List<VarIndex> parameters = lambdaFunction.getParameters();
+			scope = scope.create(lambdaFunction.getVarCount());
+			args = new Object[parameters.size()];
+			for (int i = 0; i < args.length; i++) {
+				VarIndex varIndex = parameters.get(i);
+				args[i] = scope.getValue(varIndex);
+			}
 		}
 		Object[] finalArgs = args;
-		Integer threadId = context.copyThreadVariables();
+		Scope finalScope = scope;
 		FutureTask<Object> futureTask = new FutureTask<>(() -> {
 			try {
-				context.pushThread(threadId);
 				MagicScriptContext.set(context);
+				context.setVarScope(finalScope);
 				if (expression instanceof LambdaFunction) {
-					return ((LambdaFunction) expression).evaluate(context, finalArgs);
+					return ((LambdaFunction) expression).evaluate(context, finalScope, finalArgs);
 				}
-				return expression.evaluate(context);
+				return expression.evaluate(context, finalScope);
 			} finally {
-				context.popThread(threadId);
-				context.deleteThreadVariables(threadId);
+				context.removeVarScope();
 				MagicScriptContext.remove();
 			}
 		});

@@ -1,10 +1,11 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.statement;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
+import org.ssssssss.script.parsing.ast.Node;
 
 import java.util.List;
 

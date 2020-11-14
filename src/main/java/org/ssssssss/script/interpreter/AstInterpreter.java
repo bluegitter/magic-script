@@ -7,10 +7,10 @@ import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.exception.DebugTimeoutException;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
-import org.ssssssss.script.parsing.ast.Break;
-import org.ssssssss.script.parsing.ast.Continue;
+import org.ssssssss.script.parsing.ast.statement.Break;
+import org.ssssssss.script.parsing.ast.statement.Continue;
 import org.ssssssss.script.parsing.ast.Node;
-import org.ssssssss.script.parsing.ast.Return;
+import org.ssssssss.script.parsing.ast.statement.Return;
 
 import java.util.List;
 

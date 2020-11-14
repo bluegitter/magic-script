@@ -22,9 +22,6 @@ public class DivisionOperation extends BinaryOperation {
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Object left = getLeftOperand().evaluate(context, scope);
-		if (left == null) {
-			MagicScriptError.error(getLeftOperand().getSpan().getText() + "[/]操作值不能为空", getLeftOperand().getSpan());
-		}
 		Object right = getRightOperand().evaluate(context, scope);
 		if (right == null) {
 			MagicScriptError.error(getRightOperand().getSpan().getText() + "[/]操作值不能为空", getRightOperand().getSpan());

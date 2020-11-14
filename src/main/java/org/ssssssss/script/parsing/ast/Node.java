@@ -23,7 +23,7 @@ public abstract class Node {
 
     @Override
     public String toString() {
-        return span.getText();
+        return getClass().getSimpleName() + ":" + span.getText();
     }
 
     /**

@@ -14,6 +14,11 @@ public class GrammarTests extends BaseTest {
 	}
 
 	@Test
+	public void increment() {
+		System.out.println(execute("grammar/increment.ms"));
+	}
+
+	@Test
 	public void varTest() {
 		execute("grammar/var.ms");
 	}

@@ -23,11 +23,11 @@ public class GreaterOperation extends BinaryOperation {
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Object left = getLeftOperand().evaluate(context, scope);
 		if (left == null) {
-			MagicScriptError.error(getLeftOperand().getSpan().getText() + "[>]操作的值不能为空", getLeftOperand().getSpan());
+			MagicScriptError.error("[>]操作的值不能为空", getLeftOperand().getSpan());
 		}
 		Object right = getRightOperand().evaluate(context, scope);
 		if (right == null) {
-			MagicScriptError.error(getRightOperand().getSpan().getText() + "[>]操作的值不能为空", getRightOperand().getSpan());
+			MagicScriptError.error("[>]操作的值不能为空", getRightOperand().getSpan());
 		}
 		if (left instanceof BigDecimal || right instanceof BigDecimal) {
 			return ObjectConvertExtension.asDecimal(left).compareTo(ObjectConvertExtension.asDecimal(right)) == 1;

@@ -42,6 +42,21 @@ public abstract class BinaryOperation extends Expression {
 			case Percentage:
 				expression = new ModuloOperation(left, span, right);
 				break;
+			case PlusEqual:
+				expression = new PlusEqualOperation(left, span, right);
+				break;
+			case MinusEqual:
+				expression = new MinusEqualOperation(left, span, right);
+				break;
+			case AsteriskEqual:
+				expression = new AsteriskEqualOperation(left, span, right);
+				break;
+			case ForwardSlashEqual:
+				expression = new ForwardSlashEqualOperation(left, span, right);
+				break;
+			case PercentEqual:
+				expression = new PercentEqualOperation(left, span, right);
+				break;
 			case Less:
 				expression = new LessOperation(left, span, right);
 				break;
@@ -67,7 +82,7 @@ public abstract class BinaryOperation extends Expression {
 				expression = new OrOperation(left, span, right);
 				break;
 			default:
-				MagicScriptError.error("[" + operator + "]操作符未实现", span);
+				MagicScriptError.error("[" + operator.getText() + "]操作符未实现", span);
 		}
 		return expression;
 	}
@@ -80,37 +95,37 @@ public abstract class BinaryOperation extends Expression {
 	 * -2 无法比较
 	 */
 	public static int compare(Object left, Object right) {
-		if(left == null && right == null){
+		if (left == null && right == null) {
 			return -2;
 		}
-		if(left == null){
+		if (left == null) {
 			return -1;
 		}
-		if(right == null){
+		if (right == null) {
 			return 1;
 		}
-		if(left instanceof Number && right instanceof Number){
+		if (left instanceof Number && right instanceof Number) {
 			if (left instanceof BigDecimal || right instanceof BigDecimal) {
 				return ObjectConvertExtension.asDecimal(left).compareTo(ObjectConvertExtension.asDecimal(right));
 			} else if (left instanceof Double || right instanceof Double) {
-				return Double.compare(((Number) left).doubleValue(),((Number) right).doubleValue());
+				return Double.compare(((Number) left).doubleValue(), ((Number) right).doubleValue());
 			} else if (left instanceof Float || right instanceof Float) {
-				return Float.compare(((Number) left).floatValue(),((Number) right).floatValue());
+				return Float.compare(((Number) left).floatValue(), ((Number) right).floatValue());
 			} else if (left instanceof Long || right instanceof Long) {
-				return Long.compare(((Number) left).longValue(),((Number) right).longValue());
+				return Long.compare(((Number) left).longValue(), ((Number) right).longValue());
 			} else if (left instanceof Integer || right instanceof Integer) {
-				return Integer.compare(((Number) left).intValue(),((Number) right).intValue());
+				return Integer.compare(((Number) left).intValue(), ((Number) right).intValue());
 			} else if (left instanceof Short || right instanceof Short) {
-				return Short.compare(((Number) left).shortValue(),((Number) right).shortValue());
+				return Short.compare(((Number) left).shortValue(), ((Number) right).shortValue());
 			} else if (left instanceof Byte || right instanceof Byte) {
-				return Byte.compare(((Number) left).byteValue(),((Number) right).byteValue());
+				return Byte.compare(((Number) left).byteValue(), ((Number) right).byteValue());
 			}
 		}
-		if(left instanceof Date && right instanceof Date){
-			return ((Date)left).compareTo((Date) right);
+		if (left instanceof Date && right instanceof Date) {
+			return ((Date) left).compareTo((Date) right);
 		}
-		if(left instanceof String && right instanceof String){
-			return ((String)left).compareTo((String) right);
+		if (left instanceof String && right instanceof String) {
+			return ((String) left).compareTo((String) right);
 		}
 		return -2;
 

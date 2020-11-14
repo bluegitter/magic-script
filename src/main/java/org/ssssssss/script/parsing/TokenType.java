@@ -33,6 +33,15 @@ public enum TokenType {
     Equal("==", "=="),
     NotEqual("!=", "!="),
     Assignment("=", "="),
+    // 1.3.0
+    PlusPlus("++", "++"),
+    MinusMinus("--", "--"),
+    PlusEqual("+=", "+="),
+    MinusEqual("-=", "-="),
+    AsteriskEqual("*=", "*="),
+    ForwardSlashEqual("/=", "/="),
+    PercentEqual("%=", "%="),
+    // 1.3.0 end
     And("&&", "&&"),
     Or("||", "||"),
     Xor("^", "^"),

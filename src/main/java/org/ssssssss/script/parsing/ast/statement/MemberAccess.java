@@ -1,4 +1,4 @@
-package org.ssssssss.script.parsing.ast;
+package org.ssssssss.script.parsing.ast.statement;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
@@ -8,6 +8,9 @@ import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.parsing.ast.Literal;
+import org.ssssssss.script.parsing.ast.VariableSetter;
 import org.ssssssss.script.parsing.ast.literal.StringLiteral;
 
 import java.lang.reflect.Array;

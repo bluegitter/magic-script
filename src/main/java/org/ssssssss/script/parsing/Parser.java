@@ -5,6 +5,7 @@ import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.ast.*;
 import org.ssssssss.script.parsing.ast.literal.*;
+import org.ssssssss.script.parsing.ast.statement.*;
 
 import javax.xml.transform.Source;
 import java.util.ArrayList;
@@ -19,11 +20,16 @@ import java.util.Stack;
  **/
 public class Parser {
 
-	private static final TokenType[][] binaryOperatorPrecedence = new TokenType[][]{new TokenType[]{TokenType.Assignment},
-			new TokenType[]{TokenType.Or, TokenType.And, TokenType.Xor}, new TokenType[]{TokenType.Equal, TokenType.NotEqual},
-			new TokenType[]{TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual}, new TokenType[]{TokenType.Plus, TokenType.Minus},
-			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}};
-	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.Plus, TokenType.Minus};
+	private static final TokenType[][] binaryOperatorPrecedence = new TokenType[][]{
+			new TokenType[]{TokenType.Assignment},
+			new TokenType[]{TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual},
+			new TokenType[]{TokenType.Or, TokenType.And, TokenType.Xor},
+			new TokenType[]{TokenType.Equal, TokenType.NotEqual},
+			new TokenType[]{TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual},
+			new TokenType[]{TokenType.Plus, TokenType.Minus},
+			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}
+	};
+	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus};
 
 	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while");
 
@@ -368,7 +374,13 @@ public class Parser {
 				stream.expect(TokenType.RightParantheses);
 				return expression;
 			} else {
-				return parseAccessOrCallOrLiteral(stream, expectRightCurly);
+				Expression expression = parseAccessOrCallOrLiteral(stream, expectRightCurly);
+				if(expression instanceof VariableSetter){
+					if (stream.match(false, TokenType.PlusPlus, TokenType.MinusMinus)) {
+						return new UnaryOperation(stream.consume(),expression,true);
+					}
+				}
+				return expression;
 			}
 		}
 	}

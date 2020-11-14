@@ -6,8 +6,8 @@ import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
-import org.ssssssss.script.parsing.ast.VariableAccess;
 import org.ssssssss.script.parsing.ast.VariableSetter;
+import org.ssssssss.script.parsing.ast.statement.VariableAccess;
 
 /**
  * = 操作

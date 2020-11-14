@@ -11,6 +11,7 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.StringLiteral;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class MemberAccess extends Expression implements VariableSetter {
 	private final Expression object;
 	private final Span name;
-	private Object cachedMember;
+	private Field cachedMember;
 
 	public MemberAccess(Expression object, Span name) {
 		super(name);
@@ -43,9 +44,8 @@ public class MemberAccess extends Expression implements VariableSetter {
 
 	/**
 	 * Returns the cached member descriptor as returned by {@link AbstractReflection#getField(Object, String)} or
-	 * {@link AbstractReflection#getMethod(Object, String, Object...)}. See {@link #setCachedMember(Object)}.
 	 **/
-	public Object getCachedMember() {
+	public Field getCachedMember() {
 		return cachedMember;
 	}
 
@@ -55,7 +55,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 	 * first time this node is evaluated. Subsequent evaluations can use the cached descriptor, avoiding a costly reflective
 	 * lookup.
 	 **/
-	public void setCachedMember(Object cachedMember) {
+	public void setCachedMember(Field cachedMember) {
 		this.cachedMember = cachedMember;
 	}
 
@@ -78,7 +78,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 			return map.get(getName().getText());
 		}
 
-		Object field = getCachedMember();
+		Field field = getCachedMember();
 		if (field != null) {
 			try {
 				return AbstractReflection.getInstance().getFieldValue(object, field);
@@ -150,7 +150,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 			Map map = (Map) object;
 			map.put(getName().getText(), value);
 		} else {
-			Object field = getCachedMember();
+			Field field = getCachedMember();
 			if (field != null) {
 				try {
 					AbstractReflection.getInstance().setFieldValue(object, field, value);

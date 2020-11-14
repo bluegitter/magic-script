@@ -1,10 +1,7 @@
 package org.ssssssss.script.interpreter;
 
 import org.ssssssss.script.annotation.UnableCall;
-import org.ssssssss.script.functions.ClassExtension;
-import org.ssssssss.script.functions.ObjectConvertExtension;
-import org.ssssssss.script.functions.ObjectTypeConditionExtension;
-import org.ssssssss.script.functions.StreamExtension;
+import org.ssssssss.script.functions.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -26,6 +23,7 @@ public class JavaReflection extends AbstractReflection {
 		registerExtensionClass(Iterator.class, StreamExtension.class);
 		registerExtensionClass(Object.class, ObjectConvertExtension.class);
 		registerExtensionClass(Object.class, ObjectTypeConditionExtension.class);
+		registerExtensionClass(Map.class, MapExtension.class);
 	}
 
 	public static Map<Class<?>, List<Class<?>>> getExtensionMap() {
@@ -118,11 +116,11 @@ public class JavaReflection extends AbstractReflection {
 						foundExecutable = executable;
 					}
 				}
-			} else if (executable.isVarArgs()){
+			} else if (executable.isVarArgs()) {
 				executableWithVarArgs.add(executable);
 			}
 		}
-		if(foundExecutable == null){
+		if (foundExecutable == null) {
 			for (T executable : executableWithVarArgs) {
 				Class<?>[] otherTypes = executable.getParameterTypes();
 				int score = -1;
@@ -192,7 +190,7 @@ public class JavaReflection extends AbstractReflection {
 	 * relax the type constraint a little, as we'll invoke a method via reflection. That means the from type will always be boxed,
 	 * as the {@link Method#invoke(Object, Object...)} method takes objects.
 	 **/
-	private static boolean isPrimitiveAssignableFrom(Class<?> from, Class<?> to) {
+	public static boolean isPrimitiveAssignableFrom(Class<?> from, Class<?> to) {
 		if ((from == Boolean.class || from == boolean.class) && (to == boolean.class || to == Boolean.class)) {
 			return true;
 		}
@@ -276,7 +274,7 @@ public class JavaReflection extends AbstractReflection {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public Object getField(Object obj, String name) {
+	public Field getField(Object obj, String name) {
 		Class cls = obj instanceof Class ? (Class) obj : obj.getClass();
 		Map<String, Field> fields = fieldCache.get(cls);
 		if (fields == null) {
@@ -326,9 +324,9 @@ public class JavaReflection extends AbstractReflection {
 			extensionMap = new ConcurrentHashMap<>();
 		}
 		List<Class<?>> classList = extensionMap.get(target);
-		if(classList == null){
+		if (classList == null) {
 			classList = new ArrayList<>();
-			extensionMap.put(target,classList);
+			extensionMap.put(target, classList);
 		}
 		classList.add(clazz);
 		Method[] methods = clazz.getDeclaredMethods();
@@ -360,22 +358,20 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	@Override
-	public Object getFieldValue(Object obj, Object field) {
-		Field javaField = (Field) field;
+	public Object getFieldValue(Object obj, Field field) {
 		try {
-			return javaField.get(obj);
+			return field.get(obj);
 		} catch (Throwable e) {
-			throw new RuntimeException("Couldn't get value of field '" + javaField.getName() + "' from object of type '" + obj.getClass().getSimpleName() + "'");
+			throw new RuntimeException("Couldn't get value of field '" + field.getName() + "' from object of type '" + obj.getClass().getSimpleName() + "'");
 		}
 	}
 
 	@Override
-	public void setFieldValue(Object obj, Object field, Object value) {
-		Field javaField = (Field) field;
+	public void setFieldValue(Object obj, Field field, Object value) {
 		try {
-			javaField.set(obj, value);
+			field.set(obj, value);
 		} catch (Throwable e) {
-			throw new RuntimeException("Couldn't set value of field '" + javaField.getName() + "' from object of type '" + obj.getClass().getSimpleName() + "'");
+			throw new RuntimeException("Couldn't set value of field '" + field.getName() + "' from object of type '" + obj.getClass().getSimpleName() + "'");
 		}
 	}
 
@@ -463,7 +459,7 @@ public class JavaReflection extends AbstractReflection {
 						}
 						method.setAccessible(true);
 						methods.put(signature, method);
-						if(method != null){
+						if (method != null) {
 							break;
 						}
 					} catch (Throwable e) {

@@ -1,5 +1,7 @@
 package org.ssssssss.script.interpreter;
 
+import java.lang.reflect.Field;
+
 /**
  * Used by {@link AstInterpreter} to access fields and methods of objects. This is a singleton class used by all
  * {@link AstInterpreter} instances. Replace the default implementation via {@link #setInstance(AbstractReflection)}. The implementation
@@ -25,7 +27,7 @@ public abstract class AbstractReflection {
     /**
      * Returns an opaque handle to a field with the given name or null if the field could not be found
      **/
-    public abstract Object getField(Object obj, String name);
+    public abstract Field getField(Object obj, String name);
 
     /**
      * Returns an opaque handle to the method with the given name best matching the signature implied by the given arguments, or
@@ -42,9 +44,9 @@ public abstract class AbstractReflection {
      * Returns the value of the field from the object. The field must have been previously retrieved via
      * {@link #getField(Object, String)}.
      **/
-    public abstract Object getFieldValue(Object obj, Object field);
+    public abstract Object getFieldValue(Object obj, Field field);
 
-    public abstract void setFieldValue(Object obj, Object field,Object value);
+    public abstract void setFieldValue(Object obj, Field field,Object value);
 
     /**
      * Calls the method on the object with the given arguments. The method must have been previously retrieved via

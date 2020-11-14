@@ -10,6 +10,7 @@ import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -157,8 +158,7 @@ public class MethodCall extends Expression {
 					return null;
 				}
 			} else {
-				// didn't find the method on the object, try to find a field pointing to a lambda
-				Object field = AbstractReflection.getInstance().getField(object, getMethod().getName().getText());
+				Field field = AbstractReflection.getInstance().getField(object, getMethod().getName().getText());
 				String className = object instanceof Class ? ((Class<?>) object).getName() : object.getClass().getName();
 				if (field == null) {
 					MagicScriptError.error("在'" + className + "'中找不到方法 " + getMethod().getName().getText() + "(" + String.join(",", JavaReflection.getStringTypes(argumentValues)) + ")",

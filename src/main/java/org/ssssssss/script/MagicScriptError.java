@@ -35,8 +35,12 @@ public class MagicScriptError {
 	public static void error(String message, Span location, Throwable cause) {
 		cause = unwrap(cause);
 		if (cause instanceof MagicScriptException) {
-			message = ((MagicScriptException) cause).getSimpleMessage();
-			location = ((MagicScriptException) cause).getLocation();
+			MagicScriptException mse = ((MagicScriptException) cause);
+			if(mse.getLocation() == null){
+				error(message, location, cause.getCause());
+				return;
+			}
+			throw mse;
 		}
 		Span.Line line = location.getLine();
 		String errorMessage = message + " at Row:";
@@ -52,8 +56,6 @@ public class MagicScriptError {
 		}
 		if (cause == null) {
 			throw new MagicScriptException(errorMessage, message, location);
-		} else if (cause instanceof MagicScriptException) {
-			throw (MagicScriptException) cause;
 		} else {
 			throw new MagicScriptException(errorMessage, message, cause, location);
 		}

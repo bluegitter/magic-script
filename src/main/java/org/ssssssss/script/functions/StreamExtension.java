@@ -2,6 +2,7 @@ package org.ssssssss.script.functions;
 
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.exception.MagicScriptException;
+import org.ssssssss.script.interpreter.JavaReflection;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 
 import java.lang.reflect.Array;
@@ -284,5 +285,70 @@ public class StreamExtension {
 										.orElse(null)
 						).toArray()
 				)).collect(Collectors.toList());
+	}
+
+	@Comment("将集合转为JavaBean")
+	public static Object asBean(Object source, @Comment("目标类型") Class<?> target) {
+		return asBean(source, target, false);
+	}
+
+	@Comment("将集合转为JavaBean")
+	public static Object asBean(Object source, @Comment("目标类型") Class<?> target, @Comment("是否是数组") boolean isArray) {
+		Class<?> sourceClass = source.getClass();
+		List<Object> objects = arrayLikeToList(source);
+		int size = objects.size();
+		boolean isCollection = false;
+		boolean isMap = false;
+		boolean isOrigin = false;
+		boolean targetIsArray = false;
+		Class<?> innerClass = null;
+		if (size > 0) {
+			Object first = objects.get(0);
+			innerClass = first.getClass();
+			isCollection = ObjectTypeConditionExtension.isCollection(innerClass);
+			isMap = ObjectTypeConditionExtension.isMap(innerClass);
+			isOrigin = ObjectTypeConditionExtension.is(first, target);
+			isOrigin = isOrigin || JavaReflection.isPrimitiveAssignableFrom(first.getClass(), target);
+			targetIsArray = ObjectTypeConditionExtension.isArray(target);
+		}
+		if (isArray) {
+			Object result = Array.newInstance(target, objects.size());
+			for (int i = 0; i < size; i++) {
+				Object value = objects.get(i);
+				if (innerClass.isArray()) {
+					Array.set(result, i, asBean(value, innerClass.getComponentType(), true));
+				} else if (targetIsArray) {
+					Array.set(result, i, asBean(value, target.getComponentType(), true));
+				} else if (isCollection) {
+					Array.set(result, i, asBean(value, innerClass, false));
+				} else if (isMap) {
+					Array.set(result, i, MapExtension.asBean((Map<String, Object>) value, innerClass));
+				} else if (isOrigin) {
+					Array.set(result, i, value);
+				}
+			}
+			return result;
+		}
+		Collection<Object> collection;
+		if (List.class.isAssignableFrom(sourceClass)) {
+			collection = new ArrayList<>(size);
+		} else if (Set.class.isAssignableFrom(sourceClass)) {
+			collection = new HashSet<>(size);
+		} else {
+			throw new MagicScriptException("不支持的类型:" + sourceClass);
+		}
+		for (int i = 0; i < size; i++) {
+			Object value = objects.get(i);
+			if (isCollection) {
+				collection.add(asBean(value, target));
+			} else if (isMap) {
+				collection.add(MapExtension.asBean((Map<?, ?>) value, target));
+			} else if (isOrigin) {
+				collection.add(value);
+			} else {
+				break;
+			}
+		}
+		return collection;
 	}
 }

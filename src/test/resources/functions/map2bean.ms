@@ -12,4 +12,4 @@ var user = {
       permissions : ['4','5','6']
     }]
 }
-return user.asBean(User);
+return user.asBean(User.class);

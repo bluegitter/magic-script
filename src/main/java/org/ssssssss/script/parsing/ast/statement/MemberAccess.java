@@ -80,6 +80,11 @@ public class MemberAccess extends Expression implements VariableSetter {
 			Map map = (Map) object;
 			return map.get(getName().getText());
 		}
+		if(object instanceof Class<?>){
+			if(getName().getText().equals("class")){
+				return object;
+			}
+		}
 
 		Field field = getCachedMember();
 		if (field != null) {

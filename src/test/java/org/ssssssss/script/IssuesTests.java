@@ -9,4 +9,9 @@ public class IssuesTests extends BaseTest {
 	public void i252vy() {
 		Assert.assertEquals(true, execute("issues/I252VY.ms"));
 	}
+
+	@Test
+	public void bug_function_call() {
+		Assert.assertEquals(123, execute("issues/bug_function_call.ms"));
+	}
 }

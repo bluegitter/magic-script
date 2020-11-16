@@ -395,15 +395,13 @@ public class Parser {
 		} catch (Exception e) {
 			stream.resetIndex(index);
 			if (stream.match(TokenType.LeftCurly, true)) {
-				push();
 				while (stream.hasMore() && !stream.match(false, "}")) {
 					Node node = parseStatement(stream, true);
 					validateNode(node);
 					childNodes.add(node);
 				}
-				int count = pop();
 				Span closeSpan = expectCloseing(stream);
-				return new LambdaFunction(new Span(openSpan, closeSpan), parameters, count, childNodes);
+				return new LambdaFunction(new Span(openSpan, closeSpan), parameters, current.size(), childNodes);
 			} else {
 				Node node = parseStatement(stream);
 				childNodes.add(new Return(new Span("return", 0, 6), node));

@@ -3,7 +3,7 @@ package org.ssssssss.script;
 import org.ssssssss.script.ScriptClass.ScriptAttribute;
 import org.ssssssss.script.ScriptClass.ScriptMethod;
 import org.ssssssss.script.annotation.UnableCall;
-import org.ssssssss.script.interpreter.JavaReflection;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.script.*;
 import java.io.IOException;

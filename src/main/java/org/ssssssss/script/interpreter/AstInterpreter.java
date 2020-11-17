@@ -11,6 +11,7 @@ import org.ssssssss.script.parsing.ast.Node;
 import org.ssssssss.script.parsing.ast.statement.Break;
 import org.ssssssss.script.parsing.ast.statement.Continue;
 import org.ssssssss.script.parsing.ast.statement.Return;
+import org.ssssssss.script.reflection.AbstractReflection;
 
 import java.util.List;
 

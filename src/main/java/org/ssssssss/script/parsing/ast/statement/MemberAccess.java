@@ -4,7 +4,6 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.exception.ExceptionUtils;
 import org.ssssssss.script.exception.MagicScriptException;
-import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
@@ -12,6 +11,7 @@ import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
 import org.ssssssss.script.parsing.ast.VariableSetter;
 import org.ssssssss.script.parsing.ast.literal.StringLiteral;
+import org.ssssssss.script.reflection.AbstractReflection;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;

@@ -1,8 +1,8 @@
 package org.ssssssss.script.functions;
 
 import org.ssssssss.script.annotation.Comment;
-import org.ssssssss.script.interpreter.AbstractReflection;
-import org.ssssssss.script.interpreter.JavaReflection;
+import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

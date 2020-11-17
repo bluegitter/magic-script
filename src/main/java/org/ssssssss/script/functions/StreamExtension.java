@@ -2,8 +2,8 @@ package org.ssssssss.script.functions;
 
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.exception.MagicScriptException;
-import org.ssssssss.script.interpreter.JavaReflection;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Array;
 import java.util.*;

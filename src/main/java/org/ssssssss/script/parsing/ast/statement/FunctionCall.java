@@ -2,11 +2,13 @@ package org.ssssssss.script.parsing.ast.statement;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaInvoker;
 
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -26,7 +28,7 @@ public class FunctionCall extends Expression {
 	};
 	private final Expression function;
 	private final List<Expression> arguments;
-    private Object cachedFunction;
+	private JavaInvoker<Method> cachedFunction;
 	private final ThreadLocal<Object[]> cachedArguments;
 
 	public FunctionCall(Span span, Expression function, List<Expression> arguments) {
@@ -44,11 +46,11 @@ public class FunctionCall extends Expression {
 		return arguments;
 	}
 
-	public Object getCachedFunction() {
+	public JavaInvoker<Method> getCachedFunction() {
 		return cachedFunction;
 	}
 
-	public void setCachedFunction(Object cachedFunction) {
+	public void setCachedFunction(JavaInvoker<Method> cachedFunction) {
 		this.cachedFunction = cachedFunction;
 	}
 
@@ -96,21 +98,21 @@ public class FunctionCall extends Expression {
 				return ((Function<Object[], Object>) function).apply(argumentValues);
 			}
 			if (function != null) {
-				Object method = getCachedFunction();
-				if (method != null) {
+				JavaInvoker<Method> invoker = getCachedFunction();
+				if (invoker != null) {
 					try {
-						return AbstractReflection.getInstance().callMethod(function, method, argumentValues);
+						return invoker.invoke0(function, argumentValues);
 					} catch (Throwable t) {
 						// fall through
 					}
 				}
-				method = AbstractReflection.getInstance().getMethod(function, null, argumentValues);
-				if (method == null) {
+				invoker = AbstractReflection.getInstance().getMethod(function, null, argumentValues);
+				if (invoker == null) {
 					MagicScriptError.error("Couldn't find function.", getSpan());
 				}
-				setCachedFunction(method);
+				setCachedFunction(invoker);
 				try {
-					return AbstractReflection.getInstance().callMethod(function, method, argumentValues);
+					return invoker.invoke0(function, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached

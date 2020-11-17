@@ -1,6 +1,10 @@
-package org.ssssssss.script.interpreter;
+package org.ssssssss.script.reflection;
+
+import org.ssssssss.script.convert.ClassImplicitConvert;
+import org.ssssssss.script.interpreter.AstInterpreter;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * Used by {@link AstInterpreter} to access fields and methods of objects. This is a singleton class used by all
@@ -34,11 +38,13 @@ public abstract class AbstractReflection {
      * null if the method could not be found. If obj is an instance of Class, the matching static method is returned. If the name
      * is null and the object is a {@link FunctionalInterface}, the first declared method on the object is returned.
      **/
-    public abstract Object getMethod(Object obj, String name, Object... arguments);
+    public abstract JavaInvoker<Method> getMethod(Object obj, String name, Object... arguments);
 
-    public abstract Object getExtensionMethod(Object obj, String name, Object... arguments);
+    public abstract JavaInvoker<Method> getExtensionMethod(Object obj, String name, Object... arguments);
 
     public abstract void registerExtensionClass(Class<?> target, Class<?> clazz);
+
+    public abstract void registerImplicitConvert(ClassImplicitConvert classImplicitConvert);
 
     /**
      * Returns the value of the field from the object. The field must have been previously retrieved via
@@ -48,9 +54,4 @@ public abstract class AbstractReflection {
 
     public abstract void setFieldValue(Object obj, Field field,Object value);
 
-    /**
-     * Calls the method on the object with the given arguments. The method must have been previously retrieved via
-     * {@link #getMethod(Object, String, Object...)}.
-     **/
-    public abstract Object callMethod(Object obj, Object method, Object... arguments) throws Throwable;
 }

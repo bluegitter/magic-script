@@ -3,15 +3,18 @@ package org.ssssssss.script.parsing.ast.statement;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.functions.DynamicMethod;
-import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
-import org.ssssssss.script.interpreter.JavaReflection;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaInvoker;
+import org.ssssssss.script.reflection.JavaReflection;
+import org.ssssssss.script.reflection.MethodInvoker;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,7 +22,7 @@ public class MethodCall extends Expression {
 	private final MemberAccess method;
 	private final List<Expression> arguments;
 	private final ThreadLocal<Object[]> cachedArguments;
-	private Object cachedMethod;
+	private JavaInvoker<Method> cachedMethod;
 
 	public MethodCall(Span span, MemberAccess method, List<Expression> arguments) {
 		super(span);
@@ -52,7 +55,7 @@ public class MethodCall extends Expression {
 	/**
 	 * Returns the cached member descriptor as returned by {@link AbstractReflection#getMethod(Object, String, Object...)}. See
 	 **/
-	public Object getCachedMethod() {
+	public JavaInvoker<Method> getCachedMethod() {
 		return cachedMethod;
 	}
 
@@ -61,7 +64,7 @@ public class MethodCall extends Expression {
 	 * Called by {@link AstInterpreter} the first time this node is evaluated. Subsequent evaluations can use the cached
 	 * descriptor, avoiding a costly reflective lookup.
 	 **/
-	public void setCachedMethod(Object cachedMethod) {
+	public void setCachedMethod(JavaInvoker<Method> cachedMethod) {
 		this.cachedMethod = cachedMethod;
 	}
 
@@ -103,9 +106,9 @@ public class MethodCall extends Expression {
 			}
 			if (object instanceof DynamicMethod) {
 				try {
-					Object method = DynamicMethod.class.getDeclaredMethod("execute", String.class, List.class);
+					MethodInvoker invoker = new MethodInvoker(DynamicMethod.class.getDeclaredMethod("execute", String.class, List.class));
 					Object[] newArgumentValues = new Object[]{getMethod().getName().getText(), Arrays.asList(argumentValues)};
-					return AbstractReflection.getInstance().callMethod(object, method, newArgumentValues);
+					return invoker.invoke0(object, newArgumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached
@@ -113,29 +116,29 @@ public class MethodCall extends Expression {
 			}
 
 			// Otherwise try to find a corresponding method or field pointing to a lambda.
-			Object method = getCachedMethod();
-			if (method != null) {
+			JavaInvoker<Method> invoker = getCachedMethod();
+			if (invoker != null) {
 				try {
-					return AbstractReflection.getInstance().callMethod(object, method, argumentValues);
+					return invoker.invoke0(object, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached
 				}
 			}
 
-			method = AbstractReflection.getInstance().getMethod(object, getMethod().getName().getText(), argumentValues);
-			if (method != null) {
+			invoker = AbstractReflection.getInstance().getMethod(object, getMethod().getName().getText(), argumentValues);
+			if (invoker != null) {
 				// found the method on the object, call it
-				setCachedMethod(method);
+				setCachedMethod(invoker);
 				try {
-					return AbstractReflection.getInstance().callMethod(object, method, argumentValues);
+					return invoker.invoke0(object, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached
 				}
 			}
-			method = AbstractReflection.getInstance().getExtensionMethod(object, getMethod().getName().getText(), argumentValues);
-			if (method != null) {
+			invoker = AbstractReflection.getInstance().getExtensionMethod(object, getMethod().getName().getText(), argumentValues);
+			if (invoker != null) {
 				try {
 					int argumentLength = argumentValues == null ? 0 : argumentValues.length;
 					Object[] parameters = new Object[argumentLength + 1];
@@ -152,7 +155,7 @@ public class MethodCall extends Expression {
 						}
 						parameters[0] = objs;
 					}
-					return AbstractReflection.getInstance().callMethod(object, method, parameters);
+					return invoker.invoke0(object, parameters);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					// fall through
@@ -166,13 +169,13 @@ public class MethodCall extends Expression {
 							getSpan());
 				}
 				Object function = AbstractReflection.getInstance().getFieldValue(object, field);
-				method = AbstractReflection.getInstance().getMethod(function, null, argumentValues);
-				if (method == null) {
+				invoker = AbstractReflection.getInstance().getMethod(function, null, argumentValues);
+				if (invoker == null) {
 					MagicScriptError.error("在'" + className + "'中找不到方法 " + getMethod().getName().getText() + "(" + String.join(",", JavaReflection.getStringTypes(argumentValues)) + ")",
 							getSpan());
 				}
 				try {
-					return AbstractReflection.getInstance().callMethod(function, method, argumentValues);
+					return invoker.invoke0(function, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached

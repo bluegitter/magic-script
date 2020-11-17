@@ -1,18 +1,23 @@
-package org.ssssssss.script.interpreter;
+package org.ssssssss.script.reflection;
 
 import org.ssssssss.script.annotation.UnableCall;
+import org.ssssssss.script.convert.ClassImplicitConvert;
+import org.ssssssss.script.convert.CollectionImplicitConvert;
+import org.ssssssss.script.convert.MapImplicitConvert;
 import org.ssssssss.script.functions.*;
 
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 public class JavaReflection extends AbstractReflection {
 	private final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
-	private final Map<Class<?>, Map<MethodSignature, Method>> methodCache = new ConcurrentHashMap<Class<?>, Map<MethodSignature, Method>>();
+	private static SortedSet<ClassImplicitConvert> converts;
 	private final Map<Class<?>, Map<String, List<Method>>> extensionmethodCache = new ConcurrentHashMap<>();
+	private final Map<Class<?>, Map<MethodSignature, JavaInvoker<Method>>> methodCache = new ConcurrentHashMap<>();
 	private static Map<Class<?>, List<Class<?>>> extensionMap;
 
 	public JavaReflection() {
@@ -24,6 +29,11 @@ public class JavaReflection extends AbstractReflection {
 		registerExtensionClass(Object.class, ObjectConvertExtension.class);
 		registerExtensionClass(Object.class, ObjectTypeConditionExtension.class);
 		registerExtensionClass(Map.class, MapExtension.class);
+
+		converts = new TreeSet<>(Comparator.comparingInt(ClassImplicitConvert::sort));
+
+		registerImplicitConvert(new MapImplicitConvert());
+		registerImplicitConvert(new CollectionImplicitConvert());
 	}
 
 	public static Map<Class<?>, List<Class<?>>> getExtensionMap() {
@@ -33,10 +43,10 @@ public class JavaReflection extends AbstractReflection {
 	/**
 	 * Returns the <code>apply()</code> method of a functional interface.
 	 **/
-	private static Method findApply(Class<?> cls) {
+	private static MethodInvoker findApply(Class<?> cls) {
 		for (Method method : cls.getDeclaredMethods()) {
 			if ("apply".equals(method.getName())) {
-				return method;
+				return new MethodInvoker(method);
 			}
 		}
 		return null;
@@ -71,7 +81,7 @@ public class JavaReflection extends AbstractReflection {
 		return classScore + interfaceScore;
 	}
 
-	private static int matchTypes(Class<?>[] parameterTypes, Class<?>[] otherTypes, boolean matchCount) {
+	private static int matchTypes(JavaInvoker<?> invoker, Class<?>[] parameterTypes, Class<?>[] otherTypes, boolean matchCount) {
 		if (matchCount && parameterTypes.length != otherTypes.length) {
 			return -1;
 		}
@@ -80,16 +90,24 @@ public class JavaReflection extends AbstractReflection {
 			Class<?> type = parameterTypes[ii];
 			Class<?> otherType = otherTypes[ii];
 			if (Null.class.equals(type)) {
-				score++;
+				score += 1000;
 			} else if (!otherType.isAssignableFrom(type)) {
-				score++;
+				score += 1000;
 				if (!isPrimitiveAssignableFrom(type, otherType)) {
-					score++;
+					score += 1000;
 					if (!isCoercible(type, otherType)) {
-						score = -1;
-						break;
-					} else {
-						score++;
+						score += 1000;
+						boolean found = false;
+						for (ClassImplicitConvert convert : converts) {
+							if (convert.support(type, otherType)) {
+								invoker.addClassImplicitConvert(ii, convert);
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							return -1;
+						}
 					}
 				}
 			}
@@ -97,38 +115,63 @@ public class JavaReflection extends AbstractReflection {
 		return score;
 	}
 
+	private static boolean isImplicitConvert(Class<?> from, Class<?> to) {
+		if (isPrimitiveAssignableFrom(from, from) || isPrimitiveAssignableFrom(to, to)) {
+			return false;
+		} else if (Collection.class.isAssignableFrom(to) || Iterator.class.isAssignableFrom(to) || Enumeration.class.isAssignableFrom(to) || to.isArray()) {
+			Class<?> toClazz = getGenericType(to);
+			return toClazz != null && (!isPrimitiveAssignableFrom(toClazz, toClazz));
+		}
+		return Map.class.isAssignableFrom(from);
+	}
 
-	public static <T extends Executable> T findExecutable(List<T> executables, Class<?>[] parameterTypes) {
-		T foundExecutable = null;
+	private static Class<?> getGenericType(Class<?> target) {
+		Type type = target.getGenericSuperclass();
+		if (type instanceof ParameterizedType) {
+			return (Class<?>) ((ParameterizedType) type).getActualTypeArguments()[0];
+		}
+		return null;
+	}
+
+	public static JavaInvoker<Method> findMethodInvoker(List<Method> methods, Class<?>[] parameterTypes) {
+		return findInvoker(methods.stream().map(MethodInvoker::new).collect(Collectors.toList()), parameterTypes);
+	}
+
+	public static JavaInvoker<Constructor> findConstructorInvoker(List<Constructor<?>> constructors, Class<?>[] parameterTypes) {
+		return findInvoker(constructors.stream().map(ConstructorInvoker::new).collect(Collectors.toList()), parameterTypes);
+	}
+
+	public static <T extends Executable> JavaInvoker<T> findInvoker(List<JavaInvoker<T>> executables, Class<?>[] parameterTypes) {
+		JavaInvoker<T> foundInvoker = null;
 		int foundScore = 0;
-		List<T> executableWithVarArgs = new ArrayList<>();
-		for (T executable : executables) {
+		List<JavaInvoker<T>> executableWithVarArgs = new ArrayList<>();
+		for (JavaInvoker<T> invoker : executables) {
 			// Check if the types match.
-			Class<?>[] otherTypes = executable.getParameterTypes();
-			int score = matchTypes(parameterTypes, otherTypes, true);
+			Class<?>[] otherTypes = invoker.getParameterTypes();
+			int score = matchTypes(invoker, parameterTypes, otherTypes, true);
 			if (score > -1) {
-				if (foundExecutable == null) {
-					foundExecutable = executable;
+				if (foundInvoker == null) {
+					foundInvoker = invoker;
 					foundScore = score;
 				} else {
 					if (score < foundScore) {
 						foundScore = score;
-						foundExecutable = executable;
+						foundInvoker = invoker;
 					}
 				}
-			} else if (executable.isVarArgs()) {
-				executableWithVarArgs.add(executable);
+			} else if (invoker.isVarArgs()) {
+				executableWithVarArgs.add(invoker);
 			}
 		}
-		if (foundExecutable == null) {
-			for (T executable : executableWithVarArgs) {
-				Class<?>[] otherTypes = executable.getParameterTypes();
+		if (foundInvoker == null) {
+			for (JavaInvoker<T> invoker : executableWithVarArgs) {
+				Class<?>[] otherTypes = invoker.getParameterTypes();
 				int score = -1;
 				int fixedParaLength = otherTypes.length - 1;
 				if (parameterTypes.length >= fixedParaLength) {
 					Class<?>[] argTypes = new Class<?>[fixedParaLength];
 					System.arraycopy(parameterTypes, 0, argTypes, 0, fixedParaLength);
-					score = matchTypes(argTypes, otherTypes, false);
+					score = matchTypes(invoker, argTypes, otherTypes, false);
 					if (score > -1) {
 						Class<?> target = otherTypes[fixedParaLength].getComponentType();
 						for (int i = fixedParaLength; i < parameterTypes.length; i++) {
@@ -140,8 +183,17 @@ public class JavaReflection extends AbstractReflection {
 								if (!isPrimitiveAssignableFrom(type, target)) {
 									score++;
 									if (!isCoercible(type, target)) {
-										score = -1;
-										break;
+										boolean found = false;
+										for (ClassImplicitConvert convert : converts) {
+											if (convert.support(type, target)) {
+												found = true;
+											}
+										}
+										if (!found) {
+											score = -1;
+											break;
+										}
+										score++;
 									} else {
 										score++;
 									}
@@ -151,25 +203,25 @@ public class JavaReflection extends AbstractReflection {
 					}
 				}
 				if (score > -1) {
-					if (foundExecutable == null) {
-						foundExecutable = executable;
+					if (foundInvoker == null) {
+						foundInvoker = invoker;
 						foundScore = score;
 					} else {
 						if (score < foundScore) {
 							foundScore = score;
-							foundExecutable = executable;
+							foundInvoker = invoker;
 						}
 					}
 				}
 			}
 		}
-		return foundExecutable;
+		return foundInvoker;
 	}
 
 	/**
 	 * Returns the method best matching the given signature, including type coercion, or null.
 	 **/
-	private static Method findMethod(Class<?> cls, String name, Class<?>[] parameterTypes) {
+	private static JavaInvoker<Method> findInvoker(Class<?> cls, String name, Class<?>[] parameterTypes) {
 		List<Method> methodList = new ArrayList<>();
 		Method[] methods = cls.getDeclaredMethods();
 		for (int i = 0, n = methods.length; i < n; i++) {
@@ -182,7 +234,7 @@ public class JavaReflection extends AbstractReflection {
 			}
 			methodList.add(method);
 		}
-		return findExecutable(methodList, parameterTypes);
+		return findMethodInvoker(methodList, parameterTypes);
 	}
 
 	/**
@@ -319,6 +371,11 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	@Override
+	public void registerImplicitConvert(ClassImplicitConvert classImplicitConvert) {
+		converts.add(classImplicitConvert);
+	}
+
+	@Override
 	public void registerExtensionClass(Class<?> target, Class<?> clazz) {
 		if (extensionMap == null) {
 			extensionMap = new ConcurrentHashMap<>();
@@ -376,7 +433,7 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	@Override
-	public Object getExtensionMethod(Object obj, String name, Object... arguments) {
+	public JavaInvoker<Method> getExtensionMethod(Object obj, String name, Object... arguments) {
 		Class<?> cls = obj instanceof Class ? Class.class : obj.getClass();
 		if (cls.isArray()) {
 			cls = Object[].class;
@@ -384,7 +441,7 @@ public class JavaReflection extends AbstractReflection {
 		return getExtensionMethod(cls, name, arguments);
 	}
 
-	private Object getExtensionMethod(Class<?> cls, String name, Object... arguments) {
+	private JavaInvoker<Method> getExtensionMethod(Class<?> cls, String name, Object... arguments) {
 		if (cls == null) {
 			cls = Object.class;
 		}
@@ -397,16 +454,16 @@ public class JavaReflection extends AbstractReflection {
 				for (int i = 0; i < arguments.length; i++) {
 					parameterTypes[i + 1] = arguments[i] == null ? Null.class : arguments[i].getClass();
 				}
-				return findExecutable(methodList, parameterTypes);
+				return findMethodInvoker(methodList, parameterTypes);
 			}
 		}
 		if (cls != Object.class) {
 			Class<?>[] interfaces = cls.getInterfaces();
 			if (interfaces != null) {
 				for (Class<?> clazz : interfaces) {
-					Object method = getExtensionMethod(clazz, name, arguments);
-					if (method != null) {
-						return method;
+					JavaInvoker<Method> invoker = getExtensionMethod(clazz, name, arguments);
+					if (invoker != null) {
+						return invoker;
 					}
 				}
 			}
@@ -416,9 +473,9 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	@Override
-	public Object getMethod(Object obj, String name, Object... arguments) {
+	public JavaInvoker<Method> getMethod(Object obj, String name, Object... arguments) {
 		Class<?> cls = obj instanceof Class ? (Class<?>) obj : (obj instanceof Function ? Function.class : obj.getClass());
-		Map<MethodSignature, Method> methods = methodCache.get(cls);
+		Map<MethodSignature, JavaInvoker<Method>> methods = methodCache.get(cls);
 		if (methods == null) {
 			methods = new ConcurrentHashMap<>();
 			methodCache.put(cls, methods);
@@ -430,36 +487,34 @@ public class JavaReflection extends AbstractReflection {
 		}
 
 		JavaReflection.MethodSignature signature = new MethodSignature(name, parameterTypes);
-		Method method = methods.get(signature);
+		JavaInvoker<Method> invoker = methods.get(signature);
 
-		if (method == null) {
+		if (invoker == null) {
 			try {
 				if (name == null) {
-					method = findApply(cls);
+					invoker = findApply(cls);
 				} else {
-					method = findMethod(cls, name, parameterTypes);
-					if (method == null) {
-						method = findMethod(cls, name, new Class<?>[]{Object[].class});
+					invoker = findInvoker(cls, name, parameterTypes);
+					if (invoker == null) {
+						invoker = findInvoker(cls, name, new Class<?>[]{Object[].class});
 					}
 				}
-				method.setAccessible(true);
-				methods.put(signature, method);
+				methods.put(signature, invoker);
 			} catch (Throwable e) {
 				// fall through
 			}
 
-			if (method == null) {
+			if (invoker == null) {
 				Class<?> parentClass = cls.getSuperclass();
 				while (parentClass != Object.class && parentClass != null) {
 					try {
 						if (name == null) {
-							method = findApply(parentClass);
+							invoker = findApply(parentClass);
 						} else {
-							method = findMethod(parentClass, name, parameterTypes);
+							invoker = findInvoker(parentClass, name, parameterTypes);
 						}
-						method.setAccessible(true);
-						methods.put(signature, method);
-						if (method != null) {
+						methods.put(signature, invoker);
+						if (invoker != null) {
 							break;
 						}
 					} catch (Throwable e) {
@@ -470,39 +525,7 @@ public class JavaReflection extends AbstractReflection {
 			}
 		}
 
-		return method;
-	}
-
-	@Override
-	public Object callMethod(Object obj, Object method, Object... arguments) throws Throwable {
-		Method javaMethod = (Method) method;
-		try {
-			if (javaMethod.isVarArgs()) {
-				int count = javaMethod.getParameterCount();
-				Object[] args = new Object[count];
-				if (arguments != null) {
-					for (int i = 0; i < count - 1; i++) {
-						args[i] = arguments[i];
-					}
-					if (arguments.length - count + 1 > 0) {
-						int len = arguments.length - count + 1;
-						Object varArgs = Array.newInstance(javaMethod.getParameterTypes()[count - 1].getComponentType(), len);
-						System.arraycopy(arguments, count - 1, varArgs, 0, len);
-						args[count - 1] = varArgs;
-					}
-				}
-				return javaMethod.invoke(obj, args);
-			} else {
-				return javaMethod.invoke(obj, arguments);
-			}
-		} catch (Throwable t) {
-			if (t instanceof InvocationTargetException) {
-				Throwable t2 = ((InvocationTargetException) t).getTargetException();
-				throw t2;
-			} else {
-				throw t;
-			}
-		}
+		return invoker;
 	}
 
 	public static final class Null {

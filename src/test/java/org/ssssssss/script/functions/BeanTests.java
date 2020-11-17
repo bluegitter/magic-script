@@ -9,4 +9,5 @@ public class BeanTests extends BaseTest {
 	public void map2bean() {
 		System.out.println(execute("functions/map2bean.ms"));
 	}
+
 }

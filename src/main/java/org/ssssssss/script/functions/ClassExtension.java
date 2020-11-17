@@ -1,9 +1,9 @@
 package org.ssssssss.script.functions;
 
-import org.ssssssss.script.interpreter.JavaReflection;
+import org.ssssssss.script.reflection.JavaInvoker;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,7 +13,7 @@ public class ClassExtension {
 		return clazz.newInstance();
 	}
 
-	public static Object newInstance(Class<?> clazz, Object... values) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+	public static Object newInstance(Class<?> clazz, Object... values) throws Throwable {
 		if (values == null || values.length == 0) {
 			return newInstance(clazz);
 		}
@@ -23,7 +23,7 @@ public class ClassExtension {
 			parametersTypes[i] = value == null ? JavaReflection.Null.class : value.getClass();
 		}
 		List<Constructor<?>> constructors = Arrays.asList(clazz.getConstructors());
-		Constructor<?> constructor = JavaReflection.findExecutable(constructors, parametersTypes);
-		return constructor.newInstance(values);
+		JavaInvoker<Constructor> invoker = JavaReflection.findConstructorInvoker(constructors, parametersTypes);
+		return invoker.invoke0(null, values);
 	}
 }

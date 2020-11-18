@@ -9,7 +9,7 @@ import org.ssssssss.script.parsing.TokenType;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +28,7 @@ public class MapLiteral extends Literal {
 
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Map<String, Object> map = new HashMap<>();
+		Map<String, Object> map = new LinkedHashMap<>();
 		for (int i = 0, n = keys.size(); i < n; i++) {
 			Token tokenKey = keys.get(i);
 			String key = tokenKey.getSpan().getText();

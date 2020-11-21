@@ -3,6 +3,7 @@ package org.ssssssss.script.functions;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Array;
@@ -290,6 +291,66 @@ public class StreamExtension {
 	@Comment("将集合转为JavaBean")
 	public static Object asBean(Object source, @Comment("目标类型") Class<?> target) {
 		return asBean(source, target, false);
+	}
+
+	@Comment("截取集合")
+	public static Object skip(Object source, @Comment("跳过的数量") int value) {
+		return toOriginType(source, arrayLikeToList(source).stream().skip(value).collect(Collectors.toList()));
+	}
+
+	@Comment("限制集合数量")
+	public static Object limit(Object source, @Comment("跳过的数量") int value) {
+		return toOriginType(source, arrayLikeToList(source).stream().limit(value).collect(Collectors.toList()));
+	}
+
+	@Comment("判断集合是否都满足条件")
+	public static boolean every(Object source, @Comment("判断条件") Function<Object[], Object> condition) {
+		List<Object> objects = arrayLikeToList(source);
+		for (int i = 0, size = objects.size(); i < size; i++) {
+			if (!BooleanLiteral.isTrue(condition.apply(new Object[]{objects.get(i), i}))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Comment("判断集合中是否至少有一个元素满足条件")
+	public static boolean some(Object source, @Comment("判断条件") Function<Object[], Object> condition) {
+		List<Object> objects = arrayLikeToList(source);
+		for (int i = 0, size = objects.size(); i < size; i++) {
+			if (BooleanLiteral.isTrue(condition.apply(new Object[]{objects.get(i), i}))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Comment("找到集合中第一个不为null的元素")
+	public static Object findNotNull(Object source) {
+		List<Object> objects = arrayLikeToList(source);
+		for (Object object : objects) {
+			if (object != null) {
+				return object;
+			}
+		}
+		return null;
+	}
+
+	@Comment("限制集合数量")
+	public static Object reduce(Object source, @Comment("处理函数，如累加计算：(val,item)=>val + item") Function<Object[], Object> reduceFunction) {
+		List<Object> objects = arrayLikeToList(source);
+		if (objects.isEmpty()) {
+			return null;
+		}
+		int size = objects.size();
+		if (size == 1) {
+			return objects.get(0);
+		}
+		Object result = objects.get(0);
+		for (int i = 1; i < size; i++) {
+			result = reduceFunction.apply(new Object[]{result, objects.get(i)});
+		}
+		return result;
 	}
 
 	@Comment("将集合转为JavaBean")

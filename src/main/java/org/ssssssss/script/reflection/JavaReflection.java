@@ -29,6 +29,8 @@ public class JavaReflection extends AbstractReflection {
 		registerExtensionClass(Object.class, ObjectConvertExtension.class);
 		registerExtensionClass(Object.class, ObjectTypeConditionExtension.class);
 		registerExtensionClass(Map.class, MapExtension.class);
+		registerExtensionClass(Date.class, DateExtension.class);
+		registerExtensionClass(Number.class, NumberExtension.class);
 
 		converts = new TreeSet<>(Comparator.comparingInt(ClassImplicitConvert::sort));
 

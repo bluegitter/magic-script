@@ -41,6 +41,11 @@ public class NumberExtension {
 		return number;
 	}
 
+	@Comment("转为百分比")
+	public static String atPercent(Number number,@Comment("规定小数的位数") int num) {
+		return new BigDecimal(number.doubleValue() * 100).setScale(num, RoundingMode.UP).toString() + "%";
+	}
+
 	private static Number fixed(double value) {
 		if (value > Integer.MAX_VALUE || value < Integer.MIN_VALUE) {
 			return (long) value;

@@ -32,23 +32,23 @@ public class Tokenizer {
 					;
 				}
 				if (stream.match(TokenType.Period.getLiteral(), true)) {
-					type = TokenType.FloatLiteral;
+					type = TokenType.DoubleLiteral;
 					while (stream.matchDigit(true)) {
 						;
 					}
 				}
 				if (stream.match("b", true) || stream.match("B", true)) {
-					if (type == TokenType.FloatLiteral) {
+					if (type == TokenType.DoubleLiteral) {
 						MagicScriptError.error("Byte literal can not have a decimal point.", stream.endSpan());
 					}
 					type = TokenType.ByteLiteral;
 				} else if (stream.match("s", true) || stream.match("S", true)) {
-					if (type == TokenType.FloatLiteral) {
+					if (type == TokenType.DoubleLiteral) {
 						MagicScriptError.error("Short literal can not have a decimal point.", stream.endSpan());
 					}
 					type = TokenType.ShortLiteral;
 				} else if (stream.match("l", true) || stream.match("L", true)) {
-					if (type == TokenType.FloatLiteral) {
+					if (type == TokenType.DoubleLiteral) {
 						MagicScriptError.error("Long literal can not have a decimal point.", stream.endSpan());
 					}
 					type = TokenType.LongLiteral;

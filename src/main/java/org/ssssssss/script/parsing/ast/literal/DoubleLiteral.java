@@ -12,7 +12,7 @@ public class DoubleLiteral extends Literal {
 	public DoubleLiteral(Span literal) {
 		super(literal);
 		try {
-			setValue(Double.parseDouble(literal.getText().substring(0, literal.getText().length() - 1)));
+			setValue(Double.parseDouble(literal.getText()));
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义double变量值不合法", literal, e);
 		}

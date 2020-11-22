@@ -41,7 +41,7 @@ public class MapExtension {
 	}
 
 	@Comment("map转List")
-	public static List<?> asList(Map<?, ?> source, @Comment("映射函数，如:(key,value,source)=>map['xx'] = key;") Function<Object[], Object> mapping) {
+	public static List<?> asList(Map<?, ?> source, @Comment("映射函数，如:(key,value,source)=>{'k' : key,'v' : value}") Function<Object[], Object> mapping) {
 		List<Object> result = new ArrayList<>();
 		source.forEach((key, value) -> result.add(mapping.apply(new Object[]{key, value, source})));
 		return result;

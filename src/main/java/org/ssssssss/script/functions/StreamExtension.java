@@ -336,7 +336,7 @@ public class StreamExtension {
 		return null;
 	}
 
-	@Comment("限制集合数量")
+	@Comment("循环集合通过给定的计算函数返回一个新值")
 	public static Object reduce(Object source, @Comment("处理函数，如累加计算：(val,item)=>val + item") Function<Object[], Object> reduceFunction) {
 		List<Object> objects = arrayLikeToList(source);
 		if (objects.isEmpty()) {

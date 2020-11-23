@@ -31,7 +31,7 @@ public class AsyncCall extends Expression {
 
 	public static ThreadPoolExecutor setThreadPoolExecutorSize(int size) {
 		if (size > 0) {
-			return new ThreadPoolExecutor(size, size, 0L, TimeUnit.MILLISECONDS,
+			threadPoolExecutor = new ThreadPoolExecutor(size, size, 0L, TimeUnit.MILLISECONDS,
 					new ArrayBlockingQueue<>(size * 2), new AsyncThreadFactory(), new ThreadPoolExecutor.CallerRunsPolicy());
 		}
 		return threadPoolExecutor;

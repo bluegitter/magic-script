@@ -410,10 +410,26 @@ public class Parser {
 		}
 	}
 
+	private Expression parseThreeDotsAccess(TokenStream stream, Token threeDots) {
+		Expression expression = parseExpression(stream);
+		AutoExpand autoExpand = new AutoExpand(threeDots.getSpan());
+		autoExpand.setTarget(expression);
+		return autoExpand;
+	}
+	private Expression parseThreeDotsAccess(TokenStream stream) {
+		Token threeDots = stream.expect(TokenType.ThreeDots);
+		Expression expression = parseExpression(stream);
+		AutoExpand autoExpand = new AutoExpand(threeDots.getSpan());
+		autoExpand.setTarget(expression);
+		return autoExpand;
+	}
+
 	private Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {
 		if (expectRightCurly && stream.match("}", false)) {
 			return null;
-		} else if (stream.match(TokenType.Identifier, false)) {
+		} else if (stream.match(TokenType.ThreeDots, false)) {
+			return parseThreeDotsAccess(stream);
+		}  else if (stream.match(TokenType.Identifier, false)) {
 			return parseAccessOrCall(stream, TokenType.Identifier);
 		} else if (stream.match(TokenType.LeftCurly, false)) {
 			return parseMapLiteral(stream);
@@ -461,7 +477,18 @@ public class Parser {
 		List<Expression> values = new ArrayList<>();
 		while (stream.hasMore() && !stream.match("}", false)) {
 			Token key;
-			if (stream.match(TokenType.StringLiteral, false)) {
+			if (stream.hasPrev()) {
+				Token prev = stream.getPrev();
+				if (stream.match(TokenType.ThreeDots, false) && (prev.getType() == TokenType.LeftCurly || prev.getType() == TokenType.Comma)) {
+					Token threeDots = stream.expect(TokenType.ThreeDots);
+					keys.add(threeDots);
+					values.add(parseThreeDotsAccess(stream, threeDots));
+					if (stream.match(false, TokenType.Comma, TokenType.RightCurly)) {
+						stream.match(TokenType.Comma, true);
+					}
+					continue;
+				}
+			} if (stream.match(TokenType.StringLiteral, false)) {
 				key = stream.expect(TokenType.StringLiteral);
 			} else {
 				key = stream.expect(TokenType.Identifier);

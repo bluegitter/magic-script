@@ -9,6 +9,7 @@ import java.util.Arrays;
  */
 public enum TokenType {
     // @off
+    ThreeDots("...", "..."),
     Period(".", "."),
     Lambda("=>", "=>"),
     Comma(",", ","),

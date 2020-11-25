@@ -8,7 +8,9 @@ import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
+import org.ssssssss.script.parsing.ast.statement.AutoExpand;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +47,26 @@ public class MapLiteral extends Literal {
 					}
 				}
 			}
-			map.put(key, values.get(i).evaluate(context, scope));
+			Expression expression = values.get(i);
+			if (expression instanceof AutoExpand) {
+				AutoExpand autoExpand = (AutoExpand) expression;
+				Object res = autoExpand.getTarget().evaluate(context, scope);
+				if (res == null) {
+					// 其实是因为该变量未定义
+				} else if (res instanceof Map) {
+					// 可能导致 map put 入非String 的 key
+					map.putAll((Map<String, ?>) res);
+				} else if (res instanceof Collection) {
+					int index = 0;
+					for (Object obj : ((Collection) res)) {
+						map.put(String.valueOf(index++), obj);
+					}
+				} else {
+					MagicScriptError.error("不能展开的类型", new Span(autoExpand.getSpan(), autoExpand.getTarget().getSpan()));
+				}
+			} else {
+				map.put(key, expression.evaluate(context, scope));
+			}
 		}
 		return map;
 	}

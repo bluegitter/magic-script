@@ -5,6 +5,7 @@ import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.math.BigDecimal;
 
@@ -41,10 +42,7 @@ public class UnaryOperation extends Expression {
         Object value = getOperand().evaluate(context, scope);
         switch (getOperator()) {
             case Not:
-                if (!(value instanceof Boolean)) {
-                    MagicScriptError.error("一元操作符[" + getOperator().name() + "]的值必须是boolean类型，获得的值为：" + operand, getSpan());
-                }
-                return !(Boolean) value;
+                return !BooleanLiteral.isTrue(value);
             case PlusPlus:
             case MinusMinus:
                 if (operand instanceof VariableSetter && value instanceof Number) {

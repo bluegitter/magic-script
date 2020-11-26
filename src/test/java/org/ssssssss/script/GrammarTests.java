@@ -97,4 +97,9 @@ public class GrammarTests extends BaseTest {
 		Assert.assertEquals("12666", execute("grammar/lambda_call_method_call.ms"));
 	}
 
+	@Test
+	public void method_call() {
+		Assert.assertEquals("23.00", execute("grammar/method_call.ms"));
+	}
+
 }

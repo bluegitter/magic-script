@@ -372,6 +372,9 @@ public class Parser {
 				stream.resetIndex(index);
 				Expression expression = parseExpression(stream);
 				stream.expect(TokenType.RightParantheses);
+				if (stream.match(TokenType.Period, false)) {
+					expression = parseAccessOrCall(stream, expression);
+				}
 				return expression;
 			} else {
 				Expression expression = parseAccessOrCallOrLiteral(stream, expectRightCurly);

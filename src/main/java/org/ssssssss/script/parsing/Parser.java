@@ -412,16 +412,12 @@ public class Parser {
 
 	private Expression parseThreeDotsAccess(TokenStream stream, Token threeDots) {
 		Expression expression = parseExpression(stream);
-		AutoExpand autoExpand = new AutoExpand(threeDots.getSpan());
-		autoExpand.setTarget(expression);
-		return autoExpand;
+		return new AutoExpand(threeDots.getSpan(), expression);
 	}
 	private Expression parseThreeDotsAccess(TokenStream stream) {
 		Token threeDots = stream.expect(TokenType.ThreeDots);
 		Expression expression = parseExpression(stream);
-		AutoExpand autoExpand = new AutoExpand(threeDots.getSpan());
-		autoExpand.setTarget(expression);
-		return autoExpand;
+		return new AutoExpand(threeDots.getSpan(), expression);
 	}
 
 	private Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {

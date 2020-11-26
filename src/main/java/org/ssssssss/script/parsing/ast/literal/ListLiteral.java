@@ -38,9 +38,9 @@ public class ListLiteral extends Literal {
 				} else if (res instanceof Collection) {
 					list.addAll(((Collection) res));
 				} else if (res instanceof Map) {
-					MagicScriptError.error("不能在list中展开map", new Span(autoExpand.getSpan(), autoExpand.getTarget().getSpan()));
+					MagicScriptError.error("不能在list中展开map", autoExpand.getFullSpan());
 				} else {
-					MagicScriptError.error("不能展开的类型", new Span(autoExpand.getSpan(), autoExpand.getTarget().getSpan()));
+					MagicScriptError.error("不能展开的类型", autoExpand.getFullSpan());
 				}
 			} else {
 				list.add(expression.evaluate(context, scope));

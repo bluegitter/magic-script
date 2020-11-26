@@ -62,7 +62,7 @@ public class MapLiteral extends Literal {
 						map.put(String.valueOf(index++), obj);
 					}
 				} else {
-					MagicScriptError.error("不能展开的类型", new Span(autoExpand.getSpan(), autoExpand.getTarget().getSpan()));
+					MagicScriptError.error("不能展开的类型", autoExpand.getFullSpan());
 				}
 			} else {
 				map.put(key, expression.evaluate(context, scope));

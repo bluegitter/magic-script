@@ -34,6 +34,11 @@ public class GrammarTests extends BaseTest {
 	}
 
 	@Test
+	public void new1Test() {
+		Assert.assertEquals(new SimpleDateFormat("yyyy-MM-dd").format(new Date()), execute("grammar/new_1.ms"));
+	}
+
+	@Test
 	public void forTest() {
 		Assert.assertEquals(2700, execute("grammar/for.ms"));
 	}

@@ -200,7 +200,11 @@ public class Parser {
 		List<Expression> arguments = new ArrayList<>();
 		arguments.addAll(parseArguments(stream));
 		Span closing = stream.expect(")").getSpan();
-		return new NewStatement(new Span(opening, closing), add(identifier.getText()), arguments);
+		NewStatement newStatement = new NewStatement(new Span(opening, closing), add(identifier.getText()), arguments);
+		if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
+			return parseAccessOrCall(stream, newStatement);
+		}
+		return newStatement;
 	}
 
 	private VariableDefine parseVarDefine(TokenStream stream) {

@@ -375,9 +375,9 @@ public class Parser {
 				return expression;
 			} else {
 				Expression expression = parseAccessOrCallOrLiteral(stream, expectRightCurly);
-				if(expression instanceof VariableSetter){
+				if (expression instanceof VariableSetter) {
 					if (stream.match(false, TokenType.PlusPlus, TokenType.MinusMinus)) {
-						return new UnaryOperation(stream.consume(),expression,true);
+						return new UnaryOperation(stream.consume(), expression, true);
 					}
 				}
 				return expression;
@@ -414,6 +414,7 @@ public class Parser {
 		Expression target = parseExpression(stream);
 		return new Spread(new Span(spread.getSpan(), target.getSpan()), target);
 	}
+
 	private Expression parseSpreadAccess(TokenStream stream) {
 		Token spread = stream.expect(TokenType.Spread);
 		return parseSpreadAccess(stream, spread);
@@ -424,7 +425,7 @@ public class Parser {
 			return null;
 		} else if (stream.match(TokenType.Spread, false)) {
 			return parseSpreadAccess(stream);
-		}  else if (stream.match(TokenType.Identifier, false)) {
+		} else if (stream.match(TokenType.Identifier, false)) {
 			return parseAccessOrCall(stream, TokenType.Identifier);
 		} else if (stream.match(TokenType.LeftCurly, false)) {
 			return parseMapLiteral(stream);
@@ -483,7 +484,8 @@ public class Parser {
 					}
 					continue;
 				}
-			} if (stream.match(TokenType.StringLiteral, false)) {
+			}
+			if (stream.match(TokenType.StringLiteral, false)) {
 				key = stream.expect(TokenType.StringLiteral);
 			} else {
 				key = stream.expect(TokenType.Identifier);
@@ -520,8 +522,13 @@ public class Parser {
 		}
 
 		Span closeBracket = stream.expect(TokenType.RightBracket).getSpan();
-		return new ListLiteral(new Span(openBracket, closeBracket), values);
+		Expression target = new ListLiteral(new Span(openBracket, closeBracket), values);
+		if (stream.match(TokenType.Period, false)) {
+			target = parseAccessOrCall(stream, target);
+		}
+		return target;
 	}
+
 
 	private Expression parseAccessOrCall(TokenStream stream, TokenType tokenType) {
 		//Span identifier = stream.expect(TokenType.Identifier);
@@ -537,17 +544,19 @@ public class Parser {
 			return expression;
 		}
 		Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) : new VariableAccess(identifier, add(identifier.getText()));
+		return parseAccessOrCall(stream, result);
+	}
 
+	private Expression parseAccessOrCall(TokenStream stream, Expression target) {
 		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period)) {
-
 			// function or method call
 			if (stream.match(TokenType.LeftParantheses, false)) {
 				List<Expression> arguments = parseArguments(stream);
 				Span closingSpan = stream.expect(TokenType.RightParantheses).getSpan();
-				if (result instanceof VariableAccess || result instanceof MapOrArrayAccess)
-					result = new FunctionCall(new Span(result.getSpan(), closingSpan), result, arguments);
-				else if (result instanceof MemberAccess) {
-					result = new MethodCall(new Span(result.getSpan(), closingSpan), (MemberAccess) result, arguments);
+				if (target instanceof VariableAccess || target instanceof MapOrArrayAccess)
+					target = new FunctionCall(new Span(target.getSpan(), closingSpan), target, arguments);
+				else if (target instanceof MemberAccess) {
+					target = new MethodCall(new Span(target.getSpan(), closingSpan), (MemberAccess) target, arguments);
 				} else {
 					MagicScriptError.error("Expected a variable, field or method.", stream);
 				}
@@ -557,17 +566,15 @@ public class Parser {
 			else if (stream.match(TokenType.LeftBracket, true)) {
 				Expression keyOrIndex = parseExpression(stream);
 				Span closingSpan = stream.expect(TokenType.RightBracket).getSpan();
-				result = new MapOrArrayAccess(new Span(result.getSpan(), closingSpan), result, keyOrIndex);
+				target = new MapOrArrayAccess(new Span(target.getSpan(), closingSpan), target, keyOrIndex);
 			}
 
 			// field or method access
 			else if (stream.match(TokenType.Period, true)) {
-				identifier = stream.expect(TokenType.Identifier).getSpan();
-				result = new MemberAccess(result, identifier);
+				target = new MemberAccess(target, stream.expect(TokenType.Identifier).getSpan());
 			}
 		}
-
-		return result;
+		return target;
 	}
 
 	/**

@@ -88,4 +88,13 @@ public class GrammarTests extends BaseTest {
 		Assert.assertEquals(true, execute("grammar/spread.ms"));
 	}
 
+	@Test
+	public void list_method_call() {
+		Assert.assertEquals(5, execute("grammar/list_method_call.ms"));
+	}
+	@Test
+	public void lambda_call_method_call() {
+		Assert.assertEquals("12666", execute("grammar/lambda_call_method_call.ms"));
+	}
+
 }

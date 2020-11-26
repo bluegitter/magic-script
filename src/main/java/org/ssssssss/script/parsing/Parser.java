@@ -372,7 +372,7 @@ public class Parser {
 				stream.resetIndex(index);
 				Expression expression = parseExpression(stream);
 				stream.expect(TokenType.RightParantheses);
-				if (stream.match(TokenType.Period, false)) {
+				if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
 					expression = parseAccessOrCall(stream, expression);
 				}
 				return expression;
@@ -436,7 +436,8 @@ public class Parser {
 			return parseListLiteral(stream);
 		} else if (stream.match(TokenType.StringLiteral, false)) {
 			if (stream.hasNext()) {
-				if (stream.next().getType() == TokenType.Period) {
+				TokenType nextType = stream.next().getType();
+				if (nextType == TokenType.Period || nextType == TokenType.QuestionPeriod) {
 					stream.prev();
 					return parseAccessOrCall(stream, TokenType.StringLiteral);
 				}
@@ -526,7 +527,7 @@ public class Parser {
 
 		Span closeBracket = stream.expect(TokenType.RightBracket).getSpan();
 		Expression target = new ListLiteral(new Span(openBracket, closeBracket), values);
-		if (stream.match(TokenType.Period, false)) {
+		if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
 			target = parseAccessOrCall(stream, target);
 		}
 		return target;
@@ -551,7 +552,7 @@ public class Parser {
 	}
 
 	private Expression parseAccessOrCall(TokenStream stream, Expression target) {
-		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period)) {
+		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.QuestionPeriod)) {
 			// function or method call
 			if (stream.match(TokenType.LeftParantheses, false)) {
 				List<Expression> arguments = parseArguments(stream);
@@ -573,8 +574,9 @@ public class Parser {
 			}
 
 			// field or method access
-			else if (stream.match(TokenType.Period, true)) {
-				target = new MemberAccess(target, stream.expect(TokenType.Identifier).getSpan());
+			else if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
+				boolean optional = stream.consume().getType() == TokenType.QuestionPeriod;
+				target = new MemberAccess(target, optional, stream.expect(TokenType.Identifier).getSpan());
 			}
 		}
 		return target;

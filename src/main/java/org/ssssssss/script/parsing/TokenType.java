@@ -11,6 +11,7 @@ public enum TokenType {
     // @off
     Spread("...", "..."),
     Period(".", "."),
+    QuestionPeriod("?.", "?."),
     Lambda("=>", "=>"),
     Comma(",", ","),
     Semicolon(";", ";"),

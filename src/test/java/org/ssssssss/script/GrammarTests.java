@@ -102,4 +102,9 @@ public class GrammarTests extends BaseTest {
 		Assert.assertEquals("23.00", execute("grammar/method_call.ms"));
 	}
 
+	@Test
+	public void optional_call() {
+		Assert.assertEquals("truetruetrue", execute("grammar/optional.ms"));
+	}
+
 }

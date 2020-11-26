@@ -9,6 +9,7 @@ import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.reflection.JavaInvoker;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -80,7 +81,23 @@ public class FunctionCall extends Expression {
 			List<Expression> arguments = getArguments();
 			for (int i = 0, n = argumentValues.length; i < n; i++) {
 				Expression expr = arguments.get(i);
-				argumentValues[i] = expr.evaluate(context, scope);
+				if (expr instanceof Spread) {
+					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope);
+					if (targetVal instanceof Collection) {
+						n += ((Collection<?>) targetVal).size() - 1;
+						Object[] valTemp = argumentValues;
+						argumentValues = new Object[n];
+						System.arraycopy(valTemp, 0, argumentValues, 0, valTemp.length);
+						for (Object o : ((Collection<?>) targetVal)) {
+							arguments.add(i, ((Spread) expr).getTarget());
+							argumentValues[i++] = o;
+						}
+					} else {
+						MagicScriptError.error("展开的不是一个list", expr.getSpan());
+					}
+				} else {
+					argumentValues[i] = expr.evaluate(context, scope);
+				}
 			}
 
 			// This is a special case to handle magicScript level macros. If a call to a macro is

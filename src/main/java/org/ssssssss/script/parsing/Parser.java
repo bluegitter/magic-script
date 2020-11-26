@@ -410,21 +410,20 @@ public class Parser {
 		}
 	}
 
-	private Expression parseThreeDotsAccess(TokenStream stream, Token threeDots) {
-		Expression expression = parseExpression(stream);
-		return new AutoExpand(threeDots.getSpan(), expression);
+	private Expression parseSpreadAccess(TokenStream stream, Token spread) {
+		Expression target = parseExpression(stream);
+		return new Spread(new Span(spread.getSpan(), target.getSpan()), target);
 	}
-	private Expression parseThreeDotsAccess(TokenStream stream) {
-		Token threeDots = stream.expect(TokenType.ThreeDots);
-		Expression expression = parseExpression(stream);
-		return new AutoExpand(threeDots.getSpan(), expression);
+	private Expression parseSpreadAccess(TokenStream stream) {
+		Token spread = stream.expect(TokenType.Spread);
+		return parseSpreadAccess(stream, spread);
 	}
 
 	private Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {
 		if (expectRightCurly && stream.match("}", false)) {
 			return null;
-		} else if (stream.match(TokenType.ThreeDots, false)) {
-			return parseThreeDotsAccess(stream);
+		} else if (stream.match(TokenType.Spread, false)) {
+			return parseSpreadAccess(stream);
 		}  else if (stream.match(TokenType.Identifier, false)) {
 			return parseAccessOrCall(stream, TokenType.Identifier);
 		} else if (stream.match(TokenType.LeftCurly, false)) {
@@ -475,10 +474,10 @@ public class Parser {
 			Token key;
 			if (stream.hasPrev()) {
 				Token prev = stream.getPrev();
-				if (stream.match(TokenType.ThreeDots, false) && (prev.getType() == TokenType.LeftCurly || prev.getType() == TokenType.Comma)) {
-					Token threeDots = stream.expect(TokenType.ThreeDots);
-					keys.add(threeDots);
-					values.add(parseThreeDotsAccess(stream, threeDots));
+				if (stream.match(TokenType.Spread, false) && (prev.getType() == TokenType.LeftCurly || prev.getType() == TokenType.Comma)) {
+					Token spread = stream.expect(TokenType.Spread);
+					keys.add(spread);
+					values.add(parseSpreadAccess(stream, spread));
 					if (stream.match(false, TokenType.Comma, TokenType.RightCurly)) {
 						stream.match(TokenType.Comma, true);
 					}

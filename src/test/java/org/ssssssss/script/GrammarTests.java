@@ -84,8 +84,8 @@ public class GrammarTests extends BaseTest {
 	}
 
 	@Test
-	public void autoExpand() {
-		Assert.assertEquals(true, execute("grammar/autoExpand.ms"));
+	public void spread() {
+		Assert.assertEquals(true, execute("grammar/spread.ms"));
 	}
 
 }

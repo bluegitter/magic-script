@@ -6,7 +6,7 @@ import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
-import org.ssssssss.script.parsing.ast.statement.AutoExpand;
+import org.ssssssss.script.parsing.ast.statement.Spread;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,17 +30,17 @@ public class ListLiteral extends Literal {
 		List<Object> list = new ArrayList<>();
 		for (int i = 0, n = values.size(); i < n; i++) {
 			Expression expression = values.get(i);
-			if (expression instanceof AutoExpand) {
-				AutoExpand autoExpand = (AutoExpand) expression;
-				Object res = autoExpand.getTarget().evaluate(context, scope);
+			if (expression instanceof Spread) {
+				Spread spread = (Spread) expression;
+				Object res = spread.getTarget().evaluate(context, scope);
 				if (res == null) {
 					// 其实是因为该变量未定义
 				} else if (res instanceof Collection) {
 					list.addAll(((Collection) res));
 				} else if (res instanceof Map) {
-					MagicScriptError.error("不能在list中展开map", autoExpand.getFullSpan());
+					MagicScriptError.error("不能在list中展开map", spread.getSpan());
 				} else {
-					MagicScriptError.error("不能展开的类型", autoExpand.getFullSpan());
+					MagicScriptError.error("不能展开的类型", spread.getSpan());
 				}
 			} else {
 				list.add(expression.evaluate(context, scope));

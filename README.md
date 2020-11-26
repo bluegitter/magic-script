@@ -252,6 +252,49 @@
 - 非空字符串
 - `false`
 
+### 扩展运算符
+
+扩展运算符，又叫展开语法(Spread syntax)， 是用于将list或map在语法层面展开；
+
+语法:
+> lambda 调用
+```javascript
+var sum = (a,b,c) => a + b + c;
+System.out.println(sum(...[1,2,3]))
+/*
+结果：6
+*/
+```
+> list 展开
+```javascript
+var arr = [3,4,5];
+System.out.println([1,2,...arr,6,7])
+/*
+结果：[1, 2, 3, 4, 5, 6, 7]
+*/
+```
+> list 展开到 map 中
+```javascript
+var arr = [3,4,5];
+System.out.println({key1:1,...arr})
+/*
+结果：{key1=1, 0=3, 1=4, 2=5}
+
+虽然这些key看起来像数值，但其实是String类型的key，如果把它们转为JSON看起来是这样的：
+
+{"key1":1, "0":3, "1":4, "2":5}
+
+*/
+```
+
+> map 展开
+```javascript
+var map = {key2:2}
+System.out.println({key1:1,...map,key3:3})
+/*
+结果：{key1=1, key2=2, key3=3}
+*/
+```
 
 ### for循环
 

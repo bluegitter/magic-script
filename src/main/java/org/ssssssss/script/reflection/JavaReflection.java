@@ -234,7 +234,10 @@ public class JavaReflection extends AbstractReflection {
 			if (method.getAnnotation(UnableCall.class) != null) {
 				continue;
 			}
-			methodList.add(method);
+			int modifiers = method.getModifiers();
+			if (Modifier.isPublic(modifiers)) {
+				methodList.add(method);
+			}
 		}
 		return findMethodInvoker(methodList, parameterTypes);
 	}

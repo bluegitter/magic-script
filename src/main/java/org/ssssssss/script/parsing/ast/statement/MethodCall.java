@@ -16,6 +16,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class MethodCall extends Expression {
@@ -102,7 +103,23 @@ public class MethodCall extends Expression {
 			List<Expression> arguments = getArguments();
 			for (int i = 0, n = argumentValues.length; i < n; i++) {
 				Expression expr = arguments.get(i);
-				argumentValues[i] = expr.evaluate(context, scope);
+				if (expr instanceof Spread) {
+					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope);
+					if (targetVal instanceof Collection) {
+						n += ((Collection<?>) targetVal).size() - 1;
+						Object[] valTemp = argumentValues;
+						argumentValues = new Object[n];
+						System.arraycopy(valTemp, 0, argumentValues, 0, valTemp.length);
+						for (Object o : ((Collection<?>) targetVal)) {
+							arguments.add(i, ((Spread) expr).getTarget());
+							argumentValues[i++] = o;
+						}
+					} else {
+						MagicScriptError.error("展开的不是一个list", expr.getSpan());
+					}
+				} else {
+					argumentValues[i] = expr.evaluate(context, scope);
+				}
 			}
 			if (object instanceof DynamicMethod) {
 				try {

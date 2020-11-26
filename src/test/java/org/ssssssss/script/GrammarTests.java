@@ -84,6 +84,11 @@ public class GrammarTests extends BaseTest {
 	}
 
 	@Test
+	public void var_scope_3_test() {
+		Assert.assertEquals(1, execute("grammar/var_scope_3.ms"));
+	}
+
+	@Test
 	public void spread() {
 		Assert.assertEquals(true, execute("grammar/spread.ms"));
 	}

@@ -214,7 +214,7 @@ public class Parser {
 			expected = TokenType.Assignment;
 			if (stream.hasMore()) {
 				stream.expect(expected);
-				return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), add(variableName), parseExpression(stream));
+				return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), forceAdd(variableName), parseExpression(stream));
 			}
 		}
 		MagicScriptError.error("Expected " + expected.getError() + ", but got stream is EOF", stream.getPrev().getSpan());

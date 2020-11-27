@@ -41,12 +41,12 @@ public class PlusEqualOperation extends BinaryOperation {
 			MagicScriptError.error(getLeftOperand().getSpan().getText() + " 值为空，不能执行[+=]操作", getLeftOperand().getSpan());
 		}
 		Object value = null;
-		if (left instanceof Integer || right instanceof Integer) {
-			return ((Number) left).intValue() + ((Number) right).intValue();
-		} else if (left instanceof Double || right instanceof Double) {
+		if (left instanceof Double || right instanceof Double) {
 			value = ((Number) left).doubleValue() + ((Number) right).doubleValue();
 		} else if (left instanceof Long || right instanceof Long) {
 			value = ((Number) left).longValue() + ((Number) right).longValue();
+		} else if (left instanceof Integer || right instanceof Integer) {
+			value = ((Number) left).intValue() + ((Number) right).intValue();
 		} else if (left instanceof BigDecimal || right instanceof BigDecimal) {
 			value = ObjectConvertExtension.asDecimal(left).add(ObjectConvertExtension.asDecimal(right));
 		} else if (left instanceof Float || right instanceof Float) {

@@ -50,7 +50,7 @@ public class UnaryOperation extends Expression {
                     ((VariableSetter) operand).setValue(context, scope, result);
                     return atAfter ? value : result;
                 } else {
-                    MagicScriptError.error("一元操作符[" + getOperator().name() + "] 操作的值必须可写：" + operand, getSpan());
+                    MagicScriptError.error("一元操作符[" + getOperator().name() + "] 操作的值必须是数值类型，获得的值为：" + operand, getSpan());
                     return null; // never reached
                 }
             case Negate:
@@ -77,12 +77,12 @@ public class UnaryOperation extends Expression {
     }
 
     private Object addValue(Object target, int value) {
-        if (target instanceof Integer) {
-            return ((Integer) target) + value;
+        if (target instanceof Double) {
+            return ((Double) target) + value;
         } else if (target instanceof Long) {
             return ((Long) target) + value;
-        } else if (target instanceof Double) {
-            return ((Double) target) + value;
+        } else if (target instanceof Integer) {
+            return ((Integer) target) + value;
         } else if (target instanceof BigDecimal) {
             return ((BigDecimal) target).add(new BigDecimal(value));
         } else if (target instanceof Float) {

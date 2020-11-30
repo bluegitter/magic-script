@@ -184,19 +184,11 @@ public class Tokenizer {
 				continue outer;
 			}
 			if (stream.hasMore()) {
-				int[] maybe = maybeProblems.get();
-				if (maybe != null) {
-					maybeProblems.remove();
-					MagicScriptError.error("Missing ']'", stream.getSpan(maybe[0], maybe[1] - 1));
-				}
 				MagicScriptError.error("Unknown token", stream.getSpan(stream.getPosition(), stream.getPosition() + 1));
 			}
 		}
-		maybeProblems.remove();
 		return new TokenStream(tokens);
 	}
-
-	private static ThreadLocal<int[]> maybeProblems = new ThreadLocal<>();
 
 	private static boolean regexpToken(CharacterStream stream, List<Token> tokens) {
 		if (stream.match("/", false)) {
@@ -207,6 +199,7 @@ public class Tokenizer {
 			int deep = 0;
 			int expFlag = 0;
 			int maybeMissForwardSlash = 0;
+			int maybeMissForwardSlashEnd = 0;
 			while (stream.hasMore()) {
 				// Note: escape sequences like \n are parsed in StringLiteral
 				if (stream.match("\\", true)) {
@@ -241,7 +234,7 @@ public class Tokenizer {
 						matchedEndQuote = true;
 						break;
 					} else {
-						maybeProblems.set(new int[]{maybeMissForwardSlash, stream.getPosition()});
+						maybeMissForwardSlashEnd = stream.getPosition();
 					}
 				}
 				char ch = stream.consume();
@@ -249,6 +242,9 @@ public class Tokenizer {
 					stream.reset(mark);
 					return false;
 				}
+			}
+			if (deep != 0) {
+				MagicScriptError.error("Missing ']'", stream.getSpan(maybeMissForwardSlash, maybeMissForwardSlashEnd - 1));
 			}
 			if (!matchedEndQuote) {
 				stream.reset(mark);

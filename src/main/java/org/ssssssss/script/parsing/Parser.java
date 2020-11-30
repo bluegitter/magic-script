@@ -465,6 +465,10 @@ public class Parser {
 			return new LongLiteral(stream.expect(TokenType.LongLiteral).getSpan());
 		} else if (stream.match(TokenType.DecimalLiteral, false)) {
 			return new BigDecimalLiteral(stream.expect(TokenType.DecimalLiteral).getSpan());
+		} else if (stream.match(TokenType.RegexpLiteral, false)) {
+			Token token = stream.expect(TokenType.RegexpLiteral);
+			Expression target = new RegexpLiteral(token.getSpan(), token);
+			return parseAccessOrCall(stream, target);
 		} else if (stream.match(TokenType.NullLiteral, false)) {
 			return new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
 		} else {

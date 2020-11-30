@@ -51,6 +51,7 @@ public enum TokenType {
     Questionmark("?", "?"),
     DoubleQuote("\"", "\""),
     SingleQuote("'", "'"),
+    RegexpLiteral("a regexp"),
     BooleanLiteral("true or false"),
     DoubleLiteral("a double floating point number"),
     DecimalLiteral("a decimal point number"),

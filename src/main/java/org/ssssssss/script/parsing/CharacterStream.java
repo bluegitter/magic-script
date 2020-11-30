@@ -225,4 +225,8 @@ public class CharacterStream {
 	public int getPosition() {
 		return index;
 	}
+
+	public void reset(int position) {
+		index = position;
+	}
 }

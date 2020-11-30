@@ -117,4 +117,11 @@ public class GrammarTests extends BaseTest {
 		Assert.assertEquals("truetruetrue", execute("grammar/optional.ms"));
 	}
 
+	@Test
+	public void regexp() {
+
+		execute("grammar/regexp.ms");
+
+	}
+
 }

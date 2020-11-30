@@ -10,6 +10,7 @@ import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -31,6 +32,8 @@ public class JavaReflection extends AbstractReflection {
 		registerExtensionClass(Map.class, MapExtension.class);
 		registerExtensionClass(Date.class, DateExtension.class);
 		registerExtensionClass(Number.class, NumberExtension.class);
+		registerExtensionClass(Pattern.class, PatternExtension.class);
+		registerExtensionClass(String.class, StringExtension.class);
 
 		converts = new TreeSet<>(Comparator.comparingInt(ClassImplicitConvert::sort));
 
@@ -225,7 +228,7 @@ public class JavaReflection extends AbstractReflection {
 	 **/
 	private static JavaInvoker<Method> findInvoker(Class<?> cls, String name, Class<?>[] parameterTypes) {
 		List<Method> methodList = new ArrayList<>();
-		Method[] methods = cls.getDeclaredMethods();
+		Method[] methods = cls.getMethods();
 		for (int i = 0, n = methods.length; i < n; i++) {
 			Method method = methods[i];
 			if (!method.getName().equals(name)) {
@@ -234,10 +237,7 @@ public class JavaReflection extends AbstractReflection {
 			if (method.getAnnotation(UnableCall.class) != null) {
 				continue;
 			}
-			int modifiers = method.getModifiers();
-			if (Modifier.isPublic(modifiers)) {
-				methodList.add(method);
-			}
+			methodList.add(method);
 		}
 		return findMethodInvoker(methodList, parameterTypes);
 	}

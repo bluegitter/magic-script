@@ -5,6 +5,7 @@ import org.ssssssss.script.exception.StringLiteralException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 public class Tokenizer {
@@ -144,7 +145,10 @@ public class Tokenizer {
 				tokens.add(new Token(TokenType.StringLiteral, stringSpan));
 				continue;
 			}
-
+			// regexp
+			if (regexpToken(stream, tokens)) {
+				continue;
+			}
 			// Identifier, keyword, boolean literal, or null literal
 			if (stream.matchIdentifierStart(true)) {
 				stream.startSpan();
@@ -180,9 +184,81 @@ public class Tokenizer {
 				continue outer;
 			}
 			if (stream.hasMore()) {
+				int[] maybe = maybeProblems.get();
+				if (maybe != null) {
+					maybeProblems.remove();
+					MagicScriptError.error("Missing ']'", stream.getSpan(maybe[0], maybe[1] - 1));
+				}
 				MagicScriptError.error("Unknown token", stream.getSpan(stream.getPosition(), stream.getPosition() + 1));
 			}
 		}
+		maybeProblems.remove();
 		return new TokenStream(tokens);
+	}
+
+	private static ThreadLocal<int[]> maybeProblems = new ThreadLocal<>();
+
+	private static boolean regexpToken(CharacterStream stream, List<Token> tokens) {
+		if (stream.match("/", false)) {
+			int mark = stream.getPosition();
+			stream.consume();
+			stream.startSpan();
+			boolean matchedEndQuote = false;
+			int deep = 0;
+			int expFlag = 0;
+			int maybeMissForwardSlash = 0;
+			while (stream.hasMore()) {
+				// Note: escape sequences like \n are parsed in StringLiteral
+				if (stream.match("\\", true)) {
+					stream.consume();
+					continue;
+				}
+				if (stream.match("[", false)) {
+					deep++;
+					maybeMissForwardSlash = stream.getPosition();
+				} else if (deep > 0 && stream.match("]", false)) {
+					deep--;
+				} else if (stream.match(TokenType.ForwardSlash.getLiteral(), true)) {
+					if (deep == 0) {
+						if (stream.match("g", true)) {
+							expFlag |= 1;
+						}
+						if (stream.match("i", true)) {
+							expFlag |= Pattern.CASE_INSENSITIVE;
+						}
+						if (stream.match("m", true)) {
+							expFlag |= Pattern.MULTILINE;
+						}
+						if (stream.match("s", true)) {
+							expFlag |= Pattern.DOTALL;
+						}
+						if (stream.match("u", true)) {
+							expFlag |= Pattern.UNICODE_CHARACTER_CLASS;
+						}
+						if (stream.match("y", true)) {
+							expFlag |= 16;
+						}
+						matchedEndQuote = true;
+						break;
+					} else {
+						maybeProblems.set(new int[]{maybeMissForwardSlash, stream.getPosition()});
+					}
+				}
+				char ch = stream.consume();
+				if (ch == '\r' || ch == '\n') {
+					stream.reset(mark);
+					return false;
+				}
+			}
+			if (!matchedEndQuote) {
+				stream.reset(mark);
+				return false;
+			}
+			Span regexpSpan = stream.endSpan();
+			regexpSpan = stream.getSpan(regexpSpan.getStart() - 1, regexpSpan.getEnd());
+			tokens.add(new RegexpToken(TokenType.RegexpLiteral, regexpSpan, expFlag));
+			return true;
+		}
+		return false;
 	}
 }

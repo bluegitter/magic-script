@@ -131,6 +131,14 @@ public abstract class BinaryOperation extends Expression {
 
 	}
 
+	public void setLeftOperand(Expression leftOperand) {
+		this.leftOperand = leftOperand;
+	}
+
+	public void setRightOperand(Expression rightOperand) {
+		this.rightOperand = rightOperand;
+	}
+
 	public Expression getLeftOperand() {
 		return leftOperand;
 	}

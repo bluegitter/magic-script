@@ -14,4 +14,9 @@ public class IssuesTests extends BaseTest {
 	public void bug_function_call() {
 		Assert.assertEquals(123, execute("issues/bug_function_call.ms"));
 	}
+
+	@Test
+	public void bug_var() {
+		Assert.assertEquals(15, execute("issues/bug_var.ms"));
+	}
 }

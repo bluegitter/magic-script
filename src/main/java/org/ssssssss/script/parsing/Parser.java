@@ -310,14 +310,16 @@ public class Parser {
 	}
 
 	private Expression parseTernaryOperator(TokenStream stream, boolean expectRightCurly) {
-		if (stream.match("async", false)) {
-			return parseAsync(stream);
-		}
 		Expression condition = parseBinaryOperator(stream, 0, expectRightCurly);
 		if (stream.match(TokenType.Questionmark, true)) {
 			Expression trueExpression = parseTernaryOperator(stream, expectRightCurly);
 			stream.expect(TokenType.Colon);
 			Expression falseExpression = parseTernaryOperator(stream, expectRightCurly);
+			if(condition instanceof BinaryOperation){
+				BinaryOperation operation = (BinaryOperation) condition;
+				operation.setRightOperand(new TernaryOperation(operation.getRightOperand(), trueExpression, falseExpression));
+				return operation;
+			}
 			return new TernaryOperation(condition, trueExpression, falseExpression);
 		} else {
 			return condition;
@@ -430,6 +432,8 @@ public class Parser {
 	private Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {
 		if (expectRightCurly && stream.match("}", false)) {
 			return null;
+		} else if (stream.match("async", false)) {
+			return parseAsync(stream);
 		} else if (stream.match(TokenType.Spread, false)) {
 			return parseSpreadAccess(stream);
 		} else if (stream.match(TokenType.Identifier, false)) {

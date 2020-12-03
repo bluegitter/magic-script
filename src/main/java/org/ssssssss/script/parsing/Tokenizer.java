@@ -61,7 +61,7 @@ public class Tokenizer {
 					type = TokenType.DecimalLiteral;
 				}
 				Span numberSpan = stream.endSpan();
-				tokens.add(new Token(type, numberSpan));
+				tokens.add(new LiteralToken(type, numberSpan));
 				continue;
 			}
 
@@ -89,7 +89,7 @@ public class Tokenizer {
 				}
 				Span stringSpan = stream.endSpan();
 				stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
-				tokens.add(new Token(TokenType.StringLiteral, stringSpan));
+				tokens.add(new LiteralToken(TokenType.StringLiteral, stringSpan));
 				continue;
 			}
 
@@ -114,7 +114,7 @@ public class Tokenizer {
 				}
 				Span stringSpan = stream.endSpan();
 				stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd() - 2);
-				tokens.add(new Token(TokenType.StringLiteral, stringSpan));
+				tokens.add(new LiteralToken(TokenType.StringLiteral, stringSpan));
 				continue;
 			}
 
@@ -142,7 +142,7 @@ public class Tokenizer {
 				}
 				Span stringSpan = stream.endSpan();
 				stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
-				tokens.add(new Token(TokenType.StringLiteral, stringSpan));
+				tokens.add(new LiteralToken(TokenType.StringLiteral, stringSpan));
 				continue;
 			}
 			// regexp
@@ -158,9 +158,9 @@ public class Tokenizer {
 				Span identifierSpan = stream.endSpan();
 				identifierSpan = stream.getSpan(identifierSpan.getStart() - 1, identifierSpan.getEnd());
 				if ("true".equals(identifierSpan.getText()) || "false".equals(identifierSpan.getText())) {
-					tokens.add(new Token(TokenType.BooleanLiteral, identifierSpan));
+					tokens.add(new LiteralToken(TokenType.BooleanLiteral, identifierSpan));
 				} else if ("null".equals(identifierSpan.getText())) {
-					tokens.add(new Token(TokenType.NullLiteral, identifierSpan));
+					tokens.add(new LiteralToken(TokenType.NullLiteral, identifierSpan));
 				} else {
 					tokens.add(new Token(TokenType.Identifier, identifierSpan));
 				}
@@ -191,6 +191,12 @@ public class Tokenizer {
 	}
 
 	private static boolean regexpToken(CharacterStream stream, List<Token> tokens) {
+		if(tokens.size() > 0){
+			Token token = tokens.get(tokens.size() - 1);
+			if(token instanceof LiteralToken || token.getType() == TokenType.Identifier){
+				return false;
+			}
+		}
 		if (stream.match("/", false)) {
 			int mark = stream.getPosition();
 			stream.consume();

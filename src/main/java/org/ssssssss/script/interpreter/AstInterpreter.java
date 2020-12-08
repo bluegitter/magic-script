@@ -5,6 +5,7 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.exception.DebugTimeoutException;
+import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Node;
@@ -37,13 +38,15 @@ public class AstInterpreter {
 				return ((Return.ReturnValue) value).getValue();
 			}
 			return null;
+		} catch(MagicExitException mee){
+			return mee.getExitValue();
 		} catch (Throwable t) {
-			MagicScriptError.error("执行脚本出错 " + t.getMessage(), magicScript.getNodes().get(0).getSpan(), t);
-			return null; // never reached
+			MagicScriptError.error("执行脚本出错 " + t.getMessage(), magicScript.getNodes().get(0).getSpan(), t); // never reached
 		} finally {
 			context.removeVarScope();
 			MagicScriptContext.remove();
 		}
+		return null;
 	}
 
 	public static Object interpretNodeList(List<Node> nodes, MagicScriptContext context, Scope scope) {

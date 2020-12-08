@@ -31,7 +31,7 @@ public class Parser {
 	};
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit");
 
 	private Stack<List<String>> varNames = new Stack<>();
 
@@ -89,6 +89,8 @@ public class Parser {
 			result = parseTryStatement(tokens);
 		} else if (tokens.match("break", false)) {
 			result = new Break(tokens.consume().getSpan());
+		} else if (tokens.match("exit", false)) {
+			result = parseExit(tokens);
 		} else {
 			result = parseExpression(tokens, expectRightCurly);
 		}
@@ -124,6 +126,15 @@ public class Parser {
 		int count = current.size();
 		current = varNames.pop();
 		return count;
+	}
+
+	private Node parseExit(TokenStream stream) {
+		Span opening = stream.expect("exit").getSpan();
+		List<Expression> expressionList = new ArrayList<>();
+		do {
+			expressionList.add(parseExpression(stream));
+		} while (stream.match(TokenType.Comma, true));
+		return new Exit(new Span(opening, stream.getPrev().getSpan()), expressionList);
 	}
 
 	private Expression parseAsync(TokenStream stream) {
@@ -315,7 +326,7 @@ public class Parser {
 			Expression trueExpression = parseTernaryOperator(stream, expectRightCurly);
 			stream.expect(TokenType.Colon);
 			Expression falseExpression = parseTernaryOperator(stream, expectRightCurly);
-			if(condition instanceof BinaryOperation){
+			if (condition instanceof BinaryOperation) {
 				BinaryOperation operation = (BinaryOperation) condition;
 				operation.setRightOperand(new TernaryOperation(operation.getRightOperand(), trueExpression, falseExpression));
 				return operation;

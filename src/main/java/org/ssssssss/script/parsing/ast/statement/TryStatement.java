@@ -1,6 +1,7 @@
 package org.ssssssss.script.parsing.ast.statement;
 
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
@@ -29,6 +30,8 @@ public class TryStatement extends Node {
 		try {
 			Object value = AstInterpreter.interpretNodeList(tryBlock, context, scope);
 			return value;
+		} catch (MagicExitException mee){
+			throw mee;
 		} catch (Throwable throwable) {
 			if (catchBlock != null && catchBlock.size() > 0) {
 				if (exceptionVarNode != null) {

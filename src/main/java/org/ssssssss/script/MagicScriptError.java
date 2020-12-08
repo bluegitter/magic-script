@@ -1,5 +1,6 @@
 package org.ssssssss.script;
 
+import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.TokenStream;
@@ -34,6 +35,9 @@ public class MagicScriptError {
 	 **/
 	public static void error(String message, Span location, Throwable cause) {
 		cause = unwrap(cause);
+		if(cause instanceof MagicExitException){
+			throw (MagicExitException)cause;
+		}
 		if (cause instanceof MagicScriptException) {
 			MagicScriptException mse = ((MagicScriptException) cause);
 			if(mse.getLocation() == null){

@@ -1,7 +1,6 @@
 package org.ssssssss.script.parsing.ast.statement;
 
-import org.ssssssss.script.MagicModuleLoader;
-import org.ssssssss.script.MagicPackageLoader;
+import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
@@ -21,8 +20,8 @@ public class VariableAccess extends Expression implements VariableSetter {
     @Override
     public Object evaluate(MagicScriptContext context, Scope scope) {
         Object value = scope.getValue(varIndex);
-        value = value == null ? MagicPackageLoader.findClass(varIndex.getName()) : value;
-        return value == null ? MagicModuleLoader.loadModule(varIndex.getName()) : value;
+        value = value == null ? MagicResourceLoader.findClass(varIndex.getName()) : value;
+        return value == null ? MagicResourceLoader.loadModule(varIndex.getName()) : value;
     }
 
     public VarIndex getVarIndex() {

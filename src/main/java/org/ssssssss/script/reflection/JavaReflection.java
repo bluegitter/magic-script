@@ -228,7 +228,7 @@ public class JavaReflection extends AbstractReflection {
 	 **/
 	private static JavaInvoker<Method> findInvoker(Class<?> cls, String name, Class<?>[] parameterTypes) {
 		List<Method> methodList = new ArrayList<>();
-		Method[] methods = cls.getMethods();
+		Method[] methods = cls.getDeclaredMethods();
 		for (int i = 0, n = methods.length; i < n; i++) {
 			Method method = methods[i];
 			if (!method.getName().equals(name)) {
@@ -237,7 +237,9 @@ public class JavaReflection extends AbstractReflection {
 			if (method.getAnnotation(UnableCall.class) != null) {
 				continue;
 			}
-			methodList.add(method);
+			if (Modifier.isPublic(method.getModifiers())) {
+				methodList.add(method);
+			}
 		}
 		return findMethodInvoker(methodList, parameterTypes);
 	}
@@ -511,7 +513,7 @@ public class JavaReflection extends AbstractReflection {
 
 			if (invoker == null) {
 				Class<?> parentClass = cls.getSuperclass();
-				while (parentClass != Object.class && parentClass != null) {
+				while (parentClass != null) {
 					try {
 						if (name == null) {
 							invoker = findApply(parentClass);
@@ -544,7 +546,7 @@ public class JavaReflection extends AbstractReflection {
 		private final int hashCode;
 
 		@SuppressWarnings("rawtypes")
-		public MethodSignature(String name, Class[] parameters) {
+		MethodSignature(String name, Class[] parameters) {
 			this.name = name;
 			this.parameters = parameters;
 			final int prime = 31;

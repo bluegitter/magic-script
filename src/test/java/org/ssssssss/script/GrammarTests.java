@@ -118,6 +118,11 @@ public class GrammarTests extends BaseTest {
 	}
 
 	@Test
+	public void ternary() {
+		Assert.assertEquals("成年", execute("grammar/ternary.ms"));
+	}
+
+	@Test
 	public void regexp() {
 
 		execute("grammar/regexp.ms");

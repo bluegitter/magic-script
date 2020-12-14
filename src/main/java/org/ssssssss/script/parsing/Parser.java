@@ -326,11 +326,11 @@ public class Parser {
 			Expression trueExpression = parseTernaryOperator(stream, expectRightCurly);
 			stream.expect(TokenType.Colon);
 			Expression falseExpression = parseTernaryOperator(stream, expectRightCurly);
-			if (condition instanceof BinaryOperation) {
-				BinaryOperation operation = (BinaryOperation) condition;
-				operation.setRightOperand(new TernaryOperation(operation.getRightOperand(), trueExpression, falseExpression));
-				return operation;
-			}
+//			if (condition instanceof BinaryOperation) {
+//				BinaryOperation operation = (BinaryOperation) condition;
+//				operation.setRightOperand(new TernaryOperation(operation.getRightOperand(), trueExpression, falseExpression));
+//				return operation;
+//			}
 			return new TernaryOperation(condition, trueExpression, falseExpression);
 		} else {
 			return condition;

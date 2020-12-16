@@ -1,6 +1,8 @@
 package org.ssssssss.script.reflection;
 
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.convert.ClassImplicitConvert;
+import org.ssssssss.script.parsing.Scope;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Executable;
@@ -32,13 +34,20 @@ public abstract class JavaInvoker<T extends Executable> {
 		return this.executable.isVarArgs();
 	}
 
-	public Object invoke0(Object target, Object... arguments) throws Throwable {
+	public Object invoke0(Object target, Scope scope, Object... arguments) throws Throwable {
 		try {
+			if(scope != null){
+				Scope.setTempScope(scope);
+			}
 			return invoke(target, processArguments(arguments));
 		} catch (InvocationTargetException e) {
 			throw e.getTargetException();
 		} catch (IllegalAccessException e1) {
 			throw e1;
+		} finally {
+			if(scope != null){
+				Scope.removeTempScope();
+			}
 		}
 	}
 
@@ -69,7 +78,7 @@ public abstract class JavaInvoker<T extends Executable> {
 					int len = arguments.length - count + 1;
 					Object varArgs = Array.newInstance(this.executable.getParameterTypes()[count - 1].getComponentType(), len);
 					for (int i = 0; i < len; i++) {
-						Array.set(varArgs,i,arguments[count - 1 + i]);
+						Array.set(varArgs, i, arguments[count - 1 + i]);
 
 					}
 					args[count - 1] = varArgs;

@@ -118,7 +118,7 @@ public class FunctionCall extends Expression {
 				JavaInvoker<Method> invoker = getCachedFunction();
 				if (invoker != null) {
 					try {
-						return invoker.invoke0(function, argumentValues);
+						return invoker.invoke0(function, scope, argumentValues);
 					} catch (Throwable t) {
 						// fall through
 					}
@@ -129,7 +129,7 @@ public class FunctionCall extends Expression {
 				}
 				setCachedFunction(invoker);
 				try {
-					return invoker.invoke0(function, argumentValues);
+					return invoker.invoke0(function, scope, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached

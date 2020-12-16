@@ -24,6 +24,6 @@ public class ClassExtension {
 		}
 		List<Constructor<?>> constructors = Arrays.asList(clazz.getConstructors());
 		JavaInvoker<Constructor> invoker = JavaReflection.findConstructorInvoker(constructors, parametersTypes);
-		return invoker.invoke0(null, values);
+		return invoker.invoke0(null, null, values);
 	}
 }

@@ -16,6 +16,20 @@ public class Scope {
 	 */
 	private VarNode[] variables;
 
+	private static ThreadLocal<Scope> TEMP_SCOPE = new InheritableThreadLocal<>();
+
+	public static void setTempScope(Scope scope) {
+		TEMP_SCOPE.set(scope);
+	}
+
+	public static void removeTempScope() {
+		TEMP_SCOPE.remove();
+	}
+
+	public static Scope getTempScope() {
+		return TEMP_SCOPE.get();
+	}
+
 	public Scope(Scope parent, int count) {
 		this.parent = parent;
 		this.variables = new VarNode[count];

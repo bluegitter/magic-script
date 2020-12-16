@@ -128,7 +128,7 @@ public class MethodCall extends Expression {
 				try {
 					MethodInvoker invoker = new MethodInvoker(DynamicMethod.class.getDeclaredMethod("execute", String.class, List.class));
 					Object[] newArgumentValues = new Object[]{getMethod().getName().getText(), Arrays.asList(argumentValues)};
-					return invoker.invoke0(object, newArgumentValues);
+					return invoker.invoke0(object, scope, newArgumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached
@@ -139,7 +139,7 @@ public class MethodCall extends Expression {
 			JavaInvoker<Method> invoker = getCachedMethod();
 			if (invoker != null) {
 				try {
-					return invoker.invoke0(object, argumentValues);
+					return invoker.invoke0(object, scope, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached
@@ -151,7 +151,7 @@ public class MethodCall extends Expression {
 				// found the method on the object, call it
 				setCachedMethod(invoker);
 				try {
-					return invoker.invoke0(object, argumentValues);
+					return invoker.invoke0(object, scope, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached
@@ -175,7 +175,7 @@ public class MethodCall extends Expression {
 						}
 						parameters[0] = objs;
 					}
-					return invoker.invoke0(object, parameters);
+					return invoker.invoke0(object, scope, parameters);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					// fall through
@@ -195,7 +195,7 @@ public class MethodCall extends Expression {
 							getSpan());
 				}
 				try {
-					return invoker.invoke0(function, argumentValues);
+					return invoker.invoke0(function, scope, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached

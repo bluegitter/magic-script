@@ -92,7 +92,11 @@ public class MagicScriptContext {
 		try {
 			Parser parser = new Parser();
 			Expression expression = parser.parseExpression(Tokenizer.tokenize(script));
-			return expression.evaluate(this, CONTEXT_VAR_SCOPE.get().create(parser.getTopVarCount()));
+			Scope scope = Scope.getTempScope();
+			if(scope == null){
+				scope = CONTEXT_VAR_SCOPE.get();
+			}
+			return expression.evaluate(this, scope.create(parser.getTopVarCount()));
 		} catch (Exception e) {
 			Throwable throwable = MagicScriptError.unwrap(e);
 			if (throwable instanceof MagicScriptException) {

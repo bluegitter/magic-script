@@ -7,9 +7,6 @@ public class MagicScriptException extends RuntimeException {
 	private String simpleMessage;
 	private Span location;
 
-	public MagicScriptException() {
-	}
-
 	public MagicScriptException(String errorMessage, String simpleMessage, Span location) {
 		super(errorMessage);
 		this.simpleMessage = simpleMessage;

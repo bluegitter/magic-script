@@ -1,6 +1,6 @@
 package org.ssssssss.script.exception;
 
-public class MagicScriptAssertException extends MagicScriptException {
+public class MagicScriptAssertException extends RuntimeException {
 
 	private int code;
 

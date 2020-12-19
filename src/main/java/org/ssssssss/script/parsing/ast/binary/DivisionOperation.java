@@ -24,7 +24,7 @@ public class DivisionOperation extends BinaryOperation {
 		Object left = getLeftOperand().evaluate(context, scope);
 		Object right = getRightOperand().evaluate(context, scope);
 		if (right == null) {
-			MagicScriptError.error(getRightOperand().getSpan().getText() + "[/]操作值不能为空", getRightOperand().getSpan());
+			MagicScriptError.error("[/]操作值不能为空", getRightOperand().getSpan());
 		}
 		if (left instanceof BigDecimal || right instanceof BigDecimal) {
 			return ObjectConvertExtension.asDecimal(left).divide(ObjectConvertExtension.asDecimal(right));

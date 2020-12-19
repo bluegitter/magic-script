@@ -27,7 +27,7 @@ public class AssigmentOperation extends BinaryOperation {
 			return value;
 		}
 		if (!(getLeftOperand() instanceof VariableAccess)) {
-			MagicScriptError.error("Can only assign to top-level variables in context.", getLeftOperand().getSpan());
+			MagicScriptError.error("赋值目标应为变量", getLeftOperand().getSpan());
 		}
 		Object value = getRightOperand().evaluate(context, scope);
 		scope.setValue(((VariableAccess) getLeftOperand()).getVarIndex(), value);

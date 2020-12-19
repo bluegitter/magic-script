@@ -124,9 +124,11 @@ public class GrammarTests extends BaseTest {
 
 	@Test
 	public void regexp() {
-
 		execute("grammar/regexp.ms");
-
 	}
 
+	@Test
+	public void while_1() {
+		Assert.assertEquals(4950,execute("grammar/while_1.ms"));
+	}
 }

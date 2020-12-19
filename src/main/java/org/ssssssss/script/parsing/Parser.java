@@ -175,21 +175,29 @@ public class Parser {
 
 	private TryStatement parseTryStatement(TokenStream stream) {
 		Token opening = stream.expect("try");
+		push();
 		List<Node> tryBlocks = parseFunctionBody(stream);
+		int tryVarCount = pop();
 		List<Node> catchBlocks = new ArrayList<>();
 		List<Node> finallyBlocks = new ArrayList<>();
+		int catchVarCount = 0;
 		VarIndex exceptionVarNode = null;
 		if (stream.match("catch", true)) {
+			push();
 			if (stream.match("(", true)) {
 				exceptionVarNode = add(stream.expect(TokenType.Identifier).getText());
 				stream.expect(")");
 			}
 			catchBlocks.addAll(parseFunctionBody(stream));
+			catchVarCount = pop();
 		}
+		int finallyVarCount = 0;
 		if (stream.match("finally", true)) {
+			push();
 			finallyBlocks.addAll(parseFunctionBody(stream));
+			finallyVarCount = pop();
 		}
-		return new TryStatement(new Span(opening.getSpan(), stream.getPrev().getSpan()), exceptionVarNode, tryBlocks, catchBlocks, finallyBlocks);
+		return new TryStatement(new Span(opening.getSpan(), stream.getPrev().getSpan()), exceptionVarNode, tryBlocks, catchBlocks, finallyBlocks, tryVarCount, catchVarCount, finallyVarCount);
 	}
 
 	private List<Node> parseFunctionBody(TokenStream stream) {
@@ -245,10 +253,10 @@ public class Parser {
 	private WhileStatement parseWhileStatement(TokenStream stream) {
 		Span openingWhile = stream.expect("while").getSpan();
 		Expression condition = parseExpression(stream);
+		push();
 		List<Node> trueBlock = parseFunctionBody(stream);
 		Span closingEnd = stream.getPrev().getSpan();
-
-		return new WhileStatement(new Span(openingWhile, closingEnd), condition, trueBlock);
+		return new WhileStatement(new Span(openingWhile, closingEnd), condition, trueBlock, pop());
 	}
 
 	private ForStatement parseForStatement(TokenStream stream) {
@@ -285,24 +293,31 @@ public class Parser {
 	private Node parseIfStatement(TokenStream stream) {
 		Span openingIf = stream.expect("if").getSpan();
 		Expression condition = parseExpression(stream);
+		int trueVarCount = 0;
+		push();
 		List<Node> trueBlock = parseFunctionBody(stream);
-		List<IfStatement> elseIfs = new ArrayList<IfStatement>();
-		List<Node> falseBlock = new ArrayList<Node>();
+		trueVarCount = pop();
+		List<IfStatement> elseIfs = new ArrayList<>();
+		List<Node> falseBlock = new ArrayList<>();
+		int falseVarCount = 0;
 		while (stream.hasMore() && stream.match("else", true)) {
 			if (stream.hasMore() && stream.match("if", false)) {
 				Span elseIfOpening = stream.expect("if").getSpan();
 				Expression elseIfCondition = parseExpression(stream);
+				push();
 				List<Node> elseIfBlock = parseFunctionBody(stream);
 				Span elseIfSpan = new Span(elseIfOpening, elseIfBlock.size() > 0 ? elseIfBlock.get(elseIfBlock.size() - 1).getSpan() : elseIfOpening);
-				elseIfs.add(new IfStatement(elseIfSpan, elseIfCondition, elseIfBlock, new ArrayList<>(), new ArrayList<>()));
+				elseIfs.add(new IfStatement(elseIfSpan, elseIfCondition, elseIfBlock, new ArrayList<>(), new ArrayList<>(), pop(), 0));
 			} else {
+				push();
 				falseBlock.addAll(parseFunctionBody(stream));
+				falseVarCount = pop();
 				break;
 			}
 		}
 		Span closingEnd = stream.getPrev().getSpan();
 
-		return new IfStatement(new Span(openingIf, closingEnd), condition, trueBlock, elseIfs, falseBlock);
+		return new IfStatement(new Span(openingIf, closingEnd), condition, trueBlock, elseIfs, falseBlock, trueVarCount, falseVarCount);
 	}
 
 	private Node parseReturn(TokenStream tokens) {

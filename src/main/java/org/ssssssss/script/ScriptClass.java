@@ -108,12 +108,15 @@ public class ScriptClass {
 
 		private String comment;
 
+		private boolean origin;
+
 		private List<ScriptMethodParameter> parameters = new ArrayList<>();
 
 		public ScriptMethod(Method method) {
 			this.name = method.getName();
 			Comment methodComment = method.getAnnotation(Comment.class);
 			comment = methodComment == null ? null : methodComment.value();
+			origin = methodComment != null && methodComment.origin();
 			Class<?> returnType = method.getReturnType();
 			this.returnType = returnType.isArray() ? returnType.getSimpleName() : returnType.getName();
 			Parameter[] parameters = method.getParameters();
@@ -130,6 +133,10 @@ public class ScriptClass {
 
 		public String getName() {
 			return name;
+		}
+
+		public boolean isOrigin() {
+			return origin;
 		}
 
 		public String getReturnType() {

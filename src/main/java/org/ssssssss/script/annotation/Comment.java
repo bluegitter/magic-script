@@ -8,4 +8,6 @@ import java.lang.annotation.*;
 public @interface Comment {
 
 	String value();
+
+	boolean origin() default false;
 }

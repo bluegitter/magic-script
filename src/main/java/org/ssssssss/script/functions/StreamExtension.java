@@ -63,7 +63,7 @@ public class StreamExtension {
 	 *
 	 * @param function 回调函数
 	 */
-	@Comment("将集合进行转换，并返回新集合")
+	@Comment(value = "将集合进行转换，并返回新集合", origin = true)
 	public static Object map(Object target, @Comment("转换函数，如提取属性(item)=>item.xxx") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		List<Object> results = new ArrayList<>(objects.size());
@@ -79,7 +79,7 @@ public class StreamExtension {
 	 *
 	 * @param function 回调函数
 	 */
-	@Comment("将集合进行过滤，并返回新集合")
+	@Comment(value = "将集合进行过滤，并返回新集合", origin = true)
 	public static Object filter(Object target, @Comment("过滤条件，如(item)=>item.xxx == 1") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		List<Object> results = new ArrayList<>(objects.size());
@@ -97,7 +97,7 @@ public class StreamExtension {
 	 *
 	 * @param function 回调函数
 	 */
-	@Comment("将集合进行循环操作，并返回新集合")
+	@Comment(value = "将集合进行循环操作，并返回新集合", origin = true)
 	public static Object each(Object target, @Comment("循环函数，如循环添加属性(item)=>{item.xxx = 'newVal'}") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		List<Object> results = new ArrayList<>(objects.size());
@@ -112,7 +112,7 @@ public class StreamExtension {
 	/**
 	 * 排序
 	 */
-	@Comment("将集合进行排序，并返回新集合")
+	@Comment(value = "将集合进行排序，并返回新集合", origin = true)
 	public static Object sort(Object target, @Comment("排序函数，如从大到小(a,b)=>a-b") Function<Object[], Object> function) {
 		List<Object> objects = arrayLikeToList(target);
 		objects.sort((o1, o2) -> ObjectConvertExtension.asInt(function.apply(new Object[]{o1, o2}), 0));
@@ -122,7 +122,7 @@ public class StreamExtension {
 	/**
 	 * 反转
 	 */
-	@Comment("将集合进行反转操作")
+	@Comment(value = "将集合进行反转操作", origin = true)
 	public static Object reserve(Object target) {
 		List<Object> objects = arrayLikeToList(target);
 		Collections.reverse(objects);
@@ -132,7 +132,7 @@ public class StreamExtension {
 	/**
 	 * 将list打乱
 	 */
-	@Comment("将集合的顺序打乱")
+	@Comment(value = "将集合的顺序打乱", origin = true)
 	public static Object shuffle(Object target) {
 		List<Object> objects = arrayLikeToList(target);
 		Collections.shuffle(objects);
@@ -293,12 +293,12 @@ public class StreamExtension {
 		return asBean(source, target, false);
 	}
 
-	@Comment("截取集合")
+	@Comment(value = "截取集合", origin = true)
 	public static Object skip(Object source, @Comment("跳过的数量") int value) {
 		return toOriginType(source, arrayLikeToList(source).stream().skip(value).collect(Collectors.toList()));
 	}
 
-	@Comment("限制集合数量")
+	@Comment(value = "限制集合数量", origin = true)
 	public static Object limit(Object source, @Comment("跳过的数量") int value) {
 		return toOriginType(source, arrayLikeToList(source).stream().limit(value).collect(Collectors.toList()));
 	}

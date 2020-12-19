@@ -34,7 +34,7 @@ public class MapExtension {
 		return result;
 	}
 
-	@Comment("循环Map")
+	@Comment(value = "循环Map",origin = true)
 	public static Map<?, ?> each(Map<?, ?> source, @Comment("循环函数，如:(key,value,source)=>map['xx'] = key;") Function<Object[], Object> function) {
 		source.forEach((key, value) -> function.apply(new Object[]{key, value, source}));
 		return source;

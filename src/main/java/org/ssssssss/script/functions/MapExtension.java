@@ -111,10 +111,10 @@ public class MapExtension {
 	}
 
 	@Comment("对Map进行排序")
-	public static Map<?, ?> sort(Map<?, ?> source, @Comment("比较器，如:(k1,k2)=>k1.compareTo(k2);") Function<Object[], Object> comparator) {
+	public static Map<?, ?> sort(Map<?, ?> source, @Comment("比较器，如:(k1,k2,v1,v2)=>k1.compareTo(k2);") Function<Object[], Object> comparator) {
 		Set<?> keys = source.keySet();
 		Map<Object, Object> sortedMap = new LinkedHashMap<>();
-		keys.stream().sorted((Comparator<Object>) (o1, o2) -> ObjectConvertExtension.asInt(comparator.apply(new Object[]{o1, o2}), 0)).forEach(key -> {
+		keys.stream().sorted((Comparator<Object>) (o1, o2) -> ObjectConvertExtension.asInt(comparator.apply(new Object[]{o1, o2,source.get(o1),source.get(o2)}), 0)).forEach(key -> {
 			sortedMap.put(key, source.get(key));
 		});
 		return sortedMap;

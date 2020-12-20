@@ -40,7 +40,7 @@ public class NewStatement extends Expression {
 				MagicScriptError.error("class " + target.getName() + " can not newInstance.", getSpan(), t);
 			}
 		} else {
-			MagicScriptError.error("class " + target.getName() + " not found", getSpan());
+			MagicScriptError.error(target.getName() + " 不是class类型", getSpan());
 		}
 		return null;
 	}

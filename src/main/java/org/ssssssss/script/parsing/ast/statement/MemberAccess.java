@@ -17,20 +17,28 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MemberAccess extends Expression implements VariableSetter {
 	private final Expression object;
 	private final Span name;
 	private Field cachedMember;
 	private final boolean optional;
+	private final boolean whole;
 
-	public MemberAccess(Expression object, boolean optional, Span name) {
+	public MemberAccess(Expression object, boolean optional, Span name, boolean whole) {
 		super(name);
 		this.object = object;
 		this.name = name;
 		this.optional = optional;
+		this.whole = whole;
+	}
+
+	public boolean isWhole() {
+		return whole;
 	}
 
 	/**
@@ -68,7 +76,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 		return optional;
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Object object = getObject().evaluate(context, scope);
@@ -106,13 +114,31 @@ public class MemberAccess extends Expression implements VariableSetter {
 		String text = getName().getText();
 		field = AbstractReflection.getInstance().getField(object, text);
 		if (field == null) {
+			// [{a:1},{a:2}] --> list.a == 1
+			if (object instanceof Collection) {
+				if (isInLinq()) {
+					return ((Collection) object).stream().map(it -> {
+						if (it instanceof Map) {
+							Map map = (Map) it;
+							return map.get(getName().getText());
+						}
+						return null;
+					}).collect(Collectors.toList());
+				} else {
+					Object value = ((Collection) object).stream().findFirst().orElse(Collections.emptyMap());
+					if (value instanceof Map) {
+						Map map = (Map) value;
+						return map.get(getName().getText());
+					}
+				}
+			}
 			String methodName;
 			if (text.length() > 1) {
 				methodName = text.substring(0, 1).toUpperCase() + text.substring(1);
 			} else {
 				methodName = text.toUpperCase();
 			}
-			MemberAccess access = new MemberAccess(this.object, this.optional, new Span("get" + methodName));
+			MemberAccess access = new MemberAccess(this.object, this.optional, new Span("get" + methodName), whole);
 			MethodCall methodCall = new MethodCall(getName(), access, Collections.emptyList());
 			try {
 				return methodCall.evaluate(context, scope);
@@ -123,7 +149,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 							, methodName), getSpan(), e);
 					return null;
 				}
-				access = new MemberAccess(this.object, this.optional, new Span("get"));
+				access = new MemberAccess(this.object, this.optional, new Span("get"), false);
 				methodCall = new MethodCall(getName(), access, Arrays.asList(new StringLiteral(getName())));
 				try {
 					return methodCall.evaluate(context, scope);
@@ -134,7 +160,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 								, methodName), getSpan(), e);
 						return null;
 					}
-					access = new MemberAccess(this.object, this.optional, new Span("is" + methodName));
+					access = new MemberAccess(this.object, this.optional, new Span("is" + methodName), whole);
 					methodCall = new MethodCall(getName(), access, Collections.emptyList());
 					try {
 						return methodCall.evaluate(context, scope);
@@ -184,7 +210,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 					} else {
 						methodName = text.toUpperCase();
 					}
-					MemberAccess access = new MemberAccess(this.object, this.optional, new Span("set" + methodName));
+					MemberAccess access = new MemberAccess(this.object, this.optional, new Span("set" + methodName), whole);
 					MethodCall methodCall = new MethodCall(getName(), access, Collections.singletonList(new Literal(null) {
 						@Override
 						public Object evaluate(MagicScriptContext context, Scope scope) {

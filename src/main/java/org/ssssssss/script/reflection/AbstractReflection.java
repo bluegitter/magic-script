@@ -40,6 +40,8 @@ public abstract class AbstractReflection {
      **/
     public abstract JavaInvoker<Method> getMethod(Object obj, String name, Object... arguments);
 
+	public abstract JavaInvoker<Method> getFunction(String name, Object... arguments);
+
     public abstract JavaInvoker<Method> getExtensionMethod(Object obj, String name, Object... arguments);
 
     public abstract void registerExtensionClass(Class<?> target, Class<?> clazz);

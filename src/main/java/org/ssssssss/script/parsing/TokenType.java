@@ -8,116 +8,120 @@ import java.util.Arrays;
  * matching of token types with common prefixes, e.g. "<" and "<=". Token types with longer literals are matched first.
  */
 public enum TokenType {
-    // @off
-    Spread("...", "..."),
-    Period(".", "."),
-    QuestionPeriod("?.", "?."),
-    Lambda("=>", "=>"),
-    Comma(",", ","),
-    Semicolon(";", ";"),
-    Colon(":", ":"),
-    Plus("+", "+"),
-    Minus("-", "-"),
-    Asterisk("*", "*"),
-    ForwardSlash("/", "/"),
-    PostSlash("\\", "\\"),
-    Percentage("%", "%"),
-    LeftParantheses("(", ")"),
-    RightParantheses(")", ")"),
-    LeftBracket("[", "["),
-    RightBracket("]", "]"),
-    LeftCurly("{", "{"),
-    RightCurly("}"), // special treatment!
-    Less("<", "<"),
-    Greater(">", ">"),
-    LessEqual("<=", "<="),
-    GreaterEqual(">=", ">="),
-    Equal("==", "=="),
-    NotEqual("!=", "!="),
-    Assignment("=", "="),
-    // 1.3.0
-    PlusPlus("++", "++"),
-    MinusMinus("--", "--"),
-    PlusEqual("+=", "+="),
-    MinusEqual("-=", "-="),
-    AsteriskEqual("*=", "*="),
-    ForwardSlashEqual("/=", "/="),
-    PercentEqual("%=", "%="),
-    // 1.3.0 end
-    And("&&", "&&"),
-    Or("||", "||"),
-    Xor("^", "^"),
-    Not("!", "!"),
-    Questionmark("?", "?"),
-    DoubleQuote("\"", "\""),
-    SingleQuote("'", "'"),
-    RegexpLiteral("a regexp"),
-    BooleanLiteral("true or false"),
-    DoubleLiteral("a double floating point number"),
-    DecimalLiteral("a decimal point number"),
-    FloatLiteral("a floating point number"),
-    LongLiteral("a long integer number"),
-    IntegerLiteral("an integer number"),
-    ShortLiteral("a short integer number"),
-    ByteLiteral("a byte integer number"),
-    CharacterLiteral("a character"),
-    StringLiteral("a string"),
-    NullLiteral("null"),
-    Identifier("an identifier");
-    // @on
+	// @off
+	Spread("...", "..."),
+	Period(".", "."),
+	QuestionPeriod("?.", "?."),
+	Lambda("=>", "=>"),
+	Comma(",", ","),
+	Semicolon(";", ";"),
+	Colon(":", ":"),
+	Plus("+", "+"),
+	Minus("-", "-"),
+	Asterisk("*", "*"),
+	ForwardSlash("/", "/"),
+	PostSlash("\\", "\\"),
+	Percentage("%", "%"),
+	LeftParantheses("(", ")"),
+	RightParantheses(")", ")"),
+	LeftBracket("[", "["),
+	RightBracket("]", "]"),
+	LeftCurly("{", "{"),
+	RightCurly("}"), // special treatment!
+	Less("<", "<"),
+	Greater(">", ">"),
+	LessEqual("<=", "<="),
+	GreaterEqual(">=", ">="),
+	Equal("==", "=="),
+	NotEqual("!=", "!="),
+	Assignment("=", "="),
+	// 1.3.0
+	PlusPlus("++", "++"),
+	MinusMinus("--", "--"),
+	PlusEqual("+=", "+="),
+	MinusEqual("-=", "-="),
+	AsteriskEqual("*=", "*="),
+	ForwardSlashEqual("/=", "/="),
+	PercentEqual("%=", "%="),
+	// 1.3.0 end
+	And("&&", "&&"),
+	Or("||", "||"),
+	Xor("^", "^"),
+	Not("!", "!"),
 
-    private static TokenType[] values;
+	SqlAnd("and", "and", true),
+	SqlOr("or", "or", true),
+	SqlNotEqual("<>", "<>", true),
 
-    static {
-        // Sort the token types by their literal length. The character stream uses this
-        // this order to match tokens with the longest length first.
-        values = TokenType.values();
-        Arrays.sort(values, (o1, o2) -> {
-            if (o1.literal == null && o2.literal == null) {
-                return 0;
-            }
-            if (o1.literal == null && o2.literal != null) {
-                return 1;
-            }
-            if (o1.literal != null && o2.literal == null) {
-                return -1;
-            }
-            return o2.literal.length() - o1.literal.length();
-        });
+	Questionmark("?", "?"),
+	DoubleQuote("\"", "\""),
+	SingleQuote("'", "'"),
+	RegexpLiteral("a regexp"),
+	BooleanLiteral("true or false"),
+	DoubleLiteral("a double floating point number"),
+	DecimalLiteral("a decimal point number"),
+	FloatLiteral("a floating point number"),
+	LongLiteral("a long integer number"),
+	IntegerLiteral("an integer number"),
+	ShortLiteral("a short integer number"),
+	ByteLiteral("a byte integer number"),
+	CharacterLiteral("a character"),
+	StringLiteral("a string"),
+	NullLiteral("null"),
+	Identifier("an identifier");
+	// @on
+
+	private static TokenType[] values;
+
+	static {
+		values = TokenType.values();
+		Arrays.sort(values, (o1, o2) -> {
+			if (o1.literal == null && o2.literal == null) {
+				return 0;
+			}
+			if (o1.literal == null && o2.literal != null) {
+				return 1;
+			}
+			if (o1.literal != null && o2.literal == null) {
+				return -1;
+			}
+			return o2.literal.length() - o1.literal.length();
+		});
+	}
+
+	private final String literal;
+	private final String error;
+	private final boolean inLinq;
+
+	TokenType(String error) {
+		this(null, error, false);
+	}
+
+	TokenType(String literal, String error) {
+		this(literal, error, false);
+	}
+
+	TokenType(String literal, String error, boolean inLinq) {
+		this.literal = literal;
+		this.error = error;
+		this.inLinq = inLinq;
+	}
+
+	public boolean isInLinq() {
+		return inLinq;
     }
 
-    private final String literal;
-    private final String error;
-
-    TokenType(String error) {
-        this.literal = null;
-        this.error = error;
-    }
-
-    TokenType(String literal, String error) {
-        this.literal = literal;
-        this.error = error;
-    }
-
-    /**
-     * Returns an array of token types, sorted in descending order based on their literal length. This is used by the
-     * {@link CharacterStream} to match token types with the longest literal first. E.g. "<=" will be matched before "<".
-     **/
     public static TokenType[] getSortedValues() {
-        return values;
-    }
+		return values;
+	}
 
-    /**
-     * The literal to match, may be null.
-     **/
-    public String getLiteral() {
-        return literal;
-    }
 
-    /**
-     * The error string to use when reporting this token type in an error message.
-     **/
-    public String getError() {
-        return error;
-    }
+	public String getLiteral() {
+		return literal;
+	}
+
+
+	public String getError() {
+		return error;
+	}
 }

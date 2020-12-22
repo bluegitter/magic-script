@@ -20,12 +20,12 @@ public abstract class BinaryOperation extends Expression {
 		this.rightOperand = rightOperand;
 	}
 
-	public static Expression create(Expression left, Token operator, Expression right) {
+	public static Expression create(Expression left, Token operator, Expression right, int linqLevel) {
 		Expression expression = null;
 		Span span = operator.getSpan();
 		switch (operator.getType()) {
 			case Assignment:
-				expression = new AssigmentOperation(left, span, right);
+				expression = linqLevel == 0 ? new AssigmentOperation(left, span, right) : new EqualOperation(left, span, right);
 				break;
 			case Plus:
 				expression = new AddOperation(left, span, right);
@@ -72,12 +72,15 @@ public abstract class BinaryOperation extends Expression {
 			case Equal:
 				expression = new EqualOperation(left, span, right);
 				break;
+			case SqlNotEqual:
 			case NotEqual:
 				expression = new NotEqualOperation(left, span, right);
 				break;
+			case SqlAnd:
 			case And:
 				expression = new AndOperation(left, span, right);
 				break;
+			case SqlOr:
 			case Or:
 				expression = new OrOperation(left, span, right);
 				break;

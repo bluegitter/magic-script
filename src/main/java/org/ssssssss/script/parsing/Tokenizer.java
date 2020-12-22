@@ -161,6 +161,10 @@ public class Tokenizer {
 					tokens.add(new LiteralToken(TokenType.BooleanLiteral, identifierSpan));
 				} else if ("null".equals(identifierSpan.getText())) {
 					tokens.add(new LiteralToken(TokenType.NullLiteral, identifierSpan));
+				} else if (TokenType.SqlAnd.getLiteral().equals(identifierSpan.getText())) {
+					tokens.add(new Token(TokenType.SqlAnd, identifierSpan));
+				} else if (TokenType.SqlOr.getLiteral().equals(identifierSpan.getText())) {
+					tokens.add(new Token(TokenType.SqlOr, identifierSpan));
 				} else {
 					tokens.add(new Token(TokenType.Identifier, identifierSpan));
 				}

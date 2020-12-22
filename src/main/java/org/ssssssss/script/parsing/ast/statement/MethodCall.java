@@ -24,12 +24,18 @@ public class MethodCall extends Expression {
 	private final List<Expression> arguments;
 	private final ThreadLocal<Object[]> cachedArguments;
 	private JavaInvoker<Method> cachedMethod;
+	private boolean inLinq;
 
 	public MethodCall(Span span, MemberAccess method, List<Expression> arguments) {
+		this(span, method, arguments, false);
+	}
+
+	public MethodCall(Span span, MemberAccess method, List<Expression> arguments, boolean inLinq) {
 		super(span);
 		this.method = method;
 		this.arguments = arguments;
 		this.cachedArguments = new InheritableThreadLocal<>();
+		this.inLinq = inLinq;
 	}
 
 	/**
@@ -82,9 +88,6 @@ public class MethodCall extends Expression {
 		return args;
 	}
 
-	/**
-	 * Must be invoked when this node is done evaluating so we don't leak memory
-	 **/
 	public void clearCachedArguments() {
 		Object[] args = getCachedArguments();
 		for (int i = 0; i < args.length; i++) {
@@ -95,19 +98,19 @@ public class MethodCall extends Expression {
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		try {
-			Object object = getObject().evaluate(context, scope);
+			Object object = getObject().evaluate(context, scope, inLinq);
 			if (object == null) {
-				if(method.isOptional()){
+				if (method.isOptional()) {
 					return null;
 				}
-				MagicScriptError.error(String.format("对象[%s]为空",getObject().getSpan().getText()),getObject().getSpan());
+				MagicScriptError.error(String.format("对象[%s]为空", getObject().getSpan().getText()), getObject().getSpan());
 			}
 			Object[] argumentValues = getCachedArguments();
 			List<Expression> arguments = getArguments();
 			for (int i = 0, n = argumentValues.length; i < n; i++) {
 				Expression expr = arguments.get(i);
 				if (expr instanceof Spread) {
-					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope);
+					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope, inLinq);
 					if (targetVal instanceof Collection) {
 						n += ((Collection<?>) targetVal).size() - 1;
 						Object[] valTemp = argumentValues;
@@ -121,7 +124,7 @@ public class MethodCall extends Expression {
 						MagicScriptError.error("展开的不是一个list", expr.getSpan());
 					}
 				} else {
-					argumentValues[i] = expr.evaluate(context, scope);
+					argumentValues[i] = expr.evaluate(context, scope, inLinq);
 				}
 			}
 			if (object instanceof DynamicMethod) {

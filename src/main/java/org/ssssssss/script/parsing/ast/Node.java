@@ -13,6 +13,11 @@ public abstract class Node {
      */
     private final Span span;
 
+	/**
+	 * 在Linq中
+	 */
+	private boolean inLinq;
+
     public Node(Span span) {
         this.span = span;
     }
@@ -21,16 +26,20 @@ public abstract class Node {
         return span;
     }
 
+	public boolean isInLinq() {
+		return inLinq;
+	}
+
     @Override
     public String toString() {
         return getClass().getSimpleName() + ":" + span.getText();
     }
 
-    /**
-     *
-     * @param context
-     * @return
-     */
     public abstract Object evaluate(MagicScriptContext context, Scope scope);
+
+	public Object evaluate(MagicScriptContext context, Scope scope, boolean inLinq) {
+		this.inLinq = inLinq;
+		return evaluate(context, scope);
+	}
 
 }

@@ -4,6 +4,7 @@ package org.ssssssss.script.parsing;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.ast.*;
+import org.ssssssss.script.parsing.ast.linq.*;
 import org.ssssssss.script.parsing.ast.literal.*;
 import org.ssssssss.script.parsing.ast.statement.*;
 
@@ -23,19 +24,33 @@ public class Parser {
 	private static final TokenType[][] binaryOperatorPrecedence = new TokenType[][]{
 			new TokenType[]{TokenType.Assignment},
 			new TokenType[]{TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual},
-			new TokenType[]{TokenType.Or, TokenType.And, TokenType.Xor},
-			new TokenType[]{TokenType.Equal, TokenType.NotEqual},
+			new TokenType[]{TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor},
+			new TokenType[]{TokenType.Equal, TokenType.NotEqual, TokenType.SqlNotEqual},
 			new TokenType[]{TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual},
 			new TokenType[]{TokenType.Plus, TokenType.Minus},
 			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}
 	};
+
+	private static final TokenType[][] linqBinaryOperatorPrecedence = new TokenType[][]{
+			new TokenType[]{TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual},
+			new TokenType[]{TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor},
+			new TokenType[]{TokenType.Assignment, TokenType.Equal, TokenType.NotEqual, TokenType.SqlNotEqual},
+			new TokenType[]{TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual},
+			new TokenType[]{TokenType.Plus, TokenType.Minus},
+			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}
+	};
+
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or");
+
+	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where");
 
 	private Stack<List<String>> varNames = new Stack<>();
 
 	private List<String> current = new ArrayList<>();
+
+	private int linqLevel = 0;
 
 	public int getTopVarCount() {
 		return current.size();
@@ -356,18 +371,28 @@ public class Parser {
 		return parseTernaryOperator(stream, false);
 	}
 
-	private Expression parseBinaryOperator(TokenStream stream, int level, boolean expectRightCurly) {
+	private Expression parseBinaryOperator(TokenStream stream, TokenType[][] precedence, int level, boolean expectRightCurly) {
 		int nextLevel = level + 1;
-		Expression left = nextLevel == binaryOperatorPrecedence.length ? parseUnaryOperator(stream, expectRightCurly) : parseBinaryOperator(stream, nextLevel, expectRightCurly);
+		Expression left = nextLevel == precedence.length ? parseUnaryOperator(stream, expectRightCurly) : parseBinaryOperator(stream, nextLevel, expectRightCurly);
 
-		TokenType[] operators = binaryOperatorPrecedence[level];
+		TokenType[] operators = precedence[level];
 		while (stream.hasMore() && stream.match(false, operators)) {
 			Token operator = stream.consume();
-			Expression right = nextLevel == binaryOperatorPrecedence.length ? parseUnaryOperator(stream, expectRightCurly) : parseBinaryOperator(stream, nextLevel, expectRightCurly);
-			left = BinaryOperation.create(left, operator, right);
+			if (operator.getType().isInLinq() && linqLevel == 0) {
+				MagicScriptError.error(operator.getText() + " 只能在Linq中使用", stream);
+			}
+			Expression right = nextLevel == precedence.length ? parseUnaryOperator(stream, expectRightCurly) : parseBinaryOperator(stream, nextLevel, expectRightCurly);
+			left = BinaryOperation.create(left, operator, right, linqLevel);
 		}
 
 		return left;
+	}
+
+	private Expression parseBinaryOperator(TokenStream stream, int level, boolean expectRightCurly) {
+		if (linqLevel > 0) {
+			return parseBinaryOperator(stream, linqBinaryOperatorPrecedence, level, expectRightCurly);
+		}
+		return parseBinaryOperator(stream, binaryOperatorPrecedence, level, expectRightCurly);
 	}
 
 
@@ -455,11 +480,109 @@ public class Parser {
 		return parseSpreadAccess(stream, spread);
 	}
 
+	private Expression parseSelect(TokenStream stream) {
+		Span opeing = stream.expect("select").getSpan();
+		linqLevel++;
+		List<LinqField> fields = parseLinqFields(stream);
+		stream.expect("from");
+		LinqField from = parseLinqField(stream);
+		List<LinqJoin> joins = parseLinqJoins(stream);
+		Expression where = null;
+		if (stream.match("where", true)) {
+			where = parseExpression(stream);
+		}
+		List<LinqField> groups = parseGroup(stream);
+		List<LinqOrder> orders = parseLinqOrders(stream);
+		linqLevel--;
+		Span close = stream.getPrev().getSpan();
+		return new LinqSelect(new Span(opeing, close), fields, from, joins, where, groups, orders);
+	}
+
+	private List<LinqField> parseGroup(TokenStream stream) {
+		List<LinqField> groups = new ArrayList<>();
+		if (stream.match("group", true)) {
+			stream.expect("by");
+			do {
+				Expression expression = parseExpression(stream);
+				groups.add(new LinqField(expression.getSpan(), expression, null));
+			} while (stream.match(TokenType.Comma, true));
+		}
+		return groups;
+	}
+
+	private List<LinqOrder> parseLinqOrders(TokenStream stream) {
+		List<LinqOrder> orders = new ArrayList<>();
+		if (stream.match("order", true)) {
+			stream.expect("by");
+			do {
+				Expression expression = parseExpression(stream);
+				int order = 1;
+				if (stream.match(false, "desc", "asc")) {
+					if ("desc".equals(stream.consume().getText())) {
+						order = -1;
+					}
+				}
+				orders.add(new LinqOrder(new Span(expression.getSpan(), stream.getPrev().getSpan()), expression, null, order));
+			} while (stream.match(TokenType.Comma, true));
+		}
+		return orders;
+	}
+
+	private List<LinqField> parseLinqFields(TokenStream stream) {
+		List<LinqField> fields = new ArrayList<>();
+		do {
+			Expression expression = parseExpression(stream);
+
+			if (stream.match(TokenType.Identifier, false) && !stream.match(linqKeywords, false)) {
+				if (expression instanceof WholeLiteral) {
+					MagicScriptError.error("* 后边不能跟别名", stream);
+				} else if (expression instanceof MemberAccess && ((MemberAccess) expression).isWhole()) {
+					MagicScriptError.error(expression.getSpan().getText() + " 后边不能跟别名", stream);
+				}
+				Span alias = stream.consume().getSpan();
+				fields.add(new LinqField(new Span(expression.getSpan(), alias), expression, add(alias.getText())));
+			} else {
+				fields.add(new LinqField(expression.getSpan(), expression, null));
+			}
+		} while (stream.match(TokenType.Comma, true));    //,
+		if (fields.isEmpty()) {
+			MagicScriptError.error("至少要查询一个字段", stream);
+		}
+		return fields;
+	}
+
+	private List<LinqJoin> parseLinqJoins(TokenStream stream) {
+		List<LinqJoin> joins = new ArrayList<>();
+		do {
+			boolean isLeft = stream.match("left", false);
+			Span opeing = isLeft ? stream.consume().getSpan() : null;
+			if (stream.match("join", true)) {
+				opeing = isLeft ? opeing : stream.getPrev().getSpan();
+				LinqField target = parseLinqField(stream);
+				stream.expect("on");
+				Expression condition = parseExpression(stream);
+				joins.add(new LinqJoin(new Span(opeing, stream.getPrev().getSpan()), isLeft, target, condition));
+			}
+		} while (stream.match(false, "left", "join"));
+		return joins;
+	}
+
+	private LinqField parseLinqField(TokenStream stream) {
+		Expression expression = parseExpression(stream);
+		if (stream.match(TokenType.Identifier, false) && !stream.match(linqKeywords, false)) {
+			Span alias = stream.expect(TokenType.Identifier).getSpan();
+			return new LinqField(new Span(expression.getSpan(), alias), expression, add(alias.getText()));
+		}
+		return new LinqField(expression.getSpan(), expression, null);
+	}
+
 	private Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {
 		if (expectRightCurly && stream.match("}", false)) {
 			return null;
 		} else if (stream.match("async", false)) {
 			return parseAsync(stream);
+		} else if (stream.match("select", false)) {
+			return parseSelect(stream);
 		} else if (stream.match(TokenType.Spread, false)) {
 			return parseSpreadAccess(stream);
 		} else if (stream.match(TokenType.Identifier, false)) {
@@ -501,6 +624,8 @@ public class Parser {
 			return parseAccessOrCall(stream, target);
 		} else if (stream.match(TokenType.NullLiteral, false)) {
 			return new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
+		} else if (linqLevel > 0 && stream.match(TokenType.Asterisk, false)) {
+			return new WholeLiteral(stream.expect(TokenType.Asterisk).getSpan());
 		} else {
 			MagicScriptError.error("Expected a variable, field, map, array, function or method call, or literal.", stream);
 			return null; // not reached
@@ -596,9 +721,9 @@ public class Parser {
 				List<Expression> arguments = parseArguments(stream);
 				Span closingSpan = stream.expect(TokenType.RightParantheses).getSpan();
 				if (target instanceof VariableAccess || target instanceof MapOrArrayAccess)
-					target = new FunctionCall(new Span(target.getSpan(), closingSpan), target, arguments);
+					target = new FunctionCall(new Span(target.getSpan(), closingSpan), target, arguments, linqLevel > 0);
 				else if (target instanceof MemberAccess) {
-					target = new MethodCall(new Span(target.getSpan(), closingSpan), (MemberAccess) target, arguments);
+					target = new MethodCall(new Span(target.getSpan(), closingSpan), (MemberAccess) target, arguments, linqLevel > 0);
 				} else {
 					MagicScriptError.error("Expected a variable, field or method.", stream);
 				}
@@ -614,7 +739,11 @@ public class Parser {
 			// field or method access
 			else if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
 				boolean optional = stream.consume().getType() == TokenType.QuestionPeriod;
-				target = new MemberAccess(target, optional, stream.expect(TokenType.Identifier).getSpan());
+				if (linqLevel > 0 && stream.match(TokenType.Asterisk, false)) {
+					target = new MemberAccess(target, optional, stream.expect(TokenType.Asterisk).getSpan(), true);
+				} else {
+					target = new MemberAccess(target, optional, stream.expect(TokenType.Identifier).getSpan(), false);
+				}
 			}
 		}
 		return target;

@@ -32,11 +32,14 @@ public class FunctionCall extends Expression {
 	private JavaInvoker<Method> cachedFunction;
 	private final ThreadLocal<Object[]> cachedArguments;
 
-	public FunctionCall(Span span, Expression function, List<Expression> arguments) {
+	private final boolean inLinq;
+
+	public FunctionCall(Span span, Expression function, List<Expression> arguments, boolean inLinq) {
 		super(span);
 		this.function = function;
 		this.arguments = arguments;
 		this.cachedArguments = new InheritableThreadLocal<>();
+		this.inLinq = inLinq;
 	}
 
 	public Expression getFunction() {
@@ -82,7 +85,7 @@ public class FunctionCall extends Expression {
 			for (int i = 0, n = argumentValues.length; i < n; i++) {
 				Expression expr = arguments.get(i);
 				if (expr instanceof Spread) {
-					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope);
+					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope, this.inLinq);
 					if (targetVal instanceof Collection) {
 						n += ((Collection<?>) targetVal).size() - 1;
 						Object[] valTemp = argumentValues;
@@ -96,17 +99,13 @@ public class FunctionCall extends Expression {
 						MagicScriptError.error("展开的不是一个list", expr.getSpan());
 					}
 				} else {
-					argumentValues[i] = expr.evaluate(context, scope);
+					argumentValues[i] = expr.evaluate(context, scope, this.inLinq);
 				}
 			}
 
-			// This is a special case to handle magicScript level macros. If a call to a macro is
-			// made, evaluating the function expression will result in an exception, as the
-			// function name can't be found in the context. Instead we need to manually check
-			// if the function expression is a VariableAccess and if so, if it can be found
-			// in the context.
+			String functionName = getFunction().getSpan().getText();
 			Object function = null;
-			if ("range".equals(getFunction().getSpan().getText())) {
+			if ("range".equals(functionName)) {
 				function = range;
 			} else {
 				function = getFunction().evaluate(context, scope);
@@ -114,28 +113,17 @@ public class FunctionCall extends Expression {
 			if (function instanceof Function) {
 				return ((Function<Object[], Object>) function).apply(argumentValues);
 			}
-			if (function != null) {
-				JavaInvoker<Method> invoker = getCachedFunction();
-				if (invoker != null) {
-					try {
-						return invoker.invoke0(function, scope, argumentValues);
-					} catch (Throwable t) {
-						// fall through
-					}
-				}
-				invoker = AbstractReflection.getInstance().getMethod(function, null, argumentValues);
-				if (invoker == null) {
-					MagicScriptError.error("Couldn't find function.", getSpan());
+			JavaInvoker<Method> invoker = getCachedFunction();
+			if (invoker == null) {
+				if ((invoker = AbstractReflection.getInstance().getFunction(functionName, argumentValues)) == null) {
+					MagicScriptError.error("找不到方法 " + getFunction().getSpan().getText(), getSpan());
 				}
 				setCachedFunction(invoker);
-				try {
-					return invoker.invoke0(function, scope, argumentValues);
-				} catch (Throwable t) {
-					MagicScriptError.error(t.getMessage(), getSpan(), t);
-					return null; // never reached
-				}
-			} else {
-				MagicScriptError.error("找不到方法 " + getFunction(), getSpan());
+			}
+			try {
+				return invoker.invoke0(function, scope, argumentValues);
+			} catch (Throwable t) {
+				MagicScriptError.error(t.getMessage(), getSpan(), t);
 				return null; // never reached
 			}
 		} finally {

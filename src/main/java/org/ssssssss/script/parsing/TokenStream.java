@@ -135,6 +135,15 @@ public class TokenStream {
         return false;
     }
 
+    public boolean match(List<String> texts, boolean consume) {
+        for (String text : texts) {
+            if (match(text, consume)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Matches and optionally consumes the next token in case of a match. Returns whether the token matched.
      */

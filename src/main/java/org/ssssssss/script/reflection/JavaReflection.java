@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class JavaReflection extends AbstractReflection {
@@ -20,6 +21,7 @@ public class JavaReflection extends AbstractReflection {
 	private final Map<Class<?>, Map<String, List<Method>>> extensionmethodCache = new ConcurrentHashMap<>();
 	private final Map<Class<?>, Map<MethodSignature, JavaInvoker<Method>>> methodCache = new ConcurrentHashMap<>();
 	private static Map<Class<?>, List<Class<?>>> extensionMap;
+	private static final List<Method> functions = new ArrayList<>();
 
 	public JavaReflection() {
 		registerExtensionClass(Class.class, ClassExtension.class);
@@ -39,6 +41,15 @@ public class JavaReflection extends AbstractReflection {
 
 		registerImplicitConvert(new MapImplicitConvert());
 		registerImplicitConvert(new CollectionImplicitConvert());
+
+		registerFunctionClass(AggregationFunctions.class);
+		registerFunctionClass(LinqFunctions.class);
+	}
+
+	public static void registerFunctionClass(Class<?> clazz) {
+		Stream.of(clazz.getMethods())
+				.filter(method -> method.getAnnotation(org.ssssssss.script.annotation.Function.class) != null)
+				.forEach(functions::add);
 	}
 
 	public static Map<Class<?>, List<Class<?>>> getExtensionMap() {
@@ -448,6 +459,18 @@ public class JavaReflection extends AbstractReflection {
 		return getExtensionMethod(cls, name, arguments);
 	}
 
+	private Class[] getParameterTypes(Class<?> cls, Object... arguments) {
+		int begin = cls == null ? 0 : 1;
+		Class<?>[] parameterTypes = new Class[arguments.length + begin];
+		if (begin > 0) {
+			parameterTypes[0] = cls;
+		}
+		for (int i = 0; i < arguments.length; i++) {
+			parameterTypes[i + begin] = arguments[i] == null ? Null.class : arguments[i].getClass();
+		}
+		return parameterTypes;
+	}
+
 	private JavaInvoker<Method> getExtensionMethod(Class<?> cls, String name, Object... arguments) {
 		if (cls == null) {
 			cls = Object.class;
@@ -456,12 +479,7 @@ public class JavaReflection extends AbstractReflection {
 		if (methodMap != null) {
 			List<Method> methodList = methodMap.get(name);
 			if (methodList != null) {
-				Class<?>[] parameterTypes = new Class[arguments.length + 1];
-				parameterTypes[0] = cls;
-				for (int i = 0; i < arguments.length; i++) {
-					parameterTypes[i + 1] = arguments[i] == null ? Null.class : arguments[i].getClass();
-				}
-				return findMethodInvoker(methodList, parameterTypes);
+				return findMethodInvoker(methodList, getParameterTypes(cls, arguments));
 			}
 		}
 		if (cls != Object.class) {
@@ -488,11 +506,8 @@ public class JavaReflection extends AbstractReflection {
 			methodCache.put(cls, methods);
 		}
 
-		Class<?>[] parameterTypes = new Class[arguments.length];
-		for (int i = 0; i < arguments.length; i++) {
-			parameterTypes[i] = arguments[i] == null ? Null.class : arguments[i].getClass();
-		}
-
+		Class<?>[] parameterTypes = getParameterTypes(null, arguments);
+		;
 		JavaReflection.MethodSignature signature = new MethodSignature(name, parameterTypes);
 		JavaInvoker<Method> invoker = methods.get(signature);
 
@@ -533,6 +548,12 @@ public class JavaReflection extends AbstractReflection {
 		}
 
 		return invoker;
+	}
+
+	@Override
+	public JavaInvoker<Method> getFunction(String name, Object... arguments) {
+		List<Method> methodList = functions.stream().filter(method -> method.getName().equals(name)).collect(Collectors.toList());
+		return findMethodInvoker(methodList, getParameterTypes(null, arguments));
 	}
 
 	public static final class Null {

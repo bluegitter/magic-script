@@ -1,7 +1,8 @@
-package org.ssssssss.script.functions;
+package org.ssssssss.script.functions.linq;
 
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.Function;
+import org.ssssssss.script.functions.DateExtension;
 
 import java.util.Date;
 
@@ -33,4 +34,6 @@ public class LinqFunctions {
 	public static Date now() {
 		return new Date();
 	}
+
+
 }

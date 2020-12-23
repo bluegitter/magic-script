@@ -1,7 +1,9 @@
-package org.ssssssss.script.functions;
+package org.ssssssss.script.functions.linq;
 
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.Function;
+import org.ssssssss.script.functions.ObjectConvertExtension;
+import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 
 import java.util.Map;
@@ -79,5 +81,20 @@ public class AggregationFunctions {
 		} catch (Exception e) {
 			return null;
 		}
+	}
+
+	@Function
+	@Comment("分组后按指定字符串拼接")
+	public static String group_concat(@Comment("列，如t.a") Object target, @Comment("分隔符，如`|`") String separator) {
+		if (target == null) {
+			return null;
+		}
+		return StreamExtension.join(target, separator);
+	}
+
+	@Function
+	@Comment("分组后使用`,`拼接")
+	public static String group_concat(@Comment("列，如t.a") Object target) {
+		return group_concat(target, ",");
 	}
 }

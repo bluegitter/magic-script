@@ -5,6 +5,8 @@ import org.ssssssss.script.convert.ClassImplicitConvert;
 import org.ssssssss.script.convert.CollectionImplicitConvert;
 import org.ssssssss.script.convert.MapImplicitConvert;
 import org.ssssssss.script.functions.*;
+import org.ssssssss.script.functions.linq.AggregationFunctions;
+import org.ssssssss.script.functions.linq.LinqFunctions;
 
 import java.lang.reflect.*;
 import java.util.*;

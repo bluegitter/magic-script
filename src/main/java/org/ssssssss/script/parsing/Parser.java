@@ -492,10 +492,14 @@ public class Parser {
 			where = parseExpression(stream);
 		}
 		List<LinqField> groups = parseGroup(stream);
+		Expression having = null;
+		if (stream.match("having", true)) {
+			having = parseExpression(stream);
+		}
 		List<LinqOrder> orders = parseLinqOrders(stream);
 		linqLevel--;
 		Span close = stream.getPrev().getSpan();
-		return new LinqSelect(new Span(opeing, close), fields, from, joins, where, groups, orders);
+		return new LinqSelect(new Span(opeing, close), fields, from, joins, where, groups, having, orders);
 	}
 
 	private List<LinqField> parseGroup(TokenStream stream) {

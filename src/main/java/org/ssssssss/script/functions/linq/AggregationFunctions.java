@@ -48,6 +48,25 @@ public class AggregationFunctions {
 	}
 
 	@Function
+	@Comment("聚合函数-sum")
+	public static Number sum(Object target) {
+		if (target == null) {
+			return null;
+		} else if (target instanceof Map) {
+			return null;
+		}
+		try {
+			OptionalDouble value = StreamExtension.arrayLikeToList(target).stream()
+					.mapToDouble(v -> ObjectConvertExtension.asDouble(v, Double.NaN))
+					.filter(v -> !Double.isNaN(v))
+					.reduce(Double::sum);
+			return value.isPresent() ? value.getAsDouble() : null;
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Function
 	@Comment("聚合函数-min")
 	public static Object min(Object target) {
 		if (target == null) {

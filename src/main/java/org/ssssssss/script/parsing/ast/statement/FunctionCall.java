@@ -10,23 +10,10 @@ import org.ssssssss.script.reflection.JavaInvoker;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class FunctionCall extends Expression {
-	private static final BiFunction<Integer, Integer, Iterator<Integer>> range = (from, to) -> new Iterator<Integer>() {
-		int idx = from;
-
-		public boolean hasNext() {
-			return idx <= to;
-		}
-
-		public Integer next() {
-			return idx++;
-		}
-	};
 	private final Expression function;
 	private final List<Expression> arguments;
 	private JavaInvoker<Method> cachedFunction;
@@ -104,12 +91,7 @@ public class FunctionCall extends Expression {
 			}
 
 			String functionName = getFunction().getSpan().getText();
-			Object function = null;
-			if ("range".equals(functionName)) {
-				function = range;
-			} else {
-				function = getFunction().evaluate(context, scope);
-			}
+			Object function = getFunction().evaluate(context, scope);
 			if (function instanceof Function) {
 				return ((Function<Object[], Object>) function).apply(argumentValues);
 			}

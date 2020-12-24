@@ -33,14 +33,11 @@ public class StreamExtension {
 	 */
 	@Comment("将对象转为List")
 	public static List<Object> arrayLikeToList(Object arrayLike) {
-		if (arrayLike != null && arrayLike.getClass().isArray()) {
-			int len = Array.getLength(arrayLike);
-			List<Object> value = new ArrayList<>();
-			for (int i = 0; i < len; i++) {
-				value.add(Array.get(arrayLike, i));
-			}
-			return value;
-		} else if (arrayLike instanceof Collection) {
+		if (arrayLike == null) {
+			// 不返回EmptyList
+			return new ArrayList<>();
+		}
+		if (arrayLike instanceof Collection) {
 			return new ArrayList<>((Collection<?>) arrayLike);
 		} else if (arrayLike.getClass().isArray()) {
 			List<Object> list = new ArrayList<>(Array.getLength(arrayLike));
@@ -398,8 +395,7 @@ public class StreamExtension {
 		} else {
 			throw new MagicScriptException("不支持的类型:" + sourceClass);
 		}
-		for (int i = 0; i < size; i++) {
-			Object value = objects.get(i);
+		for (Object value : objects) {
 			if (isCollection) {
 				collection.add(asBean(value, target));
 			} else if (isMap) {

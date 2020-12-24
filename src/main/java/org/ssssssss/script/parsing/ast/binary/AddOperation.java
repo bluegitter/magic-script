@@ -34,6 +34,14 @@ public class AddOperation extends BinaryOperation {
 		if (left == null) {
 			MagicScriptError.error(getLeftOperand().getSpan().getText() + " 值为空，不能执行[+]操作", getLeftOperand().getSpan());
 		}
+		Object value = add(left, right);
+		if (value == null) {
+			MagicScriptError.error("[+]操作的值必须是String或数值类型, 获得的值为： " + left + ", " + right, getSpan());
+		}
+		return value;
+	}
+
+	public static Object add(Object left, Object right) {
 		if (left instanceof BigDecimal || right instanceof BigDecimal) {
 			return ObjectConvertExtension.asDecimal(left).add(ObjectConvertExtension.asDecimal(right));
 		}
@@ -55,7 +63,6 @@ public class AddOperation extends BinaryOperation {
 		if (left instanceof Byte || right instanceof Byte) {
 			return ((Number) left).byteValue() + ((Number) right).byteValue();
 		}
-		MagicScriptError.error("[+]操作的值必须是String或数值类型, 获得的值为： " + left + ", " + right, getSpan());
-		return null; // never reached
+		return null;
 	}
 }

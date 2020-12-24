@@ -7,6 +7,7 @@ import org.ssssssss.script.convert.MapImplicitConvert;
 import org.ssssssss.script.functions.*;
 import org.ssssssss.script.functions.linq.AggregationFunctions;
 import org.ssssssss.script.functions.linq.LinqFunctions;
+import org.ssssssss.script.functions.linq.MathFunctions;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -23,9 +24,9 @@ public class JavaReflection extends AbstractReflection {
 	private final Map<Class<?>, Map<String, List<Method>>> extensionmethodCache = new ConcurrentHashMap<>();
 	private final Map<Class<?>, Map<MethodSignature, JavaInvoker<Method>>> methodCache = new ConcurrentHashMap<>();
 	private static Map<Class<?>, List<Class<?>>> extensionMap;
-	private static final List<Method> functions = new ArrayList<>();
+	private static List<Method> functions;
 
-	public JavaReflection() {
+	JavaReflection() {
 		registerExtensionClass(Class.class, ClassExtension.class);
 		registerExtensionClass(Collection.class, StreamExtension.class);
 		registerExtensionClass(Object[].class, StreamExtension.class);
@@ -44,8 +45,11 @@ public class JavaReflection extends AbstractReflection {
 		registerImplicitConvert(new MapImplicitConvert());
 		registerImplicitConvert(new CollectionImplicitConvert());
 
+		functions = new ArrayList<>();
 		registerFunctionClass(AggregationFunctions.class);
 		registerFunctionClass(LinqFunctions.class);
+		registerFunctionClass(CollectionFunctions.class);
+		registerFunctionClass(MathFunctions.class);
 	}
 
 	public static void registerFunctionClass(Class<?> clazz) {
@@ -57,6 +61,11 @@ public class JavaReflection extends AbstractReflection {
 	public static Map<Class<?>, List<Class<?>>> getExtensionMap() {
 		return extensionMap;
 	}
+
+	public static List<Method> getFunctions() {
+		return functions;
+	}
+
 
 	/**
 	 * Returns the <code>apply()</code> method of a functional interface.

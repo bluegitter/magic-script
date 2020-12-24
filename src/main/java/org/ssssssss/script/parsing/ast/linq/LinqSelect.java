@@ -22,15 +22,19 @@ public class LinqSelect extends Expression {
 
 	private final List<LinqField> groups;
 
+	private final Expression having;
+
 	private final List<LinqOrder> orders;
 
-	public LinqSelect(Span span, List<LinqField> fields, LinqField from, List<LinqJoin> joins, Expression where, List<LinqField> groups, List<LinqOrder> orders) {
+
+	public LinqSelect(Span span, List<LinqField> fields, LinqField from, List<LinqJoin> joins, Expression where, List<LinqField> groups, Expression having, List<LinqOrder> orders) {
 		super(span);
 		this.fields = fields;
 		this.from = from;
 		this.joins = joins;
 		this.where = where;
 		this.groups = groups;
+		this.having = having;
 		this.orders = orders;
 	}
 
@@ -99,11 +103,19 @@ public class LinqSelect extends Expression {
 				List<Object> joinValues = new ArrayList<>(value.size());
 				for (Record item : value) {
 					values.add(item.value);
+					item.join.getTarget().setValue(context, scope, item.joinValue);
 					joinValues.add(item.joinValue);
 				}
-				record.value = values;
-				record.joinValue = joinValues;
-				records.add(record);
+				boolean valid = having == null;
+				if (!valid) {
+					from.setValue(context, scope, values);
+					valid = BooleanLiteral.isTrue(having.evaluate(context, scope));
+				}
+				if (valid) {
+					record.value = values;
+					record.joinValue = joinValues;
+					records.add(record);
+				}
 			}
 		}
 

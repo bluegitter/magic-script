@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEngine, Compilable {
 
@@ -41,6 +42,10 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 			});
 		}
 		return classMap;
+	}
+
+	public static List<ScriptMethod> getFunctions() {
+		return JavaReflection.getFunctions().stream().map(ScriptMethod::new).collect(Collectors.toList());
 	}
 
 	public static Map<String, ScriptClass> getExtensionScriptClass() {

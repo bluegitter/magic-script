@@ -170,6 +170,10 @@ public class Tokenizer {
 				}
 				continue;
 			}
+			if (stream.match("=>", true) || stream.match("->", true)) {
+				tokens.add(new Token(TokenType.Lambda, stream.getSpan(stream.getPosition() - 2, stream.getPosition())));
+				continue;
+			}
 			// Simple tokens
 			for (TokenType t : TokenType.getSortedValues()) {
 				if (t.getLiteral() != null) {

@@ -103,8 +103,10 @@ public class LinqSelect extends Expression {
 				List<Object> joinValues = new ArrayList<>(value.size());
 				for (Record item : value) {
 					values.add(item.value);
-					item.join.getTarget().setValue(context, scope, item.joinValue);
-					joinValues.add(item.joinValue);
+					if (item.join != null) {
+						item.join.getTarget().setValue(context, scope, item.joinValue);
+						joinValues.add(item.joinValue);
+					}
 				}
 				boolean valid = having == null;
 				if (!valid) {

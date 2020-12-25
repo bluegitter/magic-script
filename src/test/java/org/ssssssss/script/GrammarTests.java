@@ -55,7 +55,7 @@ public class GrammarTests extends BaseTest {
 
 	@Test
 	public void loopListTest() {
-		Assert.assertEquals(execute("grammar/loopList.ms"), 15);
+		Assert.assertEquals(15, execute("grammar/loopList.ms"));
 	}
 
 	@Test
@@ -102,6 +102,7 @@ public class GrammarTests extends BaseTest {
 	public void list_method_call() {
 		Assert.assertEquals(5, execute("grammar/list_method_call.ms"));
 	}
+
 	@Test
 	public void lambda_call_method_call() {
 		Assert.assertEquals("12666", execute("grammar/lambda_call_method_call.ms"));
@@ -129,6 +130,6 @@ public class GrammarTests extends BaseTest {
 
 	@Test
 	public void while_1() {
-		Assert.assertEquals(4950,execute("grammar/while_1.ms"));
+		Assert.assertEquals(4950, execute("grammar/while_1.ms"));
 	}
 }

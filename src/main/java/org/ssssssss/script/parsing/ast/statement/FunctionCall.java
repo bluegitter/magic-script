@@ -7,6 +7,7 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.reflection.JavaInvoker;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -98,7 +99,7 @@ public class FunctionCall extends Expression {
 			JavaInvoker<Method> invoker = getCachedFunction();
 			if (invoker == null) {
 				if ((invoker = AbstractReflection.getInstance().getFunction(functionName, argumentValues)) == null) {
-					MagicScriptError.error("找不到方法 " + getFunction().getSpan().getText(), getSpan());
+					MagicScriptError.error("找不到方法 " + getFunction().getSpan().getText() + "(" + String.join(",", JavaReflection.getStringTypes(argumentValues)) + ")", getSpan());
 				}
 				setCachedFunction(invoker);
 			}

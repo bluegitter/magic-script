@@ -74,8 +74,18 @@ public class LinqSelect extends Expression {
 			} else if (!joins.isEmpty()) {
 				for (int i = 0, size = joins.size(); i < size; i++) {
 					List<Object> values = joinValues.get(i);
-					if (!values.isEmpty()) {
-						records.add(new Record(object, joins.get(i), values.get(0)));
+					if (joins.get(i).isLeftJoin()) {
+						if (!values.isEmpty()) {
+							for (Object value : values) {
+								records.add(new Record(object, joins.get(i), value));
+							}
+						} else {
+							records.add(new Record(object, joins.get(i), Collections.emptyMap()));
+						}
+					} else {
+						if (!values.isEmpty()) {
+							records.add(new Record(object, joins.get(i), values.get(0)));
+						}
 					}
 				}
 			} else {

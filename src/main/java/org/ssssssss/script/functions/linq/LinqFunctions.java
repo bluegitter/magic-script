@@ -13,8 +13,8 @@ public class LinqFunctions {
 
 	@Function
 	@Comment("判断值是否为空")
-	public static Object ifnull(@Comment("目标值") Object target, @Comment("为空的值") Object trueValue, @Comment("不为空的值") Object falseValue) {
-		return target == null ? trueValue : falseValue;
+	public static Object ifnull(@Comment("目标值") Object target, @Comment("为空的值") Object trueValue) {
+		return target == null ? trueValue : target;
 	}
 
 	@Function

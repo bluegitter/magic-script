@@ -5,6 +5,7 @@ import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.parsing.ast.Node;
 import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
@@ -95,6 +96,8 @@ public class FunctionCall extends Expression {
 			Object function = getFunction().evaluate(context, scope);
 			if (function instanceof Function) {
 				return ((Function<Object[], Object>) function).apply(argumentValues);
+			} else if (function instanceof Node) {
+				return ((Node) function).evaluate(context, scope);
 			}
 			JavaInvoker<Method> invoker = getCachedFunction();
 			if (invoker == null) {

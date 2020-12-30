@@ -23,33 +23,31 @@ public class Import extends Node {
 		this.packageName = packageName;
 		this.varIndex = varIndex;
 		this.module = module;
-		if(!module){
-			if(packageName.startsWith("@")){
-				function = true;
-				this.packageName = packageName.substring(1);
-			}
+		if (!module && packageName.startsWith("@")) {
+			function = true;
+			this.packageName = packageName.substring(1);
 		}
 	}
 
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Object target;
-        if (this.module) {
-            target = MagicResourceLoader.loadModule(packageName);
-            if (target == null) {
+		if (this.module) {
+			target = MagicResourceLoader.loadModule(packageName);
+			if (target == null) {
 				throw new ModuleNotFoundException(String.format("module [%s] not found.", this.packageName), getSpan());
-            }
-        }else if(this.function){
+			}
+		} else if (this.function) {
 			target = MagicResourceLoader.loadFunction(packageName);
 			if (target == null) {
 				throw new ModuleNotFoundException(String.format("function [%s] not found.", this.packageName), getSpan());
 			}
-		}else {
-            target = MagicResourceLoader.loadClass(packageName);
-            if (target == null) {
+		} else {
+			target = MagicResourceLoader.loadClass(packageName);
+			if (target == null) {
 				throw new ModuleNotFoundException(String.format("class [%s] not found.", this.packageName), getSpan());
-            }
-        }
+			}
+		}
 		scope.setValue(varIndex, target);
 		return null;
 	}

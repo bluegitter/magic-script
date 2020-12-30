@@ -1,17 +1,17 @@
 package org.ssssssss.script;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MagicResourceLoader {
 
-	private static Map<String, Object> modules = new ConcurrentHashMap<>();
+	private static Map<String, Object> MODULES = new ConcurrentHashMap<>();
 
-	private static final Set<String> packages = new HashSet<>();
+	private static final Set<String> PACKAGES = new HashSet<>();
+
+	private static List<Function<String, Object>> FUNCTION_LOADERS = new ArrayList<>();
 
 	static {
 		addPackage("java.util.*");
@@ -27,7 +27,7 @@ public class MagicResourceLoader {
 	};
 
 	public static Map<String, ScriptClass> getModules() {
-		return modules.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> {
+		return MODULES.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> {
 			if (entry.getValue() instanceof Class) {
 				Class<?> clazz = (Class<?>) entry.getValue();
 				return MagicScriptEngine.getScriptClassFromClass(clazz);
@@ -37,32 +37,36 @@ public class MagicResourceLoader {
 		}));
 	}
 
+	public static void addFunctionLoader(Function<String, Object> functionLoader) {
+		FUNCTION_LOADERS.add(functionLoader);
+	}
+
 	public static void setClassLoader(Function<String, Object> classLoader) {
 		MagicResourceLoader.classLoader = classLoader;
 	}
 
 	public static void addModule(String moduleName, Object target) {
-		modules.put(moduleName, target);
+		MODULES.put(moduleName, target);
 	}
 
 	public static Object loadModule(String moduleName) {
-		return modules.get(moduleName);
+		return MODULES.get(moduleName);
 	}
 
 	public static Object loadClass(String className) {
 		return classLoader.apply(className);
 	}
 
-	public static Set<String> getModuleNames(){
-		return modules.keySet();
+	public static Set<String> getModuleNames() {
+		return MODULES.keySet();
 	}
 
 	public static void addPackage(String prefix) {
-		packages.add(prefix.replace("*", ""));
+		PACKAGES.add(prefix.replace("*", ""));
 	}
 
 	public static Class<?> findClass(String simpleName) {
-		for (String prefix : packages) {
+		for (String prefix : PACKAGES) {
 			try {
 				return Class.forName(prefix + simpleName);
 			} catch (Exception ignored) {
@@ -71,7 +75,13 @@ public class MagicResourceLoader {
 		return null;
 	}
 
-	public static Function<Object[],Object> loadFunction(String name){
+	public static Object loadFunction(String name) {
+		for (Function<String, Object> loader : FUNCTION_LOADERS) {
+			try {
+				return loader.apply(name);
+			} catch (Exception ignored) {
+			}
+		}
 		return null;
 	}
 }

@@ -55,6 +55,12 @@ public class StreamExtension {
 		throw new MagicScriptException("不支持的类型:" + arrayLike.getClass());
 	}
 
+	@Comment(value = "向集合中添加元素", origin = true)
+	public static Object push(Object target, @Comment("要添加的元素") Object item) {
+		arrayLikeToList(target).add(item);
+		return target;
+	}
+
 	/**
 	 * map 函数
 	 *

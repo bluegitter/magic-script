@@ -78,7 +78,10 @@ public class MagicResourceLoader {
 	public static Object loadFunction(String name) {
 		for (Function<String, Object> loader : FUNCTION_LOADERS) {
 			try {
-				return loader.apply(name);
+				Object value = loader.apply(name);
+				if (value != null) {
+					return value;
+				}
 			} catch (Exception ignored) {
 			}
 		}

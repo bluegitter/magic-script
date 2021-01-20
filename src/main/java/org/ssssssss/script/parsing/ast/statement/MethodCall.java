@@ -16,7 +16,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 public class MethodCall extends Expression {
@@ -107,24 +106,20 @@ public class MethodCall extends Expression {
 			}
 			Object[] argumentValues = getCachedArguments();
 			List<Expression> arguments = getArguments();
-			for (int i = 0, n = argumentValues.length; i < n; i++) {
+			for (int i = 0, n = argumentValues.length, pIndex = 0; i < n; i++) {
 				Expression expr = arguments.get(i);
 				if (expr instanceof Spread) {
-					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope, inLinq);
-					if (targetVal instanceof Collection) {
-						n += ((Collection<?>) targetVal).size() - 1;
+					Object[] spreadValues = ((Spread) expr).doSpread(context, scope, inLinq);
+					int spreadLength = spreadValues.length;
+					if (spreadLength > 0) {
 						Object[] valTemp = argumentValues;
-						argumentValues = new Object[n];
+						argumentValues = new Object[argumentValues.length + spreadLength - 1];
 						System.arraycopy(valTemp, 0, argumentValues, 0, valTemp.length);
-						for (Object o : ((Collection<?>) targetVal)) {
-							arguments.add(i, ((Spread) expr).getTarget());
-							argumentValues[i++] = o;
-						}
-					} else {
-						MagicScriptError.error("展开的不是一个list", expr.getSpan());
+						System.arraycopy(spreadValues, 0, argumentValues, pIndex, spreadLength);
+						pIndex += spreadLength;
 					}
 				} else {
-					argumentValues[i] = expr.evaluate(context, scope, inLinq);
+					argumentValues[pIndex++] = expr.evaluate(context, scope, inLinq);
 				}
 			}
 			if (object instanceof DynamicMethod) {

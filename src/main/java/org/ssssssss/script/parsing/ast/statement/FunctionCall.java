@@ -11,7 +11,6 @@ import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
@@ -71,24 +70,20 @@ public class FunctionCall extends Expression {
 		try {
 			Object[] argumentValues = getCachedArguments();
 			List<Expression> arguments = getArguments();
-			for (int i = 0, n = argumentValues.length; i < n; i++) {
+			for (int i = 0, n = argumentValues.length, pIndex = 0; i < n; i++) {
 				Expression expr = arguments.get(i);
 				if (expr instanceof Spread) {
-					Object targetVal = ((Spread) expr).getTarget().evaluate(context, scope, this.inLinq);
-					if (targetVal instanceof Collection) {
-						n += ((Collection<?>) targetVal).size() - 1;
+					Object[] spreadValues = ((Spread) expr).doSpread(context, scope, inLinq);
+					int spreadLength = spreadValues.length;
+					if (spreadLength > 0) {
 						Object[] valTemp = argumentValues;
-						argumentValues = new Object[n];
+						argumentValues = new Object[argumentValues.length + spreadLength - 1];
 						System.arraycopy(valTemp, 0, argumentValues, 0, valTemp.length);
-						for (Object o : ((Collection<?>) targetVal)) {
-							arguments.add(i, ((Spread) expr).getTarget());
-							argumentValues[i++] = o;
-						}
-					} else {
-						MagicScriptError.error("展开的不是一个list", expr.getSpan());
+						System.arraycopy(spreadValues, 0, argumentValues, pIndex, spreadLength);
+						pIndex += spreadLength;
 					}
 				} else {
-					argumentValues[i] = expr.evaluate(context, scope, this.inLinq);
+					argumentValues[pIndex++] = expr.evaluate(context, scope, inLinq);
 				}
 			}
 

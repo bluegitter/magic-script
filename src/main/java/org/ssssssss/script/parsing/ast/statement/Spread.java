@@ -6,8 +6,10 @@ import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 
+import java.util.Collection;
+
 /**
- *  展开语法 Spread syntax (...)
+ * 展开语法 Spread syntax (...)
  */
 public class Spread extends Expression {
 
@@ -31,6 +33,16 @@ public class Spread extends Expression {
 
     public Expression getTarget() {
         return target;
+    }
+
+    public Object[] doSpread(MagicScriptContext context, Scope scope, boolean inLinq) {
+        Object targetVal = getTarget().evaluate(context, scope, inLinq);
+        if (targetVal instanceof Collection) {
+            return ((Collection<?>) targetVal).toArray();
+        } else {
+            MagicScriptError.error("展开的不是一个集合", super.getSpan());
+        }
+        return null;
     }
 
 }

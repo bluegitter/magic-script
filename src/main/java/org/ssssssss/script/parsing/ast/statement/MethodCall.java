@@ -12,7 +12,6 @@ import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
 import org.ssssssss.script.reflection.MethodInvoker;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -146,38 +145,12 @@ public class MethodCall extends Expression {
 
 			invoker = AbstractReflection.getInstance().getMethod(object, getMethod().getName().getText(), argumentValues);
 			if (invoker != null) {
-				// found the method on the object, call it
 				setCachedMethod(invoker);
 				try {
 					return invoker.invoke0(object, scope, argumentValues);
 				} catch (Throwable t) {
 					MagicScriptError.error(t.getMessage(), getSpan(), t);
 					return null; // never reached
-				}
-			}
-			invoker = AbstractReflection.getInstance().getExtensionMethod(object, getMethod().getName().getText(), argumentValues);
-			if (invoker != null) {
-				try {
-					int argumentLength = argumentValues == null ? 0 : argumentValues.length;
-					Object[] parameters = new Object[argumentLength + 1];
-					if (argumentLength > 0) {
-						for (int i = 0; i < argumentLength; i++) {
-							parameters[i + 1] = argumentValues[i];
-						}
-					}
-					parameters[0] = object;
-					if (object.getClass().isArray()) {
-						Object[] objs = new Object[Array.getLength(object)];
-						for (int i = 0, len = objs.length; i < len; i++) {
-							Array.set(objs, i, Array.get(object, i));
-						}
-						parameters[0] = objs;
-					}
-					return invoker.invoke0(object, scope, parameters);
-				} catch (Throwable t) {
-					MagicScriptError.error(t.getMessage(), getSpan(), t);
-					// fall through
-					return null;
 				}
 			} else {
 				Field field = AbstractReflection.getInstance().getField(object, getMethod().getName().getText());

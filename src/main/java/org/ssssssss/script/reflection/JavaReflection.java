@@ -123,7 +123,7 @@ public class JavaReflection extends AbstractReflection {
 				if (!isPrimitiveAssignableFrom(type, otherType)) {
 					score += 1000;
 					if (!isCoercible(type, otherType)) {
-						score += 1000;
+						score += 2000;
 						boolean found = false;
 						for (ClassImplicitConvert convert : converts) {
 							if (convert.support(type, otherType)) {
@@ -132,6 +132,7 @@ public class JavaReflection extends AbstractReflection {
 								break;
 							}
 						}
+						invoker.setImplicit(found);
 						if (!found) {
 							return -1;
 						}
@@ -216,6 +217,7 @@ public class JavaReflection extends AbstractReflection {
 												found = true;
 											}
 										}
+										invoker.setImplicit(found);
 										if (!found) {
 											score = -1;
 											break;
@@ -461,7 +463,7 @@ public class JavaReflection extends AbstractReflection {
 		}
 	}
 
-	@Override
+	//	@Override
 	public JavaInvoker<Method> getExtensionMethod(Object obj, String name, Object... arguments) {
 		Class<?> cls = obj instanceof Class ? Class.class : obj.getClass();
 		if (cls.isArray()) {
@@ -557,7 +559,13 @@ public class JavaReflection extends AbstractReflection {
 				}
 			}
 		}
-
+		if (invoker == null || invoker.isImplicit()) {
+			JavaInvoker<Method> extensionInvoker = getExtensionMethod(obj, name, arguments);
+			if (extensionInvoker != null) {
+				extensionInvoker.setExtension(true);
+				return extensionInvoker;
+			}
+		}
 		return invoker;
 	}
 

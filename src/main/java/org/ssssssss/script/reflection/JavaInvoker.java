@@ -1,6 +1,5 @@
 package org.ssssssss.script.reflection;
 
-import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.convert.ClassImplicitConvert;
 import org.ssssssss.script.parsing.Scope;
 
@@ -15,11 +14,29 @@ public abstract class JavaInvoker<T extends Executable> {
 	private final Map<Integer, ClassImplicitConvert> converts = new HashMap<>();
 	private T executable;
 	private Class<?>[] parameterTypes;
+	private boolean implicit = false;
+	private boolean extension = false;
 
 	JavaInvoker(T executable) {
 		this.executable = executable;
 		this.executable.setAccessible(true);
 		this.parameterTypes = this.executable.getParameterTypes();
+	}
+
+	public boolean isImplicit() {
+		return implicit;
+	}
+
+	public void setImplicit(boolean implicit) {
+		this.implicit = implicit;
+	}
+
+	public boolean isExtension() {
+		return extension;
+	}
+
+	public void setExtension(boolean extension) {
+		this.extension = extension;
 	}
 
 	T getExecutable() {
@@ -36,8 +53,24 @@ public abstract class JavaInvoker<T extends Executable> {
 
 	public Object invoke0(Object target, Scope scope, Object... arguments) throws Throwable {
 		try {
-			if(scope != null){
+			if (scope != null) {
 				Scope.setTempScope(scope);
+			}
+			if (extension) {
+				int argumentLength = arguments == null ? 0 : arguments.length;
+				Object[] parameters = new Object[argumentLength + 1];
+				if (argumentLength > 0) {
+					System.arraycopy(arguments, 0, parameters, 1, argumentLength);
+				}
+				parameters[0] = target;
+				if (target.getClass().isArray()) {
+					Object[] objs = new Object[Array.getLength(target)];
+					for (int i = 0, len = objs.length; i < len; i++) {
+						Array.set(objs, i, Array.get(target, i));
+					}
+					parameters[0] = objs;
+				}
+				arguments = parameters;
 			}
 			return invoke(target, processArguments(arguments));
 		} catch (InvocationTargetException e) {

@@ -176,11 +176,23 @@ public class Parser {
 				MagicScriptError.error("Expected identifier or string, but got stream is " + expected.getType().getError(), stream.getPrev().getSpan());
 			}
 			String varName = packageName;
-			if (isStringLiteral || stream.match("as", false)) {
-				stream.expect("as");
-				expected = stream.expect(TokenType.Identifier);
-				checkKeyword(expected.getSpan());
-				varName = expected.getSpan().getText();
+			if (isStringLiteral) {
+				if(stream.match("as", true)){
+					expected = stream.expect(TokenType.Identifier);
+					checkKeyword(expected.getSpan());
+					varName = expected.getSpan().getText();
+				}else{
+					String temp = new StringLiteral(expected.getSpan()).getValue();
+					if(!temp.startsWith("@")){
+						int index = temp.lastIndexOf(".");
+						if(index != -1){
+							temp = temp.substring(index + 1);
+						}
+					}else{
+						MagicScriptError.error("Expected as",stream);
+					}
+					varName = temp;
+				}
 			}
 			return new Import(new Span(opening, expected.getSpan()), packageName, add(varName), !isStringLiteral);
 		}

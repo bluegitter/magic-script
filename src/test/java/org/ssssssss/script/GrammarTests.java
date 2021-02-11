@@ -132,4 +132,9 @@ public class GrammarTests extends BaseTest {
 	public void while_1() {
 		Assert.assertEquals(4950, execute("grammar/while_1.ms"));
 	}
+
+	@Test
+	public void importTest() {
+		Assert.assertEquals(true, execute("grammar/import.ms"));
+	}
 }

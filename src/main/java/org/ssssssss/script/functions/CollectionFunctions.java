@@ -12,7 +12,7 @@ public class CollectionFunctions {
 
 	@Function
 	@Comment("区间迭代器")
-	public static Iterator<Integer> range(@Comment("起始编号") int from, @Comment("结束编号") int to) {
+	public Iterator<Integer> range(@Comment("起始编号") int from, @Comment("结束编号") int to) {
 		return new Iterator<Integer>() {
 			int idx = from;
 

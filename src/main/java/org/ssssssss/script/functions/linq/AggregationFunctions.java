@@ -17,7 +17,7 @@ public class AggregationFunctions {
 
 	@Function
 	@Comment("聚合函数-count")
-	public static int count(Object target) {
+	public int count(Object target) {
 		if (target == null) {
 			return 0;
 		} else if (target instanceof Map) {
@@ -32,7 +32,7 @@ public class AggregationFunctions {
 
 	@Function
 	@Comment("聚合函数-max")
-	public static Object max(Object target) {
+	public Object max(Object target) {
 		if (target == null) {
 			return null;
 		} else if (target instanceof Map) {
@@ -49,7 +49,7 @@ public class AggregationFunctions {
 
 	@Function
 	@Comment("聚合函数-sum")
-	public static Number sum(Object target) {
+	public Number sum(Object target) {
 		if (target == null) {
 			return null;
 		} else if (target instanceof Map) {
@@ -68,7 +68,7 @@ public class AggregationFunctions {
 
 	@Function
 	@Comment("聚合函数-min")
-	public static Object min(Object target) {
+	public Object min(Object target) {
 		if (target == null) {
 			return null;
 		} else if (target instanceof Map) {
@@ -85,7 +85,7 @@ public class AggregationFunctions {
 
 	@Function
 	@Comment("聚合函数-avg")
-	public static Object avg(Object target) {
+	public Object avg(Object target) {
 		if (target == null) {
 			return null;
 		} else if (target instanceof Map) {
@@ -104,7 +104,7 @@ public class AggregationFunctions {
 
 	@Function
 	@Comment("分组后按指定字符串拼接")
-	public static String group_concat(@Comment("列，如t.a") Object target, @Comment("分隔符，如`|`") String separator) {
+	public String group_concat(@Comment("列，如t.a") Object target, @Comment("分隔符，如`|`") String separator) {
 		if (target == null) {
 			return null;
 		}
@@ -113,7 +113,7 @@ public class AggregationFunctions {
 
 	@Function
 	@Comment("分组后使用`,`拼接")
-	public static String group_concat(@Comment("列，如t.a") Object target) {
+	public String group_concat(@Comment("列，如t.a") Object target) {
 		return group_concat(target, ",");
 	}
 }

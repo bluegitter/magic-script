@@ -17,7 +17,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是目标类型
 	 */
 	@Comment("判断对象是否为指定类型的对象，type为null时 返回false，支持类名缩写")
-	public static boolean is(Object target, @Comment("类名或全类名或string、int、double、float、long、byte、short、bigdecimal、boolean") String type) {
+	public boolean is(Object target, @Comment("类名或全类名或string、int、double、float、long、byte、short、bigdecimal、boolean") String type) {
 		if (type == null) {
 			return false;
 		}
@@ -75,7 +75,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是String
 	 */
 	@Comment("判断对象是否是String类型")
-	public static boolean isString(Object target) {
+	public boolean isString(Object target) {
 		return is(target, String.class);
 	}
 
@@ -83,7 +83,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是int
 	 */
 	@Comment("判断对象是否是int类型")
-	public static boolean isInt(Object target) {
+	public boolean isInt(Object target) {
 		return is(target, Integer.class);
 	}
 
@@ -91,7 +91,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是double
 	 */
 	@Comment("判断对象是否是double类型")
-	public static boolean isDouble(Object target) {
+	public boolean isDouble(Object target) {
 		return is(target, Double.class);
 	}
 
@@ -99,7 +99,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是long
 	 */
 	@Comment("判断对象是否是long类型")
-	public static boolean isLong(Object target) {
+	public boolean isLong(Object target) {
 		return is(target, Long.class);
 	}
 
@@ -107,7 +107,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是byte
 	 */
 	@Comment("判断对象是否是byte类型")
-	public static boolean isByte(Object target) {
+	public boolean isByte(Object target) {
 		return is(target, Byte.class);
 	}
 
@@ -115,7 +115,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是short
 	 */
 	@Comment("判断对象是否是short类型")
-	public static boolean isShort(Object target) {
+	public boolean isShort(Object target) {
 		return is(target, Short.class);
 	}
 
@@ -123,7 +123,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是boolean
 	 */
 	@Comment("判断对象是否是boolean类型")
-	public static boolean isBoolean(Object target) {
+	public boolean isBoolean(Object target) {
 		return is(target, Boolean.class);
 	}
 
@@ -131,7 +131,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是BigDecimal
 	 */
 	@Comment("判断对象是否是BigDecimal类型")
-	public static boolean isDecimal(Object target) {
+	public boolean isDecimal(Object target) {
 		return is(target, BigDecimal.class);
 	}
 
@@ -139,7 +139,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是Date
 	 */
 	@Comment("判断对象是否是Date类型")
-	public static boolean isDate(Object target) {
+	public boolean isDate(Object target) {
 		return is(target, Date.class);
 	}
 
@@ -159,7 +159,7 @@ public class ObjectTypeConditionExtension {
 	 * 判断是否是List
 	 */
 	@Comment("判断对象是否是List")
-	public static boolean isList(Object target) {
+	public boolean isList(Object target) {
 		if (target instanceof Class) {
 			return List.class.isAssignableFrom((Class<?>) target);
 		}

@@ -16,6 +16,7 @@ public abstract class JavaInvoker<T extends Executable> {
 	private Class<?>[] parameterTypes;
 	private boolean implicit = false;
 	private boolean extension = false;
+	private Object defaultTarget;
 
 	JavaInvoker(T executable) {
 		this.executable = executable;
@@ -39,7 +40,15 @@ public abstract class JavaInvoker<T extends Executable> {
 		this.extension = extension;
 	}
 
-	T getExecutable() {
+	public Object getDefaultTarget() {
+		return defaultTarget;
+	}
+
+	public void setDefaultTarget(Object defaultTarget) {
+		this.defaultTarget = defaultTarget;
+	}
+
+	public T getExecutable() {
 		return this.executable;
 	}
 

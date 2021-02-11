@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public class StringExtension {
 
     @Comment("校验文本是否符合正则")
-    public static boolean match(String source, Pattern pattern) {
+    public boolean match(String source, Pattern pattern) {
         return pattern.matcher(source).find();
     }
 

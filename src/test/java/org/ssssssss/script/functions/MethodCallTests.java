@@ -7,13 +7,12 @@ import org.ssssssss.script.BaseTest;
 import org.ssssssss.script.reflection.AbstractReflection;
 
 import java.util.Arrays;
-import java.util.List;
 
 public class MethodCallTests extends BaseTest {
 
 	@BeforeClass
 	public static void register() {
-		AbstractReflection.getInstance().registerExtensionClass(String.class, MethodCallTests.class);
+		AbstractReflection.getInstance().registerMethodExtension(String.class, new MethodCallTests());
 	}
 
 	public static String call(String source, int val) {

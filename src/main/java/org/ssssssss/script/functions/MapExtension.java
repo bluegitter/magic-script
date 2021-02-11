@@ -13,7 +13,6 @@ import java.util.function.Function;
 
 public class MapExtension {
 
-	private final static AbstractReflection reflection = AbstractReflection.getInstance();
 
 	@Comment("Map类型对象转JavaBean")
 	public static Object asBean(Map<?, ?> source, @Comment("目标Class") Class<?> target) {
@@ -25,7 +24,7 @@ public class MapExtension {
 				Object value = entry.getValue();
 				String member = Objects.toString(entry.getKey(), null);
 				if (value != null && member != null) {
-					Field field = reflection.getField(target, member);
+					Field field = AbstractReflection.getInstance().getField(target, member);
 					setFieldValue(result, field, value);
 				}
 			}
@@ -35,7 +34,7 @@ public class MapExtension {
 	}
 
 	@Comment(value = "循环Map",origin = true)
-	public static Map<?, ?> each(Map<?, ?> source, @Comment("循环函数，如:(key,value,source)=>map['xx'] = key;") Function<Object[], Object> function) {
+	public Map<?, ?> each(Map<?, ?> source, @Comment("循环函数，如:(key,value,source)=>map['xx'] = key;") Function<Object[], Object> function) {
 		source.forEach((key, value) -> function.apply(new Object[]{key, value, source}));
 		return source;
 	}
@@ -48,13 +47,13 @@ public class MapExtension {
 	}
 
 	@Comment("合并Map")
-	public static Map<?, ?> merge(Map<Object, Object> source, @Comment("key") Object key, @Comment("value") Object value) {
+	public Map<?, ?> merge(Map<Object, Object> source, @Comment("key") Object key, @Comment("value") Object value) {
 		source.put(key, value);
 		return source;
 	}
 
 	@Comment("合并Map")
-	public static Map<?, ?> merge(Map<Object, Object> source, @Comment("另一个map或多个Map") Map<Object, Object>... targets) {
+	public Map<?, ?> merge(Map<Object, Object> source, @Comment("另一个map或多个Map") Map<Object, Object>... targets) {
 		if (targets != null) {
 			for (int i = 0, len = targets.length; i < len; i++) {
 				source.putAll(targets[i]);
@@ -64,7 +63,7 @@ public class MapExtension {
 	}
 
 	@Comment("将Map转为String")
-	public static String asString(Map<?, ?> source, @Comment("key与key之间的连接符如&") String separator, @Comment("key与value之间的连接符，如=") String join) {
+	public String asString(Map<?, ?> source, @Comment("key与key之间的连接符如&") String separator, @Comment("key与value之间的连接符，如=") String join) {
 		Set<? extends Map.Entry<?, ?>> entries = source.entrySet();
 		StringBuilder builder = new StringBuilder();
 		for (Map.Entry<?, ?> entry : entries) {
@@ -80,7 +79,7 @@ public class MapExtension {
 	}
 
 	@Comment("将Map转为String")
-	public static String asString(Map<?, ?> source, @Comment("key与value之间的连接符，如=") String separator,
+	public String asString(Map<?, ?> source, @Comment("key与value之间的连接符，如=") String separator,
 								  @Comment("转换方法，如：(key,value)=>key + '=' + value || ''") Function<Object[], Object> mapping) {
 		Set<? extends Map.Entry<?, ?>> entries = source.entrySet();
 		StringBuilder builder = new StringBuilder();
@@ -95,7 +94,7 @@ public class MapExtension {
 	}
 
 	@Comment("对Map进行排序")
-	public static Map<?, ?> sort(Map<?, ?> source) {
+	public Map<?, ?> sort(Map<?, ?> source) {
 		Set<?> keys = source.keySet();
 		Map<Object, Object> sortedMap = new LinkedHashMap<>();
 		keys.stream().sorted((Comparator<Object>) (o1, o2) -> {
@@ -111,7 +110,7 @@ public class MapExtension {
 	}
 
 	@Comment("对Map进行排序")
-	public static Map<?, ?> sort(Map<?, ?> source, @Comment("比较器，如:(k1,k2,v1,v2)=>k1.compareTo(k2);") Function<Object[], Object> comparator) {
+	public Map<?, ?> sort(Map<?, ?> source, @Comment("比较器，如:(k1,k2,v1,v2)=>k1.compareTo(k2);") Function<Object[], Object> comparator) {
 		Set<?> keys = source.keySet();
 		Map<Object, Object> sortedMap = new LinkedHashMap<>();
 		keys.stream().sorted((Comparator<Object>) (o1, o2) -> ObjectConvertExtension.asInt(comparator.apply(new Object[]{o1, o2,source.get(o1),source.get(o2)}), 0)).forEach(key -> {
@@ -128,12 +127,12 @@ public class MapExtension {
 					Type genericType = field.getGenericType();
 					if (genericType instanceof ParameterizedType) {
 						Class<?> type = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
-						reflection.setFieldValue(object, field, StreamExtension.asBean(value, type));
+						AbstractReflection.getInstance().setFieldValue(object, field, StreamExtension.asBean(value, type));
 					}
 				} else if (field.getType().isArray()) {
-					reflection.setFieldValue(object, field, StreamExtension.asBean(value, field.getType().getComponentType(), true));
+					AbstractReflection.getInstance().setFieldValue(object, field, StreamExtension.asBean(value, field.getType().getComponentType(), true));
 				} else if (JavaReflection.isPrimitiveAssignableFrom(value.getClass(), field.getType()) || field.getType().isAssignableFrom(value.getClass())) {
-					reflection.setFieldValue(object, field, value);
+					AbstractReflection.getInstance().setFieldValue(object, field, value);
 				}
 			} catch (Exception ignored) {
 			}

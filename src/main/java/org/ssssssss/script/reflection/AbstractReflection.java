@@ -42,7 +42,7 @@ public abstract class AbstractReflection {
 
 	public abstract JavaInvoker<Method> getFunction(String name, Object... arguments);
 
-    public abstract void registerExtensionClass(Class<?> target, Class<?> clazz);
+    public abstract void registerMethodExtension(Class<?> target, Object extensionObject);
 
     public abstract void registerImplicitConvert(ClassImplicitConvert classImplicitConvert);
 

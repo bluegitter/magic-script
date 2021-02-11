@@ -8,9 +8,14 @@ public class MethodInvoker extends JavaInvoker<Method> {
 	public MethodInvoker(Method method) {
 		super(method);
 	}
+	public MethodInvoker(Method method,Object defaultTarget) {
+		super(method);
+		setDefaultTarget(defaultTarget);
+	}
 
 	@Override
 	Object invoke(Object target, Object... args) throws InvocationTargetException, IllegalAccessException {
-		return getExecutable().invoke(target, args);
+		Object defaultTarget = getDefaultTarget();
+		return getExecutable().invoke(defaultTarget == null ? target : defaultTarget, args);
 	}
 }

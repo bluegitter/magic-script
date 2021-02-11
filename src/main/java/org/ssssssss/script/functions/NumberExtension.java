@@ -17,7 +17,7 @@ public class NumberExtension {
 	}
 
 	@Comment("四舍五入保留N位小数,仿JS的toFixed")
-	public static String toFixed(Number number, @Comment("规定小数的位数") int num) {
+	public String toFixed(Number number, @Comment("规定小数的位数") int num) {
 		return new BigDecimal("" + number.doubleValue()).setScale(num, RoundingMode.UP).toString();
 	}
 

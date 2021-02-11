@@ -45,7 +45,7 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 	}
 
 	public static List<ScriptMethod> getFunctions() {
-		return JavaReflection.getFunctions().stream().map(ScriptMethod::new).collect(Collectors.toList());
+		return JavaReflection.getFunctions().stream().map(it -> new ScriptMethod(it.getExecutable())).collect(Collectors.toList());
 	}
 
 	public static Map<String, ScriptClass> getExtensionScriptClass() {

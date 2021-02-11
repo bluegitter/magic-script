@@ -21,24 +21,25 @@ import java.util.stream.Stream;
 public class JavaReflection extends AbstractReflection {
 	private final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
 	private static SortedSet<ClassImplicitConvert> converts;
-	private final Map<Class<?>, Map<String, List<Method>>> extensionmethodCache = new ConcurrentHashMap<>();
+	private final Map<Class<?>, Map<String, List<JavaInvoker<Method>>>> extensionmethodCache = new ConcurrentHashMap<>();
 	private final Map<Class<?>, Map<MethodSignature, JavaInvoker<Method>>> methodCache = new ConcurrentHashMap<>();
 	private static Map<Class<?>, List<Class<?>>> extensionMap;
-	private static List<Method> functions;
+	private static List<JavaInvoker<Method>> functions;
 
 	JavaReflection() {
-		registerExtensionClass(Class.class, ClassExtension.class);
-		registerExtensionClass(Collection.class, StreamExtension.class);
-		registerExtensionClass(Object[].class, StreamExtension.class);
-		registerExtensionClass(Enumeration.class, StreamExtension.class);
-		registerExtensionClass(Iterator.class, StreamExtension.class);
-		registerExtensionClass(Object.class, ObjectConvertExtension.class);
-		registerExtensionClass(Object.class, ObjectTypeConditionExtension.class);
-		registerExtensionClass(Map.class, MapExtension.class);
-		registerExtensionClass(Date.class, DateExtension.class);
-		registerExtensionClass(Number.class, NumberExtension.class);
-		registerExtensionClass(Pattern.class, PatternExtension.class);
-		registerExtensionClass(String.class, StringExtension.class);
+		registerMethodExtension(Class.class, new ClassExtension());
+		StreamExtension streamExtension = new StreamExtension();
+		registerMethodExtension(Collection.class, streamExtension);
+		registerMethodExtension(Object[].class, streamExtension);
+		registerMethodExtension(Enumeration.class, streamExtension);
+		registerMethodExtension(Iterator.class, streamExtension);
+		registerMethodExtension(Object.class, new ObjectConvertExtension());
+		registerMethodExtension(Object.class, new ObjectTypeConditionExtension());
+		registerMethodExtension(Map.class, new MapExtension());
+		registerMethodExtension(Date.class, new DateExtension());
+		registerMethodExtension(Number.class, new NumberExtension());
+		registerMethodExtension(Pattern.class, new PatternExtension());
+		registerMethodExtension(String.class, new StringExtension());
 
 		converts = new TreeSet<>(Comparator.comparingInt(ClassImplicitConvert::sort));
 
@@ -46,30 +47,31 @@ public class JavaReflection extends AbstractReflection {
 		registerImplicitConvert(new CollectionImplicitConvert());
 
 		functions = new ArrayList<>();
-		registerFunctionClass(AggregationFunctions.class);
-		registerFunctionClass(LinqFunctions.class);
-		registerFunctionClass(CollectionFunctions.class);
-		registerFunctionClass(MathFunctions.class);
+		registerFunction(new AggregationFunctions());
+		registerFunction(new LinqFunctions());
+		registerFunction(new CollectionFunctions());
+		registerFunction(new MathFunctions());
 	}
 
-	public static void registerFunctionClass(Class<?> clazz) {
-		Stream.of(clazz.getMethods())
+	public static void registerFunction(Object target) {
+		Stream.of(target.getClass().getMethods())
 				.filter(method -> method.getAnnotation(org.ssssssss.script.annotation.Function.class) != null)
-				.forEach(functions::add);
+				.map(MethodInvoker::new)
+				.forEach(it -> {
+					it.setDefaultTarget(target);
+					functions.add(it);
+				});
 	}
 
 	public static Map<Class<?>, List<Class<?>>> getExtensionMap() {
 		return extensionMap;
 	}
 
-	public static List<Method> getFunctions() {
+	public static List<JavaInvoker<Method>> getFunctions() {
 		return functions;
 	}
 
 
-	/**
-	 * Returns the <code>apply()</code> method of a functional interface.
-	 **/
 	private static MethodInvoker findApply(Class<?> cls) {
 		for (Method method : cls.getDeclaredMethods()) {
 			if ("apply".equals(method.getName())) {
@@ -161,8 +163,8 @@ public class JavaReflection extends AbstractReflection {
 		return null;
 	}
 
-	public static JavaInvoker<Method> findMethodInvoker(List<Method> methods, Class<?>[] parameterTypes) {
-		return findInvoker(methods.stream().map(MethodInvoker::new).collect(Collectors.toList()), parameterTypes);
+	public static JavaInvoker<Method> findMethodInvoker(List<JavaInvoker<Method>> methods, Class<?>[] parameterTypes) {
+		return findInvoker(methods, parameterTypes);
 	}
 
 	public static JavaInvoker<Constructor> findConstructorInvoker(List<Constructor<?>> constructors, Class<?>[] parameterTypes) {
@@ -251,7 +253,7 @@ public class JavaReflection extends AbstractReflection {
 	 * Returns the method best matching the given signature, including type coercion, or null.
 	 **/
 	private static JavaInvoker<Method> findInvoker(Class<?> cls, String name, Class<?>[] parameterTypes) {
-		List<Method> methodList = new ArrayList<>();
+		List<JavaInvoker<Method>> methodList = new ArrayList<>();
 		Method[] methods = cls.getDeclaredMethods();
 		for (int i = 0, n = methods.length; i < n; i++) {
 			Method method = methods[i];
@@ -262,7 +264,7 @@ public class JavaReflection extends AbstractReflection {
 				continue;
 			}
 			if (Modifier.isPublic(method.getModifiers())) {
-				methodList.add(method);
+				methodList.add(new MethodInvoker(method));
 			}
 		}
 		return findMethodInvoker(methodList, parameterTypes);
@@ -407,7 +409,7 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	@Override
-	public void registerExtensionClass(Class<?> target, Class<?> clazz) {
+	public void registerMethodExtension(Class<?> target, Object extensionObject) {
 		if (extensionMap == null) {
 			extensionMap = new ConcurrentHashMap<>();
 		}
@@ -416,26 +418,27 @@ public class JavaReflection extends AbstractReflection {
 			classList = new ArrayList<>();
 			extensionMap.put(target, classList);
 		}
+		Class<?> clazz = extensionObject.getClass();
 		classList.add(clazz);
 		Method[] methods = clazz.getDeclaredMethods();
 		if (methods != null) {
-			Map<String, List<Method>> cachedMethodMap = extensionmethodCache.get(target);
+			Map<String, List<JavaInvoker<Method>>> cachedMethodMap = extensionmethodCache.get(target);
 			if (cachedMethodMap == null) {
 				cachedMethodMap = new HashMap<>();
 				extensionmethodCache.put(target, cachedMethodMap);
 			}
 			for (Method method : methods) {
-				if (Modifier.isStatic(method.getModifiers()) && method.getParameterCount() > 0 && method.getAnnotation(UnableCall.class) == null) {
-					List<Method> cachedList = cachedMethodMap.get(method.getName());
+				if (Modifier.isPublic(method.getModifiers()) && method.getParameterCount() > 0 && method.getAnnotation(UnableCall.class) == null) {
+					List<JavaInvoker<Method>> cachedList = cachedMethodMap.get(method.getName());
 					if (cachedList == null) {
 						cachedList = new ArrayList<>();
 						cachedMethodMap.put(method.getName(), cachedList);
 					}
-					cachedList.add(method);
+					cachedList.add(new MethodInvoker(method,extensionObject));
 				}
 			}
-			Collection<List<Method>> methodsValues = cachedMethodMap.values();
-			for (List<Method> methodList : methodsValues) {
+			Collection<List<JavaInvoker<Method>>> methodsValues = cachedMethodMap.values();
+			for (List<JavaInvoker<Method>> methodList : methodsValues) {
 				methodList.sort((m1, m2) -> {
 					int sum1 = Arrays.stream(m1.getParameterTypes()).mapToInt(JavaReflection::calcToObjectDistance).sum();
 					int sum2 = Arrays.stream(m2.getParameterTypes()).mapToInt(JavaReflection::calcToObjectDistance).sum();
@@ -463,9 +466,9 @@ public class JavaReflection extends AbstractReflection {
 		}
 	}
 
-	//	@Override
 	public JavaInvoker<Method> getExtensionMethod(Object obj, String name, Object... arguments) {
-		Class<?> cls = obj instanceof Class ? Class.class : obj.getClass();
+		boolean isClass = obj instanceof Class;
+		Class<?> cls = isClass ? Class.class : obj.getClass();
 		if (cls.isArray()) {
 			cls = Object[].class;
 		}
@@ -488,9 +491,9 @@ public class JavaReflection extends AbstractReflection {
 		if (cls == null) {
 			cls = Object.class;
 		}
-		Map<String, List<Method>> methodMap = extensionmethodCache.get(cls);
+		Map<String, List<JavaInvoker<Method>>> methodMap = extensionmethodCache.get(cls);
 		if (methodMap != null) {
-			List<Method> methodList = methodMap.get(name);
+			List<JavaInvoker<Method>> methodList = methodMap.get(name);
 			if (methodList != null) {
 				return findMethodInvoker(methodList, getParameterTypes(cls, arguments));
 			}
@@ -512,7 +515,8 @@ public class JavaReflection extends AbstractReflection {
 
 	@Override
 	public JavaInvoker<Method> getMethod(Object obj, String name, Object... arguments) {
-		Class<?> cls = obj instanceof Class ? (Class<?>) obj : (obj instanceof Function ? Function.class : obj.getClass());
+		boolean isClass = obj instanceof Class;
+		Class<?> cls = isClass ? (Class<?>) obj : (obj instanceof Function ? Function.class : obj.getClass());
 		Map<MethodSignature, JavaInvoker<Method>> methods = methodCache.get(cls);
 		if (methods == null) {
 			methods = new ConcurrentHashMap<>();
@@ -563,7 +567,7 @@ public class JavaReflection extends AbstractReflection {
 			JavaInvoker<Method> extensionInvoker = getExtensionMethod(obj, name, arguments);
 			if (extensionInvoker != null) {
 				extensionInvoker.setExtension(true);
-				return extensionInvoker;
+				invoker = extensionInvoker;
 			}
 		}
 		return invoker;
@@ -571,7 +575,9 @@ public class JavaReflection extends AbstractReflection {
 
 	@Override
 	public JavaInvoker<Method> getFunction(String name, Object... arguments) {
-		List<Method> methodList = functions.stream().filter(method -> method.getName().equals(name)).collect(Collectors.toList());
+		List<JavaInvoker<Method>> methodList = functions.stream()
+				.filter(it -> it.getExecutable().getName().equals(name))
+				.collect(Collectors.toList());
 		return findMethodInvoker(methodList, getParameterTypes(null, arguments));
 	}
 

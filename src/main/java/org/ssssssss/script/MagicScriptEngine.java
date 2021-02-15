@@ -58,7 +58,7 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 				classMap.put(entry.getKey().getName(), clazz);
 			}
 			for (Class<?> extensionClass : entry.getValue()) {
-				for (ScriptMethod method : getMethod(extensionClass, true)) {
+				for (ScriptMethod method : getMethod(extensionClass)) {
 					clazz.addMethod(method);
 				}
 			}
@@ -71,7 +71,7 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 		ScriptClass scriptClass = new ScriptClass();
 		scriptClass.setClassName(clazz.getName());
 		scriptClass.setSuperClass(superClass != null ? superClass.getName() : null);
-		getMethod(clazz, false).forEach(method -> {
+		getMethod(clazz).forEach(method -> {
 			if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
 				String attributeName = method.getName().substring(3);
 				attributeName = attributeName.substring(0, 1).toLowerCase() + attributeName.substring(1);
@@ -102,7 +102,7 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 				}
 				scriptClass.setInterfaces(interfaceList);
 			}
-			getMethod(clazz, false).forEach(method -> {
+			getMethod(clazz).forEach(method -> {
 				if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
 					String attributeName = method.getName().substring(3);
 					attributeName = attributeName.substring(0, 1).toLowerCase() + attributeName.substring(1);
@@ -130,15 +130,14 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 		}
 	}
 
-	private static List<ScriptMethod> getMethod(Class clazz, boolean publicAndStatic) {
+	private static List<ScriptMethod> getMethod(Class clazz) {
 		List<ScriptMethod> methods = new ArrayList<>();
 		Method[] declaredMethods = clazz.getDeclaredMethods();
 		for (int i = 0; i < declaredMethods.length; i++) {
 			Method declaredMethod = declaredMethods[i];
 			if (!Modifier.isVolatile(declaredMethod.getModifiers())) {
 				if (Modifier.isPublic(declaredMethod.getModifiers()) && declaredMethod.getAnnotation(UnableCall.class) == null) {
-					boolean isStatic = Modifier.isStatic(declaredMethod.getModifiers());
-					if ((!publicAndStatic) || isStatic) {
+					if (Modifier.isPublic(declaredMethod.getModifiers())) {
 						methods.add(new ScriptMethod(declaredMethod));
 					}
 				}

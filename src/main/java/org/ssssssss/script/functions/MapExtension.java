@@ -33,7 +33,7 @@ public class MapExtension {
 		return result;
 	}
 
-	@Comment(value = "循环Map",origin = true)
+	@Comment(value = "循环Map", origin = true)
 	public Map<?, ?> each(Map<?, ?> source, @Comment("循环函数，如:(key,value,source)=>map['xx'] = key;") Function<Object[], Object> function) {
 		source.forEach((key, value) -> function.apply(new Object[]{key, value, source}));
 		return source;
@@ -80,7 +80,7 @@ public class MapExtension {
 
 	@Comment("将Map转为String")
 	public String asString(Map<?, ?> source, @Comment("key与value之间的连接符，如=") String separator,
-								  @Comment("转换方法，如：(key,value)=>key + '=' + value || ''") Function<Object[], Object> mapping) {
+						   @Comment("转换方法，如：(key,value)=>key + '=' + value || ''") Function<Object[], Object> mapping) {
 		Set<? extends Map.Entry<?, ?>> entries = source.entrySet();
 		StringBuilder builder = new StringBuilder();
 		for (Map.Entry<?, ?> entry : entries) {
@@ -113,10 +113,30 @@ public class MapExtension {
 	public Map<?, ?> sort(Map<?, ?> source, @Comment("比较器，如:(k1,k2,v1,v2)=>k1.compareTo(k2);") Function<Object[], Object> comparator) {
 		Set<?> keys = source.keySet();
 		Map<Object, Object> sortedMap = new LinkedHashMap<>();
-		keys.stream().sorted((Comparator<Object>) (o1, o2) -> ObjectConvertExtension.asInt(comparator.apply(new Object[]{o1, o2,source.get(o1),source.get(o2)}), 0)).forEach(key -> {
+		keys.stream().sorted((Comparator<Object>) (o1, o2) -> ObjectConvertExtension.asInt(comparator.apply(new Object[]{o1, o2, source.get(o1), source.get(o2)}), 0)).forEach(key -> {
 			sortedMap.put(key, source.get(key));
 		});
 		return sortedMap;
+	}
+
+	@Comment("对Map的key进行替换")
+	public Map<String, Object> replaceKey(Map<String, Object> source, String target, String replacement) {
+		return replaceKey(source, src -> src[0].toString().replace(target, replacement));
+	}
+
+	@Comment("对Map的key进行正则替换")
+	public Map<String, Object> replaceAllKey(Map<String, Object> source, String regx, String replacement) {
+		return replaceKey(source, src -> src[0].toString().replaceAll(regx, replacement));
+	}
+
+	@Comment("对Map的key进行替换")
+	public Map<String, Object> replaceKey(Map<String, Object> source, Function<Object[], String> functional) {
+		Map<String, Object> result = new LinkedHashMap<>();
+		Set<Map.Entry<String, Object>> entries = source.entrySet();
+		for (Map.Entry<String, Object> entry : entries) {
+			result.put(functional.apply(new Object[]{entry.getKey()}), entry.getValue());
+		}
+		return result;
 	}
 
 

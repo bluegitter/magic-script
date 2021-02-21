@@ -137,4 +137,14 @@ public class GrammarTests extends BaseTest {
 	public void importTest() {
 		Assert.assertEquals(true, execute("grammar/import.ms"));
 	}
+
+	@Test
+	public void castTest() {
+		Assert.assertEquals(true, execute("grammar/cast.ms"));
+	}
+
+	@Test
+	public void equalTest() {
+		Assert.assertEquals(true, execute("grammar/equal.ms"));
+	}
 }

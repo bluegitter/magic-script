@@ -9,10 +9,7 @@ import org.ssssssss.script.parsing.ast.literal.*;
 import org.ssssssss.script.parsing.ast.statement.*;
 
 import javax.xml.transform.Source;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 
 /**
@@ -25,7 +22,7 @@ public class Parser {
 			new TokenType[]{TokenType.Assignment},
 			new TokenType[]{TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual},
 			new TokenType[]{TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor},
-			new TokenType[]{TokenType.Equal, TokenType.NotEqual, TokenType.SqlNotEqual},
+			new TokenType[]{TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.NotEqual, TokenType.SqlNotEqual},
 			new TokenType[]{TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual},
 			new TokenType[]{TokenType.Plus, TokenType.Minus},
 			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}
@@ -34,7 +31,7 @@ public class Parser {
 	private static final TokenType[][] linqBinaryOperatorPrecedence = new TokenType[][]{
 			new TokenType[]{TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual},
 			new TokenType[]{TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor},
-			new TokenType[]{TokenType.Assignment, TokenType.Equal, TokenType.NotEqual, TokenType.SqlNotEqual},
+			new TokenType[]{TokenType.Assignment, TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.NotEqual, TokenType.SqlNotEqual},
 			new TokenType[]{TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual},
 			new TokenType[]{TokenType.Plus, TokenType.Minus},
 			new TokenType[]{TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage}
@@ -177,19 +174,19 @@ public class Parser {
 			}
 			String varName = packageName;
 			if (isStringLiteral) {
-				if(stream.match("as", true)){
+				if (stream.match("as", true)) {
 					expected = stream.expect(TokenType.Identifier);
 					checkKeyword(expected.getSpan());
 					varName = expected.getSpan().getText();
-				}else{
+				} else {
 					String temp = new StringLiteral(expected.getSpan()).getValue();
-					if(!temp.startsWith("@")){
+					if (!temp.startsWith("@")) {
 						int index = temp.lastIndexOf(".");
-						if(index != -1){
+						if (index != -1) {
 							temp = temp.substring(index + 1);
 						}
-					}else{
-						MagicScriptError.error("Expected as",stream);
+					} else {
+						MagicScriptError.error("Expected as", stream);
 					}
 					varName = temp;
 				}
@@ -246,11 +243,7 @@ public class Parser {
 		List<Expression> arguments = new ArrayList<>();
 		arguments.addAll(parseArguments(stream));
 		Span closing = stream.expect(")").getSpan();
-		NewStatement newStatement = new NewStatement(new Span(opening, closing), add(identifier.getText()), arguments);
-		if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
-			return parseAccessOrCall(stream, newStatement);
-		}
-		return newStatement;
+		return parseConverterOrAccessOrCall(stream,new NewStatement(new Span(opening, closing), add(identifier.getText()), arguments));
 	}
 
 	private VariableDefine parseVarDefine(TokenStream stream) {
@@ -441,10 +434,7 @@ public class Parser {
 				stream.resetIndex(index);
 				Expression expression = parseExpression(stream);
 				stream.expect(TokenType.RightParantheses);
-				if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
-					expression = parseAccessOrCall(stream, expression);
-				}
-				return expression;
+				return parseConverterOrAccessOrCall(stream,expression);
 			} else {
 				Expression expression = parseAccessOrCallOrLiteral(stream, expectRightCurly);
 				if (expression instanceof VariableSetter) {
@@ -452,9 +442,29 @@ public class Parser {
 						return new UnaryOperation(stream.consume(), expression, true);
 					}
 				}
+
 				return expression;
 			}
 		}
+	}
+
+	private Expression parseConverterOrAccessOrCall(TokenStream stream, Expression expression) {
+		while (stream.match(false, TokenType.Period, TokenType.QuestionPeriod,TokenType.ColonColon)) {
+			if(stream.match(TokenType.ColonColon,false)){
+				Span open = stream.consume().getSpan();
+				List<Expression> arguments = Collections.emptyList();
+				Token identifier = stream.expect(TokenType.Identifier);
+				Span closing = identifier.getSpan();
+				if (stream.match(TokenType.LeftParantheses, false)) {
+					arguments = parseArguments(stream);
+					closing = stream.expect(TokenType.RightParantheses).getSpan();
+				}
+				expression =  new ClassConverter(new Span(open, closing), identifier.getText(), expression, arguments);
+			}else{
+				expression = parseAccessOrCall(stream, expression);
+			}
+		}
+		return expression;
 	}
 
 	private Expression parseLambdaBody(TokenStream stream, Span openSpan, List<VarIndex> parameters) {
@@ -593,59 +603,56 @@ public class Parser {
 	}
 
 	private Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {
+		Expression expression = null;
 		if (expectRightCurly && stream.match("}", false)) {
 			return null;
 		} else if (stream.match("async", false)) {
-			return parseAsync(stream);
+			expression = parseAsync(stream);
 		} else if (stream.match("select", false)) {
-			return parseSelect(stream);
+			expression = parseSelect(stream);
 		} else if (stream.match(TokenType.Spread, false)) {
-			return parseSpreadAccess(stream);
+			expression = parseSpreadAccess(stream);
 		} else if (stream.match(TokenType.Identifier, false)) {
-			return parseAccessOrCall(stream, TokenType.Identifier);
+			expression = parseAccessOrCall(stream, TokenType.Identifier);
 		} else if (stream.match(TokenType.LeftCurly, false)) {
-			return parseMapLiteral(stream);
+			expression = parseMapLiteral(stream);
 		} else if (stream.match(TokenType.LeftBracket, false)) {
-			return parseListLiteral(stream);
+			expression = parseListLiteral(stream);
 		} else if (stream.match(TokenType.StringLiteral, false)) {
-			if (stream.hasNext()) {
-				TokenType nextType = stream.next().getType();
-				if (nextType == TokenType.Period || nextType == TokenType.QuestionPeriod) {
-					stream.prev();
-					return parseAccessOrCall(stream, TokenType.StringLiteral);
-				}
-				stream.prev();
-			}
-
-			return new StringLiteral(stream.expect(TokenType.StringLiteral).getSpan());
+			expression = new StringLiteral(stream.expect(TokenType.StringLiteral).getSpan());
 		} else if (stream.match(TokenType.BooleanLiteral, false)) {
-			return new BooleanLiteral(stream.expect(TokenType.BooleanLiteral).getSpan());
+			expression = new BooleanLiteral(stream.expect(TokenType.BooleanLiteral).getSpan());
 		} else if (stream.match(TokenType.DoubleLiteral, false)) {
-			return new DoubleLiteral(stream.expect(TokenType.DoubleLiteral).getSpan());
+			expression = new DoubleLiteral(stream.expect(TokenType.DoubleLiteral).getSpan());
 		} else if (stream.match(TokenType.FloatLiteral, false)) {
-			return new FloatLiteral(stream.expect(TokenType.FloatLiteral).getSpan());
+			expression = new FloatLiteral(stream.expect(TokenType.FloatLiteral).getSpan());
 		} else if (stream.match(TokenType.ByteLiteral, false)) {
-			return new ByteLiteral(stream.expect(TokenType.ByteLiteral).getSpan());
+			expression = new ByteLiteral(stream.expect(TokenType.ByteLiteral).getSpan());
 		} else if (stream.match(TokenType.ShortLiteral, false)) {
-			return new ShortLiteral(stream.expect(TokenType.ShortLiteral).getSpan());
+			expression = new ShortLiteral(stream.expect(TokenType.ShortLiteral).getSpan());
 		} else if (stream.match(TokenType.IntegerLiteral, false)) {
-			return new IntegerLiteral(stream.expect(TokenType.IntegerLiteral).getSpan());
+			expression = new IntegerLiteral(stream.expect(TokenType.IntegerLiteral).getSpan());
 		} else if (stream.match(TokenType.LongLiteral, false)) {
-			return new LongLiteral(stream.expect(TokenType.LongLiteral).getSpan());
+			expression = new LongLiteral(stream.expect(TokenType.LongLiteral).getSpan());
 		} else if (stream.match(TokenType.DecimalLiteral, false)) {
-			return new BigDecimalLiteral(stream.expect(TokenType.DecimalLiteral).getSpan());
+			expression = new BigDecimalLiteral(stream.expect(TokenType.DecimalLiteral).getSpan());
 		} else if (stream.match(TokenType.RegexpLiteral, false)) {
 			Token token = stream.expect(TokenType.RegexpLiteral);
 			Expression target = new RegexpLiteral(token.getSpan(), token);
-			return parseAccessOrCall(stream, target);
+			expression = parseAccessOrCall(stream, target);
 		} else if (stream.match(TokenType.NullLiteral, false)) {
-			return new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
+			expression = new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
 		} else if (linqLevel > 0 && stream.match(TokenType.Asterisk, false)) {
-			return new WholeLiteral(stream.expect(TokenType.Asterisk).getSpan());
-		} else {
-			MagicScriptError.error("Expected a variable, field, map, array, function or method call, or literal.", stream);
-			return null; // not reached
+			expression = new WholeLiteral(stream.expect(TokenType.Asterisk).getSpan());
 		}
+		if (expression instanceof StringLiteral && stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
+			stream.prev();
+			expression = parseAccessOrCall(stream, TokenType.StringLiteral);
+		}
+		if (expression == null) {
+			MagicScriptError.error("Expected a variable, field, map, array, function or method call, or literal.", stream);
+		}
+		return parseConverterOrAccessOrCall(stream, expression);
 	}
 
 
@@ -705,11 +712,7 @@ public class Parser {
 		}
 
 		Span closeBracket = stream.expect(TokenType.RightBracket).getSpan();
-		Expression target = new ListLiteral(new Span(openBracket, closeBracket), values);
-		if (stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
-			target = parseAccessOrCall(stream, target);
-		}
-		return target;
+		return parseConverterOrAccessOrCall(stream, new ListLiteral(new Span(openBracket, closeBracket), values));
 	}
 
 

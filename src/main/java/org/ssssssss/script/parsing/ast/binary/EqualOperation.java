@@ -11,21 +11,31 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
- * == 操作
+ * ==、===操作
  */
 public class EqualOperation extends BinaryOperation {
 
-	public EqualOperation(Expression leftOperand, Span span, Expression rightOperand) {
+	private final boolean accurate;
+
+	public EqualOperation(Expression leftOperand, Span span, Expression rightOperand, boolean accurate) {
 		super(leftOperand, span, rightOperand);
+		this.accurate = accurate;
 	}
 
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Object left = getLeftOperand().evaluate(context, scope);
 		Object right = getRightOperand().evaluate(context, scope);
-		if (left instanceof BigDecimal || right instanceof BigDecimal) {
-			return ObjectConvertExtension.asDecimal(left).compareTo(ObjectConvertExtension.asDecimal(right)) == 0;
+		if(Objects.equals(left, right)){
+			return true;
 		}
-		return Objects.equals(left, right);
+		if(!accurate){
+			if (left instanceof Number || right instanceof Number) {
+				BigDecimal leftValue = ObjectConvertExtension.asDecimal(left, null);
+				BigDecimal rightValue = ObjectConvertExtension.asDecimal(right, null);
+				return leftValue!=null && rightValue != null && leftValue.compareTo(rightValue) == 0;
+			}
+		}
+		return false;
 	}
 }

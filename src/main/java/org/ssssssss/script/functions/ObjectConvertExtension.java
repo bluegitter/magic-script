@@ -70,7 +70,7 @@ public class ObjectConvertExtension {
 	 * @param defaultValue 默认值
 	 */
 	@Comment("将对象转为long类型")
-	public long asLong(Object val, @Comment("转换失败时的默认值") long defaultValue) {
+	public static long asLong(Object val, @Comment("转换失败时的默认值") long defaultValue) {
 		try {
 			return Long.parseLong(asString(val));
 		} catch (NumberFormatException e) {
@@ -156,7 +156,7 @@ public class ObjectConvertExtension {
 	 * 转Date
 	 */
 	@Comment("将对象转为Date类型，默认字符串格式为yyyy-MM-dd HH:mm:ss")
-	public Date asDate(Object val) {
+	public static Date asDate(Object val) {
 		return asDate(val, "yyyy-MM-dd HH:mm:ss");
 	}
 
@@ -175,7 +175,7 @@ public class ObjectConvertExtension {
 	 * 转BigDecimal
 	 */
 	@Comment("将对象转为BigDecimal类型")
-	public BigDecimal asDecimal(Object val, @Comment("转换失败时的默认值") BigDecimal defaultVal) {
+	public static BigDecimal asDecimal(Object val, @Comment("转换失败时的默认值") BigDecimal defaultVal) {
 		if (val instanceof BigDecimal) {
 			return (BigDecimal) val;
 		}
@@ -190,7 +190,7 @@ public class ObjectConvertExtension {
 	 * 转Date
 	 */
 	@Comment("将对象转为Date类型,支持String、10位、13位时间戳")
-	public Date asDate(Object val, @Comment("日期格式，如yyyy-MM-dd HH:mm:ss") String format) {
+	public static Date asDate(Object val, @Comment("日期格式，如yyyy-MM-dd HH:mm:ss") String format) {
 		if (val == null) {
 			return null;
 		}

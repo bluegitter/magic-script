@@ -25,7 +25,7 @@ public abstract class BinaryOperation extends Expression {
 		Span span = operator.getSpan();
 		switch (operator.getType()) {
 			case Assignment:
-				expression = linqLevel == 0 ? new AssigmentOperation(left, span, right) : new EqualOperation(left, span, right);
+				expression = linqLevel == 0 ? new AssigmentOperation(left, span, right) : new EqualOperation(left, span, right,false);
 				break;
 			case Plus:
 				expression = new AddOperation(left, span, right);
@@ -70,11 +70,17 @@ public abstract class BinaryOperation extends Expression {
 				expression = new GreaterEqualOperation(left, span, right);
 				break;
 			case Equal:
-				expression = new EqualOperation(left, span, right);
+				expression = new EqualOperation(left, span, right,false);
+				break;
+			case EqualEqualEqual:
+				expression = new EqualOperation(left, span, right,true);
 				break;
 			case SqlNotEqual:
 			case NotEqual:
-				expression = new NotEqualOperation(left, span, right);
+				expression = new NotEqualOperation(left, span, right,false);
+				break;
+			case NotEqualEqual:
+				expression = new NotEqualOperation(left, span, right,true);
 				break;
 			case SqlAnd:
 			case And:

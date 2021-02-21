@@ -43,6 +43,11 @@ public enum TokenType {
 	ForwardSlashEqual("/=", "/="),
 	PercentEqual("%=", "%="),
 	// 1.3.0 end
+	// 1.3.9
+	ColonColon("::", "::"),
+	EqualEqualEqual("===", "==="),
+	NotEqualEqual("!==", "!=="),
+	// 1.3.9 end
 	And("&&", "&&"),
 	Or("||", "||"),
 	Xor("^", "^"),

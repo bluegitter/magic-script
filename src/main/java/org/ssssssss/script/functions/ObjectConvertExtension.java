@@ -28,8 +28,8 @@ public class ObjectConvertExtension {
 	@Comment("将值转换为int类型")
 	public static int asInt(Object val, @Comment("转换失败时的默认值") int defaultValue) {
 		try {
-			return Integer.parseInt(asString(val));
-		} catch (NumberFormatException e) {
+			return asDecimal(val).intValue();
+		} catch (Exception e) {
 			return defaultValue;
 		}
 	}
@@ -50,8 +50,8 @@ public class ObjectConvertExtension {
 	@Comment("将对象转为double类型")
 	public static double asDouble(Object val, @Comment("转换失败时的默认值") double defaultValue) {
 		try {
-			return Double.parseDouble(asString(val));
-		} catch (NumberFormatException e) {
+			return asDecimal(val).doubleValue();
+		} catch (Exception e) {
 			return defaultValue;
 		}
 	}
@@ -72,8 +72,8 @@ public class ObjectConvertExtension {
 	@Comment("将对象转为long类型")
 	public static long asLong(Object val, @Comment("转换失败时的默认值") long defaultValue) {
 		try {
-			return Long.parseLong(asString(val));
-		} catch (NumberFormatException e) {
+			return asDecimal(val).longValue();
+		} catch (Exception e) {
 			return defaultValue;
 		}
 	}
@@ -94,8 +94,8 @@ public class ObjectConvertExtension {
 	@Comment("将对象转为byte类型")
 	public byte asByte(Object val, @Comment("转换失败时的默认值") byte defaultValue) {
 		try {
-			return Byte.parseByte(asString(val));
-		} catch (NumberFormatException e) {
+			return asDecimal(val).byteValue();
+		} catch (Exception e) {
 			return defaultValue;
 		}
 	}
@@ -116,8 +116,8 @@ public class ObjectConvertExtension {
 	@Comment("将对象转为short类型")
 	public short asShort(Object val, @Comment("转换失败时的默认值") short defaultValue) {
 		try {
-			return Short.parseShort(asString(val), defaultValue);
-		} catch (NumberFormatException e) {
+			return asDecimal(val).shortValue();
+		} catch (Exception e) {
 			return defaultValue;
 		}
 	}
@@ -138,8 +138,8 @@ public class ObjectConvertExtension {
 	@Comment("将对象转为float类型")
 	public float asFloat(Object val, @Comment("转换失败时的默认值") float defaultValue) {
 		try {
-			return Float.parseFloat(asString(val));
-		} catch (NumberFormatException e) {
+			return asDecimal(val).floatValue();
+		} catch (Exception e) {
 			return defaultValue;
 		}
 	}

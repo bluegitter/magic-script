@@ -17,17 +17,17 @@ import java.util.stream.Collectors;
 
 public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEngine, Compilable {
 
-	private static Map<String, Object> defaultImports = new ConcurrentHashMap<>();
+	private static final Map<String, Object> defaultImports = new ConcurrentHashMap<>();
 
 	private static Map<String, ScriptClass> classMap = null;
 
-	private MagicScriptEngineFactory magicScriptEngineFactory;
+	private final MagicScriptEngineFactory magicScriptEngineFactory;
 
 	public MagicScriptEngine(MagicScriptEngineFactory magicScriptEngineFactory) {
 		this.magicScriptEngineFactory = magicScriptEngineFactory;
 	}
 
-	public static void addScriptClass(Class clazz) {
+	public static void addScriptClass(Class<?> clazz) {
 		if (classMap == null) {
 			getScriptClassMap();
 		}
@@ -37,9 +37,8 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 	public synchronized static Map<String, ScriptClass> getScriptClassMap() {
 		if (classMap == null) {
 			classMap = new HashMap<>();
-			Arrays.asList(String.class, Object.class, Date.class, Integer.class, Double.class, Float.class, Long.class, List.class, Short.class, Byte.class, Boolean.class, BigDecimal.class).forEach(clazz -> {
-				getScriptClass(clazz).forEach(scriptClass -> classMap.put(scriptClass.getClassName(), scriptClass));
-			});
+			Arrays.asList(String.class, Object.class, Date.class, Integer.class, Double.class, Float.class, Long.class, List.class, Short.class, Byte.class, Boolean.class, BigDecimal.class)
+					.forEach(clazz -> getScriptClass(clazz).forEach(scriptClass -> classMap.put(scriptClass.getClassName(), scriptClass)));
 		}
 		return classMap;
 	}
@@ -66,11 +65,41 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 		return classMap;
 	}
 
-	public static ScriptClass getScriptClassFromClass(Class clazz) {
+	public static ScriptClass getScriptClassFromClass(Class<?> clazz) {
 		Class<?> superClass = clazz.getSuperclass();
 		ScriptClass scriptClass = new ScriptClass();
 		scriptClass.setClassName(clazz.getName());
 		scriptClass.setSuperClass(superClass != null ? superClass.getName() : null);
+		appendMethod(clazz, scriptClass);
+		return scriptClass;
+	}
+
+	public static List<ScriptClass> getScriptClass(Class<?> clazz) {
+		List<ScriptClass> classList = new ArrayList<>();
+		Class<?> superClass;
+		do {
+			superClass = clazz.getSuperclass();
+			ScriptClass scriptClass = new ScriptClass();
+			scriptClass.setClassName(clazz.getName());
+			scriptClass.setSuperClass(superClass != null ? superClass.getName() : null);
+			Class<?>[] interfaces = clazz.getInterfaces();
+			List<String> interfaceList = new ArrayList<>();
+			for (Class<?> interfaceClazz : interfaces) {
+				classList.addAll(getScriptClass(interfaceClazz));
+				interfaceList.add(interfaceClazz.getName());
+			}
+			scriptClass.setInterfaces(interfaceList);
+			appendMethod(clazz, scriptClass);
+			if(clazz.isEnum()){
+				scriptClass.setEnums(clazz.getEnumConstants());
+			}
+			classList.add(scriptClass);
+			clazz = superClass;
+		} while (superClass != null && superClass != Object.class && superClass != Class.class);
+		return classList;
+	}
+
+	private static void appendMethod(Class<?> clazz, ScriptClass scriptClass) {
 		getMethod(clazz).forEach(method -> {
 			if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
 				String attributeName = method.getName().substring(3);
@@ -82,44 +111,6 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 				scriptClass.addMethod(method);
 			}
 		});
-		return scriptClass;
-	}
-
-	public static List<ScriptClass> getScriptClass(Class clazz) {
-		List<ScriptClass> classList = new ArrayList<>();
-		Class<?> superClass;
-		do {
-			superClass = clazz.getSuperclass();
-			ScriptClass scriptClass = new ScriptClass();
-			scriptClass.setClassName(clazz.getName());
-			scriptClass.setSuperClass(superClass != null ? superClass.getName() : null);
-			Class[] interfaces = clazz.getInterfaces();
-			if (interfaces != null) {
-				List<String> interfaceList = new ArrayList<>();
-				for (Class interfaceClazz : interfaces) {
-					classList.addAll(getScriptClass(interfaceClazz));
-					interfaceList.add(interfaceClazz.getName());
-				}
-				scriptClass.setInterfaces(interfaceList);
-			}
-			getMethod(clazz).forEach(method -> {
-				if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
-					String attributeName = method.getName().substring(3);
-					attributeName = attributeName.substring(0, 1).toLowerCase() + attributeName.substring(1);
-					if(!"class".equalsIgnoreCase(attributeName)){
-						scriptClass.addAttribute(new ScriptAttribute(method.getReturnType(), attributeName));
-					}
-				} else {
-					scriptClass.addMethod(method);
-				}
-			});
-			if(clazz.isEnum()){
-				scriptClass.setEnums(clazz.getEnumConstants());
-			}
-			classList.add(scriptClass);
-			clazz = superClass;
-		} while (superClass != null && superClass != Object.class && superClass != Class.class);
-		return classList;
 	}
 
 	public static List<ScriptClass> getScriptClass(String className) {
@@ -130,18 +121,20 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 		}
 	}
 
-	private static List<ScriptMethod> getMethod(Class clazz) {
+	private static List<ScriptMethod> getMethod(Class<?> clazz) {
 		List<ScriptMethod> methods = new ArrayList<>();
-		Method[] declaredMethods = clazz.getDeclaredMethods();
-		for (int i = 0; i < declaredMethods.length; i++) {
-			Method declaredMethod = declaredMethods[i];
-			if (!Modifier.isVolatile(declaredMethod.getModifiers())) {
-				if (Modifier.isPublic(declaredMethod.getModifiers()) && declaredMethod.getAnnotation(UnableCall.class) == null) {
-					if (Modifier.isPublic(declaredMethod.getModifiers())) {
-						methods.add(new ScriptMethod(declaredMethod));
+		try {
+			Method[] declaredMethods = clazz.getDeclaredMethods();
+			for (Method declaredMethod : declaredMethods) {
+				if (!Modifier.isVolatile(declaredMethod.getModifiers())) {
+					if (Modifier.isPublic(declaredMethod.getModifiers()) && declaredMethod.getAnnotation(UnableCall.class) == null) {
+						if (Modifier.isPublic(declaredMethod.getModifiers())) {
+							methods.add(new ScriptMethod(declaredMethod));
+						}
 					}
 				}
 			}
+		} catch (Exception ignored) {
 		}
 		return methods;
 	}

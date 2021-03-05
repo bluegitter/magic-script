@@ -252,7 +252,7 @@ public class JavaReflection extends AbstractReflection {
 	/**
 	 * Returns the method best matching the given signature, including type coercion, or null.
 	 **/
-	private static JavaInvoker<Method> findInvoker(Class<?> cls, String name, Class<?>[] parameterTypes) {
+	public static JavaInvoker<Method> findInvoker(Class<?> cls, String name, Class<?>[] parameterTypes) {
 		List<JavaInvoker<Method>> methodList = new ArrayList<>();
 		Method[] methods = cls.getDeclaredMethods();
 		for (int i = 0, n = methods.length; i < n; i++) {
@@ -268,6 +268,10 @@ public class JavaReflection extends AbstractReflection {
 			}
 		}
 		return findMethodInvoker(methodList, parameterTypes);
+	}
+
+	public static JavaInvoker<Method> findInvoker(Class<?> cls, String name) {
+		return findInvoker(cls,name,new Class<?>[0]);
 	}
 
 	/**

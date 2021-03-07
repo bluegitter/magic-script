@@ -147,4 +147,5 @@ public class GrammarTests extends BaseTest {
 	public void equalTest() {
 		Assert.assertEquals(true, execute("grammar/equal.ms"));
 	}
+
 }

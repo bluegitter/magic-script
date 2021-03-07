@@ -43,7 +43,7 @@ public class Parser {
 
 	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
 
-	private Stack<List<String>> varNames = new Stack<>();
+	private final Stack<List<String>> varNames = new Stack<>();
 
 	private List<String> current = new ArrayList<>();
 
@@ -80,7 +80,7 @@ public class Parser {
 	}
 
 	private Node parseStatement(TokenStream tokens, boolean expectRightCurly) {
-		Node result = null;
+		Node result;
 		if (tokens.match("import", false)) {
 			result = parseImport(tokens);
 		} else if (tokens.match("var", false)) {
@@ -226,7 +226,7 @@ public class Parser {
 
 	private List<Node> parseFunctionBody(TokenStream stream) {
 		stream.expect("{");
-		List<Node> blocks = new ArrayList<Node>();
+		List<Node> blocks = new ArrayList<>();
 		while (stream.hasMore() && !stream.match("}", false)) {
 			Node node = parseStatement(stream, true);
 			if (node != null) {
@@ -313,7 +313,7 @@ public class Parser {
 	private Node parseIfStatement(TokenStream stream) {
 		Span openingIf = stream.expect("if").getSpan();
 		Expression condition = parseExpression(stream);
-		int trueVarCount = 0;
+		int trueVarCount;
 		push();
 		List<Node> trueBlock = parseFunctionBody(stream);
 		trueVarCount = pop();
@@ -503,19 +503,19 @@ public class Parser {
 	}
 
 	private Expression parseSelect(TokenStream stream) {
-		Span opeing = stream.expect("select").getSpan();
+		Span opeing = stream.expect("select", true).getSpan();
 		linqLevel++;
 		List<LinqField> fields = parseLinqFields(stream);
-		stream.expect("from");
+		stream.expect("from", true);
 		LinqField from = parseLinqField(stream);
 		List<LinqJoin> joins = parseLinqJoins(stream);
 		Expression where = null;
-		if (stream.match("where", true)) {
+		if (stream.match("where", true, true)) {
 			where = parseExpression(stream);
 		}
 		List<LinqField> groups = parseGroup(stream);
 		Expression having = null;
-		if (stream.match("having", true)) {
+		if (stream.match("having", true, true)) {
 			having = parseExpression(stream);
 		}
 		List<LinqOrder> orders = parseLinqOrders(stream);
@@ -526,8 +526,8 @@ public class Parser {
 
 	private List<LinqField> parseGroup(TokenStream stream) {
 		List<LinqField> groups = new ArrayList<>();
-		if (stream.match("group", true)) {
-			stream.expect("by");
+		if (stream.match("group", true, true)) {
+			stream.expect("by", true);
 			do {
 				Expression expression = parseExpression(stream);
 				groups.add(new LinqField(expression.getSpan(), expression, null));
@@ -538,13 +538,13 @@ public class Parser {
 
 	private List<LinqOrder> parseLinqOrders(TokenStream stream) {
 		List<LinqOrder> orders = new ArrayList<>();
-		if (stream.match("order", true)) {
-			stream.expect("by");
+		if (stream.match("order", true, true)) {
+			stream.expect("by", true);
 			do {
 				Expression expression = parseExpression(stream);
 				int order = 1;
-				if (stream.match(false, "desc", "asc")) {
-					if ("desc".equals(stream.consume().getText())) {
+				if (stream.match(false, true, "desc", "asc")) {
+					if ("desc".equalsIgnoreCase(stream.consume().getText())) {
 						order = -1;
 					}
 				}
@@ -559,7 +559,7 @@ public class Parser {
 		do {
 			Expression expression = parseExpression(stream);
 
-			if (stream.match(TokenType.Identifier, false) && !stream.match(linqKeywords, false)) {
+			if (stream.match(TokenType.Identifier, false) && !stream.match(linqKeywords, false, true)) {
 				if (expression instanceof WholeLiteral) {
 					MagicScriptError.error("* 后边不能跟别名", stream);
 				} else if (expression instanceof MemberAccess && ((MemberAccess) expression).isWhole()) {
@@ -580,22 +580,22 @@ public class Parser {
 	private List<LinqJoin> parseLinqJoins(TokenStream stream) {
 		List<LinqJoin> joins = new ArrayList<>();
 		do {
-			boolean isLeft = stream.match("left", false);
+			boolean isLeft = stream.match("left", false, true);
 			Span opeing = isLeft ? stream.consume().getSpan() : null;
-			if (stream.match("join", true)) {
+			if (stream.match("join", true, true)) {
 				opeing = isLeft ? opeing : stream.getPrev().getSpan();
 				LinqField target = parseLinqField(stream);
-				stream.expect("on");
+				stream.expect("on", true);
 				Expression condition = parseExpression(stream);
 				joins.add(new LinqJoin(new Span(opeing, stream.getPrev().getSpan()), isLeft, target, condition));
 			}
-		} while (stream.match(false, "left", "join"));
+		} while (stream.match(false, true, "left", "join"));
 		return joins;
 	}
 
 	private LinqField parseLinqField(TokenStream stream) {
 		Expression expression = parseExpression(stream);
-		if (stream.match(TokenType.Identifier, false) && !stream.match(linqKeywords, false)) {
+		if (stream.match(TokenType.Identifier, false) && !stream.match(linqKeywords, false, true)) {
 			Span alias = stream.expect(TokenType.Identifier).getSpan();
 			return new LinqField(new Span(expression.getSpan(), alias), expression, add(alias.getText()));
 		}
@@ -608,7 +608,7 @@ public class Parser {
 			return null;
 		} else if (stream.match("async", false)) {
 			expression = parseAsync(stream);
-		} else if (stream.match("select", false)) {
+		} else if (stream.match("select", false, true)) {
 			expression = parseSelect(stream);
 		} else if (stream.match(TokenType.Spread, false)) {
 			expression = parseSpreadAccess(stream);

@@ -14,4 +14,9 @@ public class LinqTests extends BaseTest {
 	public void linq_2() {
 		execute("grammar/linq/linq_2.ms");
 	}
+
+	@Test
+	public void linq_3() {
+		execute("grammar/linq/linq_3.ms");
+	}
 }

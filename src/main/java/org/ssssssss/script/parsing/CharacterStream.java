@@ -157,22 +157,15 @@ public class CharacterStream {
 	}
 
 	public void skipLine() {
-		while (true) {
-			if (index >= end) {
-				return;
-			}
-			char c = source.charAt(index++);
-			if (c == '\n') {
+		while (index < end) {
+			if (source.charAt(index++) == '\n') {
 				break;
 			}
 		}
 	}
 
-	public void skipUntil(String chars) {
-		while (true) {
-			if (index >= end) {
-				return;
-			}
+	public boolean skipUntil(String chars) {
+		while (index < end) {
 			boolean matched = true;
 			for (int i = 0, len = chars.length(); i < len && index + i < end; i++) {
 				if (chars.charAt(i) != source.charAt(index + i)) {
@@ -182,23 +175,20 @@ public class CharacterStream {
 			}
 			this.index += matched ? chars.length() : 1;
 			if (matched) {
-				break;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**
 	 * Skips any number of successive whitespace characters.
 	 **/
 	public void skipWhiteSpace() {
-		while (true) {
-			if (index >= end) {
-				return;
-			}
+		while (index < end) {
 			char c = source.charAt(index);
 			if (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
 				index++;
-				continue;
 			} else {
 				break;
 			}
@@ -217,6 +207,9 @@ public class CharacterStream {
 	 **/
 	public Span endSpan() {
 		return new Span(source, spanStart, index);
+	}
+	public Span endSpan(int offset) {
+		return new Span(source, spanStart, index + offset);
 	}
 
 	/**

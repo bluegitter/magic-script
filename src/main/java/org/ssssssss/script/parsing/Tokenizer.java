@@ -149,6 +149,25 @@ public class Tokenizer {
 			if (regexpToken(stream, tokens)) {
 				continue;
 			}
+			// TODO exception
+			if (stream.match("```", true)) {
+				stream.startSpan();
+				if (stream.matchIdentifierStart(true)) {
+					while (stream.matchIdentifierPart(true)) {
+						;
+					}
+					Span language = stream.endSpan();
+					tokens.add(new Token(TokenType.Language, language));
+					stream.startSpan();
+					if (!stream.skipUntil("```")) {
+						MagicScriptError.error("```需要以```结尾", stream.endSpan(), new StringLiteralException());
+					}
+					tokens.add(new Token(TokenType.Language, stream.endSpan(-3)));
+				} else {
+					MagicScriptError.error("```后需要标识语言类型", stream.endSpan(), new StringLiteralException());
+				}
+			}
+
 			// Identifier, keyword, boolean literal, or null literal
 			if (stream.matchIdentifierStart(true)) {
 				stream.startSpan();
@@ -199,9 +218,9 @@ public class Tokenizer {
 	}
 
 	private static boolean regexpToken(CharacterStream stream, List<Token> tokens) {
-		if(tokens.size() > 0){
+		if (tokens.size() > 0) {
 			Token token = tokens.get(tokens.size() - 1);
-			if(token instanceof LiteralToken || token.getType() == TokenType.Identifier){
+			if (token instanceof LiteralToken || token.getType() == TokenType.Identifier) {
 				return false;
 			}
 		}

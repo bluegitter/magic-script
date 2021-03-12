@@ -4,6 +4,7 @@ package org.ssssssss.script.parsing;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.ast.*;
+import org.ssssssss.script.parsing.ast.binary.AssigmentOperation;
 import org.ssssssss.script.parsing.ast.linq.*;
 import org.ssssssss.script.parsing.ast.literal.*;
 import org.ssssssss.script.parsing.ast.statement.*;
@@ -249,19 +250,13 @@ public class Parser {
 	private VariableDefine parseVarDefine(TokenStream stream) {
 		Span opening = stream.expect("var").getSpan();
 		TokenType expected = null;
-		if (stream.hasMore()) {
-			expected = TokenType.Identifier;
-			Token token = stream.expect(expected);
-			checkKeyword(token.getSpan());
-			String variableName = token.getSpan().getText();
-			expected = TokenType.Assignment;
-			if (stream.hasMore()) {
-				stream.expect(expected);
-				return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), forceAdd(variableName), parseExpression(stream));
-			}
+		Token token = stream.expect(TokenType.Identifier);
+		checkKeyword(token.getSpan());
+		String variableName = token.getSpan().getText();
+		if (stream.match(TokenType.Assignment,true)) {
+			return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), forceAdd(variableName), parseExpression(stream));
 		}
-		MagicScriptError.error("Expected " + expected.getError() + ", but got stream is EOF", stream.getPrev().getSpan());
-		return null;
+		return new VariableDefine(new Span(opening, stream.getPrev().getSpan()), forceAdd(variableName), null);
 	}
 
 	private void checkKeyword(Span span) {
@@ -361,11 +356,11 @@ public class Parser {
 			Expression trueExpression = parseTernaryOperator(stream, expectRightCurly);
 			stream.expect(TokenType.Colon);
 			Expression falseExpression = parseTernaryOperator(stream, expectRightCurly);
-//			if (condition instanceof BinaryOperation) {
-//				BinaryOperation operation = (BinaryOperation) condition;
-//				operation.setRightOperand(new TernaryOperation(operation.getRightOperand(), trueExpression, falseExpression));
-//				return operation;
-//			}
+			if (condition instanceof AssigmentOperation) {
+				AssigmentOperation operation = (AssigmentOperation) condition;
+				operation.setRightOperand(new TernaryOperation(operation.getRightOperand(), trueExpression, falseExpression));
+				return operation;
+			}
 			return new TernaryOperation(condition, trueExpression, falseExpression);
 		} else {
 			return condition;
@@ -644,6 +639,8 @@ public class Parser {
 			expression = new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
 		} else if (linqLevel > 0 && stream.match(TokenType.Asterisk, false)) {
 			expression = new WholeLiteral(stream.expect(TokenType.Asterisk).getSpan());
+		} else if(stream.match(TokenType.Language, false)){
+			expression = new LanguageExpression(stream.consume().getSpan(), stream.consume().getSpan());
 		}
 		if (expression instanceof StringLiteral && stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
 			stream.prev();

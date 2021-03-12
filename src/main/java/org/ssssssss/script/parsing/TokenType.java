@@ -73,6 +73,7 @@ public enum TokenType {
 	CharacterLiteral("a character"),
 	StringLiteral("a string"),
 	NullLiteral("null"),
+	Language("language"),
 	Identifier("an identifier");
 	// @on
 

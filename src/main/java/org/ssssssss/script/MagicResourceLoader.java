@@ -2,6 +2,7 @@ package org.ssssssss.script;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,8 @@ public class MagicResourceLoader {
 	private static final Set<String> PACKAGES = new HashSet<>();
 
 	private static List<Function<String, Object>> FUNCTION_LOADERS = new ArrayList<>();
+
+	private static List<Function<String, BiFunction<Map<String, Object>, String, Object>>> SCRIPT_LANGUAGE_LOADERS = new ArrayList<>();
 
 	static {
 		addPackage("java.util.*");
@@ -69,6 +72,23 @@ public class MagicResourceLoader {
 		for (String prefix : PACKAGES) {
 			try {
 				return Class.forName(prefix + simpleName);
+			} catch (Exception ignored) {
+			}
+		}
+		return null;
+	}
+
+	public static void addScriptLanguageLoader(Function<String, BiFunction<Map<String, Object>, String, Object>> loader){
+		SCRIPT_LANGUAGE_LOADERS.add(loader);
+	}
+
+	public static BiFunction<Map<String, Object>, String, Object> loadScriptLanguage(String name) {
+		for (Function<String, BiFunction<Map<String, Object>, String, Object>> languageLoader : SCRIPT_LANGUAGE_LOADERS) {
+			try {
+				BiFunction<Map<String, Object>, String, Object> function = languageLoader.apply(name);
+				if(function != null){
+					return function;
+				}
 			} catch (Exception ignored) {
 			}
 		}

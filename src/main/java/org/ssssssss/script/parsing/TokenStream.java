@@ -4,6 +4,8 @@ import org.ssssssss.script.MagicScriptError;
 
 import javax.xml.transform.Source;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -79,6 +81,22 @@ public class TokenStream {
 			throw new RuntimeException("Reached the end of the source.");
 		}
 		return tokens.get(index - 1);
+	}
+
+	public Token expect(TokenType ... types) {
+		boolean result = match(true, types);
+		if (!result) {
+			Token token = index < tokens.size() ? tokens.get(index) : null;
+			Span span = token != null ? token.getSpan() : null;
+			if (span == null) {
+				MagicScriptError.error("Expected '" + Stream.of(types).map(TokenType::getError).collect(Collectors.joining("','")) + "', but reached the end of the source.", this);
+			} else {
+				MagicScriptError.error("Expected '" + Stream.of(types).map(TokenType::getError).collect(Collectors.joining("','")) + "', but got '" + token.getText() + "'", span);
+			}
+			return null; // never reached
+		} else {
+			return tokens.get(index - 1);
+		}
 	}
 
 	/**

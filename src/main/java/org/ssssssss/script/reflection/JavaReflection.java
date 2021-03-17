@@ -3,6 +3,7 @@ package org.ssssssss.script.reflection;
 import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.convert.ClassImplicitConvert;
 import org.ssssssss.script.convert.CollectionImplicitConvert;
+import org.ssssssss.script.convert.FunctionalImplicitConvert;
 import org.ssssssss.script.convert.MapImplicitConvert;
 import org.ssssssss.script.functions.*;
 import org.ssssssss.script.functions.linq.AggregationFunctions;
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
 
 public class JavaReflection extends AbstractReflection {
 	private final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
-	private static SortedSet<ClassImplicitConvert> converts;
+	private static List<ClassImplicitConvert> converts;
 	private final Map<Class<?>, Map<String, List<JavaInvoker<Method>>>> extensionmethodCache = new ConcurrentHashMap<>();
 	private final Map<Class<?>, Map<MethodSignature, JavaInvoker<Method>>> methodCache = new ConcurrentHashMap<>();
 	private static Map<Class<?>, List<Class<?>>> extensionMap;
@@ -40,11 +41,10 @@ public class JavaReflection extends AbstractReflection {
 		registerMethodExtension(Number.class, new NumberExtension());
 		registerMethodExtension(Pattern.class, new PatternExtension());
 		registerMethodExtension(String.class, new StringExtension());
-
-		converts = new TreeSet<>(Comparator.comparingInt(ClassImplicitConvert::sort));
-
+		converts = new ArrayList<>();
 		registerImplicitConvert(new MapImplicitConvert());
 		registerImplicitConvert(new CollectionImplicitConvert());
+		registerImplicitConvert(new FunctionalImplicitConvert());
 
 		functions = new ArrayList<>();
 		registerFunction(new AggregationFunctions());
@@ -254,7 +254,7 @@ public class JavaReflection extends AbstractReflection {
 	 **/
 	public static JavaInvoker<Method> findInvoker(Class<?> cls, String name, Class<?>[] parameterTypes) {
 		List<JavaInvoker<Method>> methodList = new ArrayList<>();
-		Method[] methods = cls.getDeclaredMethods();
+		Method[] methods = cls.getMethods();
 		for (int i = 0, n = methods.length; i < n; i++) {
 			Method method = methods[i];
 			if (!method.getName().equals(name)) {
@@ -271,7 +271,7 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	public static JavaInvoker<Method> findInvoker(Class<?> cls, String name) {
-		return findInvoker(cls,name,new Class<?>[0]);
+		return findInvoker(cls, name, new Class<?>[0]);
 	}
 
 	/**
@@ -438,7 +438,7 @@ public class JavaReflection extends AbstractReflection {
 						cachedList = new ArrayList<>();
 						cachedMethodMap.put(method.getName(), cachedList);
 					}
-					cachedList.add(new MethodInvoker(method,extensionObject));
+					cachedList.add(new MethodInvoker(method, extensionObject));
 				}
 			}
 			Collection<List<JavaInvoker<Method>>> methodsValues = cachedMethodMap.values();

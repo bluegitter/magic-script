@@ -148,4 +148,9 @@ public class GrammarTests extends BaseTest {
 		Assert.assertEquals(true, execute("grammar/equal.ms"));
 	}
 
+	@Test
+	public void functionalTest() {
+		execute("grammar/functional.ms");
+	}
+
 }

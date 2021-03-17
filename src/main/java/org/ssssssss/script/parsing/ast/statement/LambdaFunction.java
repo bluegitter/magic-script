@@ -25,7 +25,17 @@ public class LambdaFunction extends Expression {
 
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
-		return (Function<Object[], Object>) args -> evaluate(context, scope.create(varCount), args);
+		return (Function<Object, Object>) args -> {
+			Object[] arguments;
+			if(args == null){
+				arguments = new Object[0];
+			}else if(args.getClass().isArray()){
+				arguments = (Object[])args;
+			}else{
+				arguments = new Object[]{args};
+			}
+			return evaluate(context, scope.create(varCount), arguments);
+		};
 	}
 
 	public List<VarIndex> getParameters() {

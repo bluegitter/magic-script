@@ -13,12 +13,12 @@ public class NumberExtension {
 
 	@Comment("四舍五入保留N位小数")
 	public static double round(Number number, @Comment("规定小数的位数") int num) {
-		return new BigDecimal("" + number.doubleValue()).setScale(num, RoundingMode.UP).doubleValue();
+		return new BigDecimal("" + number.doubleValue()).setScale(num, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	@Comment("四舍五入保留N位小数,仿JS的toFixed")
 	public String toFixed(Number number, @Comment("规定小数的位数") int num) {
-		return new BigDecimal("" + number.doubleValue()).setScale(num, RoundingMode.UP).toString();
+		return new BigDecimal("" + number.doubleValue()).setScale(num, RoundingMode.HALF_UP).toString();
 	}
 
 	@Comment("向下取整")
@@ -43,7 +43,7 @@ public class NumberExtension {
 
 	@Comment("转为百分比")
 	public static String asPercent(Number number,@Comment("规定小数的位数") int num) {
-		return new BigDecimal(number.doubleValue() * 100).setScale(num, RoundingMode.UP).toString() + "%";
+		return new BigDecimal(number.doubleValue() * 100).setScale(num, RoundingMode.HALF_UP).toString() + "%";
 	}
 
 	private static Number fixed(double value) {

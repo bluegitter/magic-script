@@ -230,6 +230,8 @@ public class MemberAccess extends Expression implements VariableSetter {
 								, getName().getText()
 								, methodName), getSpan());
 					}
+				} else {
+					AbstractReflection.getInstance().setFieldValue(object, field, value);
 				}
 			}
 		}

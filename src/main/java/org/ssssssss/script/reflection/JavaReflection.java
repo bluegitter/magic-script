@@ -1,10 +1,7 @@
 package org.ssssssss.script.reflection;
 
 import org.ssssssss.script.annotation.UnableCall;
-import org.ssssssss.script.convert.ClassImplicitConvert;
-import org.ssssssss.script.convert.CollectionImplicitConvert;
-import org.ssssssss.script.convert.FunctionalImplicitConvert;
-import org.ssssssss.script.convert.MapImplicitConvert;
+import org.ssssssss.script.convert.*;
 import org.ssssssss.script.functions.*;
 import org.ssssssss.script.functions.linq.AggregationFunctions;
 import org.ssssssss.script.functions.linq.LinqFunctions;
@@ -42,9 +39,14 @@ public class JavaReflection extends AbstractReflection {
 		registerMethodExtension(Pattern.class, new PatternExtension());
 		registerMethodExtension(String.class, new StringExtension());
 		converts = new ArrayList<>();
+		// Map 到 Bean 隐式转换
 		registerImplicitConvert(new MapImplicitConvert());
+		// 集合 到 List<Bean> 的转换
 		registerImplicitConvert(new CollectionImplicitConvert());
+		// lambda 到 functional 的转换
 		registerImplicitConvert(new FunctionalImplicitConvert());
+		// 任意值 到 Boolean 的转换
+		registerImplicitConvert(new BooleanImplicitConvert());
 
 		functions = new ArrayList<>();
 		registerFunction(new AggregationFunctions());

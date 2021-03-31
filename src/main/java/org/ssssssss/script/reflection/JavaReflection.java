@@ -53,6 +53,7 @@ public class JavaReflection extends AbstractReflection {
 		registerFunction(new LinqFunctions());
 		registerFunction(new CollectionFunctions());
 		registerFunction(new MathFunctions());
+		registerFunction(new MagicScriptFunctions());
 	}
 
 	public static void registerFunction(Object target) {

@@ -88,7 +88,7 @@ public class StreamExtension {
 		List<Object> results = new ArrayList<>(objects.size());
 		for (int i = 0, len = objects.size(); i < len; i++) {
 			Object object = objects.get(i);
-			if (Objects.equals(true, function.apply(new Object[]{object, i, len}))) {
+			if (BooleanLiteral.isTrue(function.apply(new Object[]{object, i, len}))) {
 				results.add(object);
 			}
 		}

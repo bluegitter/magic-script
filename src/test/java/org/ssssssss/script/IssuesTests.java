@@ -34,4 +34,9 @@ public class IssuesTests extends BaseTest {
 	public void i398nd() {
 		Assert.assertEquals(true, execute("issues/I398ND.ms"));
 	}
+
+	@Test
+	public void bug_visit_inner_class() {
+		Assert.assertEquals(Constants.Test.OK, execute("issues/bug_visit_inner_class.ms"));
+	}
 }

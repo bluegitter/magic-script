@@ -364,6 +364,19 @@ public class JavaReflection extends AbstractReflection {
 		return false;
 	}
 
+	@Override
+	public Object getInnerClass(Object obj, String name) {
+		Class cls = obj instanceof Class ? (Class) obj : obj.getClass();
+		Class[] classes = cls.getDeclaredClasses();
+		for (int i = 0, len = classes.length; i < len; i++) {
+			Class clazz = classes[i];
+			if(name.equalsIgnoreCase(clazz.getSimpleName())){
+				return clazz;
+			}
+		}
+		return null;
+	}
+
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Field getField(Object obj, String name) {

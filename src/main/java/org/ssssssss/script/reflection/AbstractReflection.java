@@ -33,6 +33,8 @@ public abstract class AbstractReflection {
      **/
     public abstract Field getField(Object obj, String name);
 
+    public abstract Object getInnerClass(Object obj, String name);
+
     /**
      * Returns an opaque handle to the method with the given name best matching the signature implied by the given arguments, or
      * null if the method could not be found. If obj is an instance of Class, the matching static method is returned. If the name

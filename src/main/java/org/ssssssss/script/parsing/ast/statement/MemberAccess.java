@@ -171,11 +171,17 @@ public class MemberAccess extends Expression implements VariableSetter {
 									, methodName), getSpan(), e);
 							return null;
 						}
-						MagicScriptError.error(String.format("在%s中找不到属性%s或者方法get%s、方法is%s"
-								, object.getClass()
-								, getName().getText()
-								, methodName
-								, methodName), getSpan());
+						Object innerClass = AbstractReflection.getInstance().getInnerClass(object, text);
+						if (innerClass != null) {
+							return innerClass;
+						} else {
+							MagicScriptError.error(String.format("在%s中找不到属性%s或者方法get%s、方法is%s,内部类%s"
+									, object.getClass()
+									, getName().getText()
+									, methodName
+									, methodName
+									, text), getSpan());
+						}
 					}
 				}
 			}

@@ -249,7 +249,6 @@ public class Parser {
 
 	private VariableDefine parseVarDefine(TokenStream stream) {
 		Span opening = stream.expect("var").getSpan();
-		TokenType expected = null;
 		Token token = stream.expect(TokenType.Identifier);
 		checkKeyword(token.getSpan());
 		String variableName = token.getSpan().getText();

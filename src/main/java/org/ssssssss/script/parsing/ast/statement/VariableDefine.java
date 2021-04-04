@@ -21,9 +21,7 @@ public class VariableDefine extends Node {
 
     @Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
-		if(right != null){
-			scope.setValue(varIndex, right.evaluate(context, scope));
-		}
+		scope.setValue(varIndex, right != null ? right.evaluate(context, scope) : null);
         return null;
     }
 }

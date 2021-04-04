@@ -26,6 +26,11 @@ public class IssuesTests extends BaseTest {
 	}
 
 	@Test
+	public void bug_assigment() {
+		Assert.assertEquals(1, execute("issues/bug_assigment.ms"));
+	}
+
+	@Test
 	public void i398nd() {
 		Assert.assertEquals(true, execute("issues/I398ND.ms"));
 	}

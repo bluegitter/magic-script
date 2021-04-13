@@ -23,6 +23,9 @@ public class BooleanLiteral extends Literal {
         if(object instanceof Boolean){
             return (Boolean) object;
         }
+        if(object instanceof CharSequence){   // 非空字符串
+            return ((CharSequence)object).length() != 0;
+        }
         if(object instanceof Number){   // 非0 为 true
             return ((Number)object).doubleValue() != 0;
         }
@@ -31,9 +34,6 @@ public class BooleanLiteral extends Literal {
         }
         if(object.getClass().isArray()){    // 非空数组
             return Array.getLength(object) > 0;
-        }
-        if(object instanceof String){   // 非空字符串
-            return !object.toString().isEmpty();
         }
         if(object instanceof Map){  // 非空Map
             return !((Map)object).isEmpty();

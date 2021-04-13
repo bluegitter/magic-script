@@ -3,7 +3,6 @@ package org.ssssssss.script.parsing.ast.statement;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.functions.ObjectConvertExtension;
-import org.ssssssss.script.functions.StringExtension;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
@@ -37,18 +36,18 @@ public class ClassConverter extends Expression {
 		register("string", (target, params) -> process(target::toString, params));
 		register("date", (target, params) -> {
 			try {
-				if(params.length ==0){
+				if (params.length == 0) {
 					throw new IllegalArgumentException("::date需要日期格式，如::date('yyyy-mm-dd')");
 				}
-				return ObjectConvertExtension.asDate(target,params[0].toString());
+				return ObjectConvertExtension.asDate(target, params[0].toString());
 			} catch (Exception e) {
 				return null;
 			}
 		});
 	}
 
-	private static void register(String target,Function<BigDecimal,Object> converter) {
-		register(target,(value,params) -> {
+	private static void register(String target, Function<BigDecimal, Object> converter) {
+		register(target, (value, params) -> {
 			try {
 				return converter.apply(ObjectConvertExtension.asDecimal(value));
 			} catch (Exception e) {

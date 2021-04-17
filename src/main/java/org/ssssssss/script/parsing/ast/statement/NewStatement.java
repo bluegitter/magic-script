@@ -12,22 +12,19 @@ import java.util.List;
 
 public class NewStatement extends Expression {
 
-	private List<Expression> arguments;
+	private final List<Expression> arguments;
 
-	private VarIndex target;
+	private final Expression target;
 
-	private VariableAccess variableAccess;
-
-	public NewStatement(Span span, VarIndex target, List<Expression> arguments) {
+	public NewStatement(Span span, Expression target, List<Expression> arguments) {
 		super(span);
 		this.target = target;
 		this.arguments = arguments;
-		this.variableAccess = new VariableAccess(span, target);
 	}
 
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Object clazz = variableAccess.evaluate(context, scope);
+		Object clazz = target.evaluate(context, scope);
 		if (clazz instanceof Class) {
 			Class<?> cls = (Class<?>) clazz;
 			Object[] args = new Object[arguments.size()];
@@ -37,10 +34,10 @@ public class NewStatement extends Expression {
 			try {
 				return ClassExtension.newInstance(cls, args);
 			} catch (Throwable t) {
-				MagicScriptError.error("class " + target.getName() + " can not newInstance.", getSpan(), t);
+				MagicScriptError.error(clazz + " can not newInstance.", getSpan(), t);
 			}
 		} else {
-			MagicScriptError.error(target.getName() + " 不是class类型", getSpan());
+			MagicScriptError.error(clazz + " 不是class类型", getSpan());
 		}
 		return null;
 	}

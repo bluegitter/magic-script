@@ -240,11 +240,18 @@ public class Parser {
 	}
 
 	private Expression parseNewExpression(Span opening, TokenStream stream) {
-		Token identifier = stream.expect(TokenType.Identifier);
-		List<Expression> arguments = new ArrayList<>();
-		arguments.addAll(parseArguments(stream));
-		Span closing = stream.expect(")").getSpan();
-		return parseConverterOrAccessOrCall(stream, new NewStatement(new Span(opening, closing), add(identifier.getText()), arguments));
+		Expression expression = parseAccessOrCall(stream, TokenType.Identifier, true);
+		if (expression instanceof MethodCall) {
+			MethodCall call = (MethodCall) expression;
+			Span span = new Span(opening.getSource(), opening.getStart(), stream.getPrev().getSpan().getEnd());
+			return parseConverterOrAccessOrCall(stream, new NewStatement(span, call.getMethod(), call.getArguments()));
+		} else if (expression instanceof FunctionCall) {
+			FunctionCall call = (FunctionCall) expression;
+			Span span = new Span(opening.getSource(), opening.getStart(), stream.getPrev().getSpan().getEnd());
+			return parseConverterOrAccessOrCall(stream, new NewStatement(span, call.getFunction(), call.getArguments()));
+		}
+		MagicScriptError.error("Expected MethodCall or FunctionCall or LambdaFunction", stream.getPrev().getSpan());
+		return null;
 	}
 
 	private VariableDefine parseVarDefine(TokenStream stream) {
@@ -455,7 +462,7 @@ public class Parser {
 				}
 				expression = new ClassConverter(new Span(open, closing), identifier.getText(), expression, arguments);
 			} else {
-				expression = parseAccessOrCall(stream, expression);
+				expression = parseAccessOrCall(stream, expression, false);
 			}
 		}
 		return expression;
@@ -607,7 +614,7 @@ public class Parser {
 		} else if (stream.match(TokenType.Spread, false)) {
 			expression = parseSpreadAccess(stream);
 		} else if (stream.match(TokenType.Identifier, false)) {
-			expression = parseAccessOrCall(stream, TokenType.Identifier);
+			expression = parseAccessOrCall(stream, TokenType.Identifier, false);
 		} else if (stream.match(TokenType.LeftCurly, false)) {
 			expression = parseMapLiteral(stream);
 		} else if (stream.match(TokenType.LeftBracket, false)) {
@@ -633,7 +640,7 @@ public class Parser {
 		} else if (stream.match(TokenType.RegexpLiteral, false)) {
 			Token token = stream.expect(TokenType.RegexpLiteral);
 			Expression target = new RegexpLiteral(token.getSpan(), token);
-			expression = parseAccessOrCall(stream, target);
+			expression = parseAccessOrCall(stream, target, false);
 		} else if (stream.match(TokenType.NullLiteral, false)) {
 			expression = new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
 		} else if (linqLevel > 0 && stream.match(TokenType.Asterisk, false)) {
@@ -643,7 +650,7 @@ public class Parser {
 		}
 		if (expression instanceof StringLiteral && stream.match(false, TokenType.Period, TokenType.QuestionPeriod)) {
 			stream.prev();
-			expression = parseAccessOrCall(stream, TokenType.StringLiteral);
+			expression = parseAccessOrCall(stream, TokenType.StringLiteral, false);
 		}
 		if (expression == null) {
 			MagicScriptError.error("Expected a variable, field, map, array, function or method call, or literal.", stream);
@@ -712,7 +719,7 @@ public class Parser {
 	}
 
 
-	private Expression parseAccessOrCall(TokenStream stream, TokenType tokenType) {
+	private Expression parseAccessOrCall(TokenStream stream, TokenType tokenType, boolean isNew) {
 		//Span identifier = stream.expect(TokenType.Identifier);
 		//Expression result = new VariableAccess(identifier);
 		Span identifier = stream.expect(tokenType).getSpan();
@@ -726,10 +733,10 @@ public class Parser {
 			return expression;
 		}
 		Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) : new VariableAccess(identifier, add(identifier.getText()));
-		return parseAccessOrCall(stream, result);
+		return parseAccessOrCall(stream, result, isNew);
 	}
 
-	private Expression parseAccessOrCall(TokenStream stream, Expression target) {
+	private Expression parseAccessOrCall(TokenStream stream, Expression target, boolean isNew) {
 		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.QuestionPeriod)) {
 			// function or method call
 			if (stream.match(TokenType.LeftParantheses, false)) {
@@ -741,6 +748,9 @@ public class Parser {
 					target = new MethodCall(new Span(target.getSpan(), closingSpan), (MemberAccess) target, arguments, linqLevel > 0);
 				} else {
 					MagicScriptError.error("Expected a variable, field or method.", stream);
+				}
+				if(isNew){
+					break;
 				}
 			}
 

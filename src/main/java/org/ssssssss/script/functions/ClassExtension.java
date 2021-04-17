@@ -24,6 +24,9 @@ public class ClassExtension {
 		}
 		List<Constructor<?>> constructors = Arrays.asList(clazz.getConstructors());
 		JavaInvoker<Constructor> invoker = JavaReflection.findConstructorInvoker(constructors, parametersTypes);
+		if(invoker == null){
+			throw new RuntimeException(String.format("can not found constructor for [%s] with types: [%s]", clazz, Arrays.toString(parametersTypes)));
+		}
 		return invoker.invoke0(null, null, values);
 	}
 }

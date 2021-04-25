@@ -64,7 +64,7 @@ public class MagicScriptContext {
 		if (scope != null) {
 			return scope.getValue(name);
 		}
-		return null;
+		return rootVariables.get(name);
 	}
 
 	/**

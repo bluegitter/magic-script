@@ -4,20 +4,16 @@ import java.util.Objects;
 
 public class VarIndex {
 
-	private String name;
+	private final String name;
 
-	private int index;
+	private final int index;
 
-	private boolean reference;
+	private final boolean reference;
 
 	VarIndex(String name, int index, boolean reference) {
 		this.name = name;
 		this.index = index;
 		this.reference = reference;
-		if("lambda2".equals(name)){
-			System.out.println("?????");
-		}
-		System.out.println("变量:" + name + "，index:" + index);
 	}
 
 	public String getName() {

@@ -250,7 +250,7 @@ public class FunctionCallHandle {
 				// TODO NEW EXCEPTION
 				((List) target).set(((Number) name).intValue(), value);
 			} else {
-				System.out.println("不支持此赋值操作");
+				throw new UnsupportedOperationException("不支持此赋值操作");
 			}
 		} else {
 			String text = name.toString();

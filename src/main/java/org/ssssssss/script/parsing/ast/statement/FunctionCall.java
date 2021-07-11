@@ -35,14 +35,14 @@ public class FunctionCall extends Expression {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.compile(function)
-				.load1()
-				.ldc(getFunction().getSpan().getText())
+		compiler.visit(function)	// 访问函数
+				.load1()	// 参数 MagicScriptContext
+				.ldc(getFunction().getSpan().getText())	// 函数名
 				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
+				.asBoolean()	// 是否有扩展参数(...xxx)
+				.insn(ICONST_0)	// 不可以可空调用 ?.
 				.asBoolean()
-				.insn(ICONST_0)
-				.asBoolean()
-				.visit(arguments)
-				.call("invoke_method", arguments.size() + 5);
+				.visit(arguments)	// 访问参数
+				.call("invoke_method", arguments.size() + 5);	// 调用函数
 	}
 }

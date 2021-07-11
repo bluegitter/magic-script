@@ -23,11 +23,13 @@ public class MapOrArrayAccess extends Expression implements VariableSetter {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.compile(mapOrArray).compile(keyOrIndex).operator("map_or_array_access");
+		compiler.visit(mapOrArray)
+				.visit(keyOrIndex)
+				.operator("map_or_array_access");
 	}
 
 	@Override
 	public void compile_visit_variable(MagicScriptCompiler compiler) {
-		compiler.compile(mapOrArray).compile(keyOrIndex);
+		compiler.visit(mapOrArray).visit(keyOrIndex);
 	}
 }

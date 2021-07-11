@@ -20,14 +20,14 @@ public class Return extends Node {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		if(returnValue == null){
-			if(compiler.finallyBlock() != null){
-				compiler.compile(compiler.getFinallyBlock());
+		if(returnValue == null){	// return
+			if(compiler.finallyBlock() != null){	// 如果有finally块
+				compiler.compile(compiler.getFinallyBlock());	// 执行finally块
 			}
-			compiler.insn(ACONST_NULL);
-		}else{
+			compiler.insn(ACONST_NULL);	// 压入 NULL
+		}else{	// return expr;
 			compiler.visit(returnValue);
-			if(compiler.finallyBlock() != null){
+			if(compiler.finallyBlock() != null){	// 如果有finally块
 				compiler.store(3)	// 保存返回结果
 						.compile(compiler.getFinallyBlock())	// 执行 finally
 						.load3();	// 加载返回结果

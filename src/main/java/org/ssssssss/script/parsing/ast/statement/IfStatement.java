@@ -35,22 +35,23 @@ public class IfStatement extends Node {
 	public void compile(MagicScriptCompiler compiler) {
 		Label end = new Label();
 		Label next = new Label();
-		compiler.compile(condition)
-				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)
+		compiler.visit(condition) // 访问表达式
+				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)	// 判断是否为true
 				.jump(IFEQ, next)
-				.compile(trueBlock)
-				.jump(GOTO, end);
+				.compile(trueBlock)	// 编译true代码块
+				.jump(GOTO, end);	// 跳转至结束
 		for (IfStatement elseIf : elseIfs) {
 			compiler.label(next)
-					.compile(elseIf.condition)
-					.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class);
+					.visit(elseIf.condition)	// 访问else if 表达式
+					.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class);	// 判断是否为true
 			next = new Label();
 			compiler.jump(IFEQ, next)
-					.compile(elseIf.trueBlock)
+					.compile(elseIf.trueBlock)	// 编译 else if true代码块
 					.jump(GOTO, end);
 		}
 		compiler.label(next);
 		if (!falseBlock.isEmpty()) {
+			// 编译 false 代码块
 			compiler.compile(falseBlock);
 		}
 		compiler.label(end);

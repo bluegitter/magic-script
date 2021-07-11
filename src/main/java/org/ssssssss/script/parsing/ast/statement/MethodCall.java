@@ -35,14 +35,14 @@ public class MethodCall extends Expression {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.compile(method.getObject())
-				.load1()
-				.ldc(method.getName().getText())
-				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
+		compiler.visit(method.getObject())	// 访问目标对象
+				.load1()	// MagicScriptContext
+				.ldc(method.getName().getText())	// 方法名
+				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)	// 是否是 (...xxx)
 				.asBoolean()
-				.insn(method.isOptional() ? ICONST_1 : ICONST_0)
+				.insn(method.isOptional() ? ICONST_1 : ICONST_0)	// 是否允许可空调用
 				.asBoolean()
 				.visit(arguments)
-				.call("invoke_method",arguments.size() + 5);
+				.call("invoke_method",arguments.size() + 5);	// 调用方法
 	}
 }

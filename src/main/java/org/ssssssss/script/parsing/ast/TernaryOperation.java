@@ -28,13 +28,14 @@ public class TernaryOperation extends Expression {
 	public void compile(MagicScriptCompiler compiler) {
 		Label end = new Label();
 		Label falseValue = new Label();
-		compiler.compile(condition)
-				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)
-				.jump(IFEQ, falseValue)
-				.compile(trueExpression)
-				.jump(GOTO, end)
+		// condition ? trueExpr : falseExpr
+		compiler.compile(condition)	// 访问表达式
+				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)	// 判断是否为true
+				.jump(IFEQ, falseValue)	// 为false时跳转
+				.visit(trueExpression)	// 访问true表达式
+				.jump(GOTO, end)	// 跳转至结束
 				.label(falseValue)
-				.compile(falseExpression)
+				.visit(falseExpression)	// 访问false表达式
 				.label(end);
 	}
 }

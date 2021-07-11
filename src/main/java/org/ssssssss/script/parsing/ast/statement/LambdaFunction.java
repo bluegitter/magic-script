@@ -27,18 +27,20 @@ public class LambdaFunction extends Expression {
 	public void visitMethod(MagicScriptCompiler compiler) {
 		childNodes.forEach(it -> it.visitMethod(compiler));
 		this.methodName = (async ? "async_": "") + "lambda_" + compiler.getFunctionIndex();
+		// private Object methodName(MagicScriptContext, Object[])
 		compiler.createMethod(ACC_PRIVATE, methodName, Descriptor.make_descriptor(Object.class, MagicScriptContext.class,Object[].class))
-				.load1()
-				.load2()
+				.load1()	// MagicScriptContext
+				.load2()	// 传入的参数
 				// 构建参数
 				.visitInt(parameters.size())
-				.intInsn(NEWARRAY, T_INT);
+				.intInsn(NEWARRAY, T_INT);	// new int[parameters.size()]
 		for (int i = 0; i < parameters.size(); i++) {
 			compiler.insn(DUP)
 					.visitInt(i)
 					.visitInt(parameters.get(i).getIndex())
 					.insn(IASTORE);
 		}
+		// 复制变量
 		compiler.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "copy", Object[].class, Object[].class, int[].class)
 				.store(2)
 				.compile(childNodes)
@@ -53,6 +55,9 @@ public class LambdaFunction extends Expression {
 		return parameters;
 	}
 
+	/**
+	 * 访问lambda方法
+	 */
 	private void compileMethod(MagicScriptCompiler compiler){
 		compiler.load0()
 				.lambda(methodName);

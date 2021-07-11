@@ -35,9 +35,9 @@ public class Import extends Node {
 		} else if (this.function) {
 			methodName = "loadFunction";
 		}
-		compiler.pre_store(varIndex)
-				.ldc(packageName)
-				.invoke(INVOKESTATIC, MagicResourceLoader.class, methodName, Object.class, String.class)
-				.store();
+		compiler.pre_store(varIndex)	// 保存变量前的准备
+				.ldc(packageName)	// 包名&函数名
+				.invoke(INVOKESTATIC, MagicResourceLoader.class, methodName, Object.class, String.class)	// 加载资源
+				.store();	// 保存变量
 	}
 }

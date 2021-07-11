@@ -42,9 +42,9 @@ public class MemberAccess extends Expression implements VariableSetter {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.compile(object)
-				.ldc(name.getText())
-				.insn(optional ? ICONST_1 : ICONST_0)
+		compiler.visit(object)	// 访问目标对象
+				.ldc(name.getText())	// 成员名
+				.insn(optional ? ICONST_1 : ICONST_0)	// 是否可空调用 ?.
 				.asBoolean()
 				.call("member_access", 3);
 	}

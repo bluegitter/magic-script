@@ -24,6 +24,7 @@ public class Spread extends Expression {
 
     @Override
     public void compile(MagicScriptCompiler compiler) {
+        // 对于...xxx 的参数 统一转换为 new Spread.Value(object)
         compiler.typeInsn(NEW, Value.class)
                 .insn(DUP)
                 .visit(target)

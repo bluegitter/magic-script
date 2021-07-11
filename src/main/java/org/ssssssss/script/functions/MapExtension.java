@@ -2,7 +2,6 @@ package org.ssssssss.script.functions;
 
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.parsing.ast.binary.LessOperation;
-import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Field;
@@ -24,7 +23,7 @@ public class MapExtension {
 				Object value = entry.getValue();
 				String member = Objects.toString(entry.getKey(), null);
 				if (value != null && member != null) {
-					Field field = AbstractReflection.getInstance().getField(target, member);
+					Field field = JavaReflection.getField(target, member);
 					setFieldValue(result, field, value);
 				}
 			}
@@ -147,12 +146,12 @@ public class MapExtension {
 					Type genericType = field.getGenericType();
 					if (genericType instanceof ParameterizedType) {
 						Class<?> type = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
-						AbstractReflection.getInstance().setFieldValue(object, field, StreamExtension.asBean(value, type));
+						JavaReflection.setFieldValue(object, field, StreamExtension.asBean(value, type));
 					}
 				} else if (field.getType().isArray()) {
-					AbstractReflection.getInstance().setFieldValue(object, field, StreamExtension.asBean(value, field.getType().getComponentType(), true));
+					JavaReflection.setFieldValue(object, field, StreamExtension.asBean(value, field.getType().getComponentType(), true));
 				} else if (JavaReflection.isPrimitiveAssignableFrom(value.getClass(), field.getType()) || field.getType().isAssignableFrom(value.getClass())) {
-					AbstractReflection.getInstance().setFieldValue(object, field, value);
+					JavaReflection.setFieldValue(object, field, value);
 				}
 			} catch (Exception ignored) {
 			}

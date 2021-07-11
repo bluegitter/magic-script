@@ -1,154 +1,79 @@
 package org.ssssssss.script.parsing.ast.statement;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.interpreter.AstInterpreter;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.asm.Label;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
+import org.ssssssss.script.runtime.handle.FunctionCallHandle;
+import org.ssssssss.script.runtime.lang.KeyIterator;
 
-import java.lang.reflect.Array;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class ForStatement extends Node {
 	private final VarIndex indexOrKey;
 	private final VarIndex value;
+	private final VarIndex anonymousVariable;
 	private final Expression mapOrArray;
 	private final List<Node> body;
-	private final int varCount;
 
-	public ForStatement(Span span, VarIndex indexOrKey, VarIndex value, int varCount, Expression mapOrArray, List<Node> body) {
+	public ForStatement(Span span, VarIndex indexOrKey, VarIndex value,VarIndex anonymousVariable, Expression mapOrArray, List<Node> body) {
 		super(span);
 		this.indexOrKey = indexOrKey;
+		this.anonymousVariable = anonymousVariable;
 		this.value = value;
 		this.mapOrArray = mapOrArray;
 		this.body = body;
-		this.varCount = varCount;
 	}
 
-	/**
-	 * Returns null if no index or key name was given
-	 **/
-
-
-	public Expression getMapOrArray() {
-		return mapOrArray;
-	}
-
-	public List<Node> getBody() {
-		return body;
-	}
-
-	@SuppressWarnings("rawtypes")
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		scope = scope.create(varCount);
-		Object mapOrArray = getMapOrArray().evaluate(context, scope);
-		if (mapOrArray == null) MagicScriptError.error("Expected a map or array, got null.", getMapOrArray().getSpan());
-		if (mapOrArray instanceof Map) {
-			Map map = (Map) mapOrArray;
-			if (indexOrKey != null) {
-				for (Object entry : map.entrySet()) {
-					Map.Entry e = (Map.Entry) entry;
-					scope.setValue(indexOrKey, e.getKey());
-					scope.setValue(value, e.getValue());
-					Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context, scope);
-					if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
-						break;
-					}
-					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-						return breakOrContinueOrReturn;
-					}
-				}
-			} else {
-				for (Object value : map.values()) {
-					scope.setValue(this.value, value);
-					Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context, scope);
-					if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
-						break;
-					}
-					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-						return breakOrContinueOrReturn;
-					}
-				}
-			}
-		} else if (mapOrArray instanceof Iterable) {
-			if (indexOrKey != null) {
-				Iterator iter = ((Iterable) mapOrArray).iterator();
-				int i = 0;
-				while (iter.hasNext()) {
-					scope.setValue(indexOrKey, i++);
-					scope.setValue(value, iter.next());
-					Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context, scope);
-					if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
-						break;
-					}
-					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-						return breakOrContinueOrReturn;
-					}
-				}
-			} else {
-				Iterator iter = ((Iterable) mapOrArray).iterator();
-				while (iter.hasNext()) {
-					scope.setValue(value, iter.next());
-					Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context, scope);
-					if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
-						break;
-					}
-					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-						return breakOrContinueOrReturn;
-					}
-				}
-			}
-		} else if (mapOrArray instanceof Iterator) {
-			if (indexOrKey != null) {
-				MagicScriptError.error("Can not do indexed/keyed for loop on an iterator.", getMapOrArray().getSpan());
-			} else {
-				Iterator iter = (Iterator) mapOrArray;
-				while (iter.hasNext()) {
-					scope.setValue(value, iter.next());
-					Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context, scope);
-					if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
-						break;
-					}
-					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-						return breakOrContinueOrReturn;
-					}
-				}
-			}
-		} else if (mapOrArray != null && mapOrArray.getClass().isArray()) {
-			int len = Array.getLength(mapOrArray);
-			if (indexOrKey != null) {
-				for (int i = 0; i < len; i++) {
-					scope.setValue(indexOrKey, i);
-					scope.setValue(value, Array.get(mapOrArray, i));
-					Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context, scope);
-					if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
-						break;
-					}
-					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-						return breakOrContinueOrReturn;
-					}
-				}
-			} else {
-				for (int i = 0; i < len; i++) {
-					scope.setValue(value, Array.get(mapOrArray, i));
-					Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context, scope);
-					if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
-						break;
-					}
-					if (breakOrContinueOrReturn instanceof Return.ReturnValue) {
-						return breakOrContinueOrReturn;
-					}
-				}
-			}
-		} else {
-			MagicScriptError.error("Expected a map, an array or an iterable, got " + mapOrArray, getMapOrArray().getSpan());
+	public void visitMethod(MagicScriptCompiler compiler) {
+		mapOrArray.visitMethod(compiler);
+		body.forEach(it -> it.visitMethod(compiler));
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		Label start = new Label();
+		Label end = new Label();
+		compiler.start(start)    // 标记 continue 位置
+				.end(end)    // 标记 break 位置
+				.pre_store(anonymousVariable)
+				//	初始化 iterator
+				.compile(mapOrArray)
+				.invoke(INVOKESTATIC, FunctionCallHandle.class, indexOrKey == null ? "newValueIterator" : "newKeyValueIterator", Iterator.class, Object.class)
+				// 保存至临时变量
+				.store()
+				.label(start)
+				// 判断是否有值
+				.load(anonymousVariable)
+				.invoke(INVOKEINTERFACE, Iterator.class, "hasNext", true, boolean.class)
+				// 值为false时，跳出循环
+				.jump(IFEQ, end)
+
+				.pre_store(value)
+				// 获取当前 value
+				.load(anonymousVariable)
+				.invoke(INVOKEINTERFACE, Iterator.class, "next", true, Object.class)
+				// 存入到 value 中
+				.store();
+		if (indexOrKey != null) {
+			// 获取当前 key
+			compiler.pre_store(indexOrKey)
+					.load(anonymousVariable)
+					.invoke(INVOKEINTERFACE, KeyIterator.class, "getKey", true, Object.class)
+					// 存入到 key 中
+					.store();
 		}
-		return null;
+		compiler.compile(body)    // 执行循环体
+				// 执行完毕后跳转到循环起始位置
+				.jump(GOTO, start)
+				.label(end)
+				// 移除 key 变量
+				.remove(indexOrKey)
+				// 移除 value 变量
+				.remove(value);
 	}
 }

@@ -1,6 +1,10 @@
 package org.ssssssss.script;
 
+import org.ssssssss.script.exception.MagicExitException;
+import org.ssssssss.script.runtime.MagicScriptRuntime;
+
 import java.io.InputStream;
+import java.util.Arrays;
 
 public class BaseTest {
 
@@ -20,7 +24,35 @@ public class BaseTest {
 	}
 
 	public static Object execute(String filename) {
-		MagicScript script = MagicScript.create(readScript(filename), null);
-		return MagicScriptEngine.execute(script, new MagicScriptContext());
+		String str = readScript(filename);
+		long t = System.currentTimeMillis();
+		MagicScript script = MagicScript.create(str, null);
+		try {
+			MagicScriptRuntime runtime = script.compile();
+			System.out.println("编译耗时：" + (System.currentTimeMillis() - t) + "ms");
+			Object value = null;
+			t = System.currentTimeMillis();
+			MagicScriptContext context = new MagicScriptContext();
+			try {
+				MagicScriptContext.set(context);
+				value = runtime.execute(context);
+			} catch(MagicExitException mee){
+				value = mee.getExitValue();
+			} catch (Exception e) {
+				try {
+					MagicScriptError.transfer(runtime, e);
+				} catch (Throwable throwable) {
+					throwable.printStackTrace();
+				}
+			} finally {
+				MagicScriptContext.remove();
+			}
+			System.out.println("执行耗时：" + (System.currentTimeMillis() - t) + "ms");
+			System.out.println("执行结果：" + value);
+			System.out.println(Arrays.toString(context.getVars()));
+			return value;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

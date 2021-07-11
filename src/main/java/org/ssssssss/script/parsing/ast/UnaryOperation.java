@@ -1,13 +1,14 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.MagicScriptCompileException;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
-import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.parsing.ast.statement.VariableAccess;
+import org.ssssssss.script.runtime.handle.OperatorHandle;
 
-import java.math.BigDecimal;
+import java.util.function.Supplier;
 
 /**
  * 一元操作符
@@ -33,67 +34,9 @@ public class UnaryOperation extends Expression {
         return operator;
     }
 
-    private Expression getOperand() {
-        return operand;
-    }
-
     @Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-        Object value = getOperand().evaluate(context, scope);
-        switch (getOperator()) {
-            case Not:
-                return !BooleanLiteral.isTrue(value);
-            case PlusPlus:
-            case MinusMinus:
-                if (operand instanceof VariableSetter && value instanceof Number) {
-                    Object result = addValue(value, getOperator() == UnaryOperator.PlusPlus ? 1 : -1);
-                    ((VariableSetter) operand).setValue(context, scope, result);
-                    return atAfter ? value : result;
-                } else {
-                    MagicScriptError.error("一元操作符[" + getOperator().name() + "] 操作的值必须是数值类型，获得的值为：" + operand, getSpan());
-                    return null; // never reached
-                }
-            case Negate:
-                if (value instanceof Integer) {
-                    return -(Integer) value;
-                } else if (value instanceof Float) {
-                    return -(Float) value;
-                } else if (value instanceof Double) {
-                    return -(Double) value;
-                } else if (value instanceof Byte) {
-                    return -(Byte) value;
-                } else if (value instanceof Short) {
-                    return -(Short) value;
-                } else if (value instanceof Long) {
-                    return -(Long) value;
-                } else if (value instanceof BigDecimal) {
-                    return ((BigDecimal) value).negate();
-                } else {
-                    MagicScriptError.error("一元操作符[" + getOperator().name() + "]的值必须是数值类型，获得的值为：" + operand, getSpan());
-                }
-
-        }
-        return operand;
-    }
-
-    private Object addValue(Object target, int value) {
-        if (target instanceof Double) {
-            return ((Double) target) + value;
-        } else if (target instanceof Long) {
-            return ((Long) target) + value;
-        } else if (target instanceof Integer) {
-            return ((Integer) target) + value;
-        } else if (target instanceof BigDecimal) {
-            return ((BigDecimal) target).add(new BigDecimal(value));
-        } else if (target instanceof Float) {
-            return ((Float) target) + value;
-        } else if (target instanceof Byte) {
-            return ((Byte) target) + value;
-        } else if (target instanceof Short) {
-            return ((Short) target) + value;
-        }
-        return null;
-
+    public void visitMethod(MagicScriptCompiler compiler) {
+        operand.visitMethod(compiler);
     }
 
     public enum UnaryOperator {
@@ -117,6 +60,60 @@ public class UnaryOperation extends Expression {
             }
             MagicScriptError.error("不支持的一元操作符：" + op, op.getSpan());
             return null; // not reached
+        }
+    }
+
+    @Override
+    public void compile(MagicScriptCompiler compiler) {
+        switch (getOperator()) {
+            case Not:
+                compiler.compile(operand)
+                        .invoke(INVOKESTATIC, OperatorHandle.class, "isFalse", boolean.class,Object.class)
+                        .asBoolean();
+                break;
+            case PlusPlus:
+            case MinusMinus:
+                if(operand instanceof VariableSetter){
+                    boolean access = operand instanceof VariableAccess;
+                    Supplier<MagicScriptCompiler> plus = () -> compiler.visit(operand)  // 访问变量
+                            // 执行 ± 1 操作
+                            .visitInt(operator == UnaryOperator.PlusPlus ? 1 : -1)
+                            .asInteger()
+                            .arithmetic("plus");
+                    if(atAfter){    // ++ -- 在后
+                        if(access){ // a++ a--
+                            // 执行 ± 操作
+                            compiler.compile(operand).pre_store(((VariableAccess) operand).getVarIndex());
+                            plus.get().store();
+                        }else{  // map.key++ map.key--
+                            compiler.compile(operand);    // 先访问变量，后续返回使用
+                            ((VariableSetter)operand).compile_visit_variable(compiler); // 赋值前准备
+                            plus.get()
+                                .call("set_variable_value",3)   // 赋值操作
+                                .insn(POP); // 抛弃 ++ -- 的返回值。
+                        }
+                    }else{  // ++ -- 在前
+                        if(access){ // ++a --a
+                            compiler.pre_store(((VariableAccess) operand).getVarIndex());
+                            // 执行 ± 操作
+                            plus.get().store()   // 结果存入到变量中
+                                .visit(operand);
+                        }else{  // ++map.key --map.key
+                            // 赋值前准备
+                            ((VariableSetter)operand).compile_visit_variable(compiler);
+                            // 将执行结果赋值给变量。
+                            plus.get().call("set_variable_value",3);
+                        }
+                    }
+                    break;
+                }
+                throw new MagicScriptCompileException("此处不支持++/--操作");
+            case Negate:
+                compiler.visit(operand)
+                        .visitInt(-1)
+                        .asInteger()
+                        .arithmetic("mul");
+                break;
         }
     }
 }

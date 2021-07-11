@@ -1,9 +1,7 @@
 package org.ssssssss.script.parsing.ast.statement;
 
 import org.ssssssss.script.MagicResourceLoader;
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.exception.ModuleNotFoundException;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Node;
@@ -12,9 +10,9 @@ public class Import extends Node {
 
 	private String packageName;
 
-	private VarIndex varIndex;
+	private final VarIndex varIndex;
 
-	private boolean module;
+	private final boolean module;
 
 	private boolean function;
 
@@ -30,29 +28,16 @@ public class Import extends Node {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Object target;
+	public void compile(MagicScriptCompiler compiler) {
+		String methodName = "loadClass";
 		if (this.module) {
-			target = MagicResourceLoader.loadModule(packageName);
-			if (target == null) {
-				throw new ModuleNotFoundException(String.format("module [%s] not found.", this.packageName), getSpan());
-			}
+			methodName = "loadModule";
 		} else if (this.function) {
-			target = MagicResourceLoader.loadFunction(packageName);
-			if (target == null) {
-				throw new ModuleNotFoundException(String.format("function [%s] not found.", this.packageName), getSpan());
-			}
-		} else {
-			target = MagicResourceLoader.loadClass(packageName);
-			if (target == null) {
-				throw new ModuleNotFoundException(String.format("class [%s] not found.", this.packageName), getSpan());
-			}
+			methodName = "loadFunction";
 		}
-		scope.setValue(varIndex, target);
-		return null;
-	}
-
-	public boolean isFunction() {
-		return function;
+		compiler.pre_store(varIndex)
+				.ldc(packageName)
+				.invoke(INVOKESTATIC, MagicResourceLoader.class, methodName, Object.class, String.class)
+				.store();
 	}
 }

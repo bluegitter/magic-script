@@ -1,12 +1,11 @@
 package org.ssssssss.script.parsing.ast.statement;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.interpreter.AstInterpreter;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.asm.Label;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
-import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.runtime.handle.OperatorHandle;
 
 import java.util.List;
 
@@ -15,54 +14,47 @@ public class IfStatement extends Node {
 	private final List<Node> trueBlock;
 	private final List<IfStatement> elseIfs;
 	private final List<Node> falseBlock;
-	private final int trueVarCount;
-	private final int falseVarCount;
 
-	public IfStatement(Span span, Expression condition, List<Node> trueBlock, List<IfStatement> elseIfs, List<Node> falseBlock,int trueVarCount,int falseVarCount) {
+	public IfStatement(Span span, Expression condition, List<Node> trueBlock, List<IfStatement> elseIfs, List<Node> falseBlock) {
 		super(span);
 		this.condition = condition;
 		this.trueBlock = trueBlock;
 		this.elseIfs = elseIfs;
 		this.falseBlock = falseBlock;
-		this.trueVarCount = trueVarCount;
-		this.falseVarCount = falseVarCount;
-	}
-
-	public Expression getCondition() {
-		return condition;
-	}
-
-	public List<Node> getTrueBlock() {
-		return trueBlock;
-	}
-
-	public List<IfStatement> getElseIfs() {
-		return elseIfs;
-	}
-
-	public List<Node> getFalseBlock() {
-		return falseBlock;
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Object condition = getCondition().evaluate(context, scope);
-		if (BooleanLiteral.isTrue(condition)) {
-			return AstInterpreter.interpretNodeList(getTrueBlock(), context, scope.create(trueVarCount));
-		}
-
-		if (getElseIfs().size() > 0) {
-			for (IfStatement elseIf : getElseIfs()) {
-				condition = elseIf.getCondition().evaluate(context, scope);
-				if (BooleanLiteral.isTrue(condition)) {
-					return AstInterpreter.interpretNodeList(elseIf.getTrueBlock(), context, scope.create(elseIf.trueVarCount));
-				}
-			}
-		}
-
-		if (getFalseBlock().size() > 0) {
-			return AstInterpreter.interpretNodeList(getFalseBlock(), context, scope.create(falseVarCount));
-		}
-		return null;
+	public void visitMethod(MagicScriptCompiler compiler) {
+		condition.visitMethod(compiler);
+		trueBlock.forEach(it -> it.visitMethod(compiler));
+		elseIfs.forEach(it -> it.visitMethod(compiler));
+		falseBlock.forEach(it -> it.visitMethod(compiler));
 	}
+
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		Label end = new Label();
+		Label next = new Label();
+		compiler.compile(condition)
+				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)
+				.jump(IFEQ, next)
+				.compile(trueBlock)
+				.jump(GOTO, end);
+		for (IfStatement elseIf : elseIfs) {
+			compiler.label(next)
+					.compile(elseIf.condition)
+					.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class);
+			next = new Label();
+			compiler.jump(IFEQ, next)
+					.compile(elseIf.trueBlock)
+					.jump(GOTO, end);
+		}
+		compiler.label(next);
+		if (!falseBlock.isEmpty()) {
+			compiler.compile(falseBlock);
+		}
+		compiler.label(end);
+	}
+
+
 }

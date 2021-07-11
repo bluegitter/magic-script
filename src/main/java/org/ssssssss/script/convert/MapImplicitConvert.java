@@ -1,5 +1,6 @@
 package org.ssssssss.script.convert;
 
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.MapExtension;
 import org.ssssssss.script.reflection.JavaReflection;
 
@@ -8,6 +9,9 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Map到Bean的隐式转换
+ */
 public class MapImplicitConvert implements ClassImplicitConvert {
 	@Override
 	public boolean support(Class<?> from, Class<?> to) {
@@ -17,7 +21,7 @@ public class MapImplicitConvert implements ClassImplicitConvert {
 	}
 
 	@Override
-	public Object convert(Object source, Class<?> target) {
+	public Object convert(MagicScriptContext context, Object source, Class<?> target) {
 		return MapExtension.asBean((Map<?, ?>) source, target);
 	}
 }

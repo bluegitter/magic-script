@@ -1,8 +1,6 @@
 package org.ssssssss.script.parsing.ast.literal;
 
-import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.CharacterStream;
-import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Literal;
 
@@ -39,11 +37,7 @@ public class StringLiteral extends Literal {
 			}
 		}
 		value = builder.toString();
-	}
-
-    @Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		return value;
+		setValue(value);
 	}
 
 	public String getValue() {

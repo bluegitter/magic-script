@@ -1,20 +1,30 @@
 package org.ssssssss.script.parsing.ast.literal;
 
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Literal;
+
+import static org.ssssssss.script.compile.Descriptor.make_descriptor;
 
 /**
  * byte常量
  */
 public class ByteLiteral extends Literal {
 
-    public ByteLiteral(Span literal) {
-        super(literal);
-        try {
-            setValue(Byte.parseByte(literal.getText().substring(0, literal.getText().length() - 1)));
-        } catch (NumberFormatException e) {
-            MagicScriptError.error("定义byte变量值不合法", literal, e);
-        }
-    }
+	private int value;
+
+	public ByteLiteral(Span literal) {
+		super(literal);
+		try {
+			this.value = Byte.parseByte(literal.getText().substring(0, literal.getText().length() - 1));
+		} catch (NumberFormatException e) {
+			MagicScriptError.error("定义byte变量值不合法", literal, e);
+		}
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler context) {
+		context.bipush(this.value).invoke(INVOKESTATIC, Byte.class, "valueOf", Byte.class,byte.class);
+	}
 }

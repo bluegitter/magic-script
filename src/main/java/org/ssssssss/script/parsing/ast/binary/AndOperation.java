@@ -1,11 +1,11 @@
 package org.ssssssss.script.parsing.ast.binary;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.asm.Label;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
-import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.runtime.handle.OperatorHandle;
 
 /**
  * && 操作
@@ -17,11 +17,14 @@ public class AndOperation extends BinaryOperation {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Object left = getLeftOperand().evaluate(context, scope);
-		if (BooleanLiteral.isTrue(left)) {
-			return getRightOperand().evaluate(context, scope);
-		}
-		return false;
+	public void compile(MagicScriptCompiler compiler) {
+		Label end = new Label();
+		compiler.compile(getLeftOperand())
+				.insn(DUP)
+				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)
+				.jump(IFEQ, end)
+				.insn(POP)
+				.compile(getRightOperand())
+				.label(end);
 	}
 }

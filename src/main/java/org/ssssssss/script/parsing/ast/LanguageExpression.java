@@ -1,14 +1,9 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicResourceLoader;
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.runtime.function.MagicScriptLanguageFunction;
 
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 public class LanguageExpression extends Expression {
 
@@ -23,12 +18,12 @@ public class LanguageExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Map<String, Object> variables = scope.getVariables();
-		BiFunction<Map<String, Object>, String, Object> function = MagicResourceLoader.loadScriptLanguage(this.language);
-		if(function == null){
-			MagicScriptError.error(String.format("language [%s] not found",language), getSpan());
-		}
-		return (Function<Object[], Object>) objects -> function.apply(variables,content);
+	public void compile(MagicScriptCompiler compiler) {
+		// new MagicScriptLanguageFunction(language, content)
+		compiler.typeInsn(NEW, MagicScriptLanguageFunction.class)
+				.insn(DUP)
+				.ldc(this.language)
+				.ldc(this.content)
+				.invoke(INVOKESPECIAL,MagicScriptLanguageFunction.class,"<init>", void.class, String.class, String.class);
 	}
 }

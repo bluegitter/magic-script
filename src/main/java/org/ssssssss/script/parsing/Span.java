@@ -1,5 +1,7 @@
 package org.ssssssss.script.parsing;
 
+import java.util.Objects;
+
 /**
  * A span within a source string denoted by start and end index, with the latter being exclusive.
  */
@@ -163,6 +165,19 @@ public class Span {
         int endCol = startCol + this.end - this.start - 1;
 		this.line = new Line(source, lineStart, lineEnd, lineNumber,endLineNumber,startCol,endCol);
 		return this.line;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof Span)) return false;
+		Span span = (Span) o;
+		return start == span.start && end == span.end && Objects.equals(source, span.source) && Objects.equals(cachedText, span.cachedText) && Objects.equals(line, span.line);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(source, cachedText, start, end, line);
 	}
 
 	/**

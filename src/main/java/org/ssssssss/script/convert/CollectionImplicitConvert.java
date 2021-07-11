@@ -1,5 +1,6 @@
 package org.ssssssss.script.convert;
 
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.reflection.JavaReflection;
 
@@ -9,6 +10,9 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 
+/**
+ * 集合、数组隐式转换
+ */
 public class CollectionImplicitConvert implements ClassImplicitConvert {
 
 	private Class<?> fromClazz;
@@ -40,7 +44,7 @@ public class CollectionImplicitConvert implements ClassImplicitConvert {
 	}
 
 	@Override
-	public Object convert(Object source, Class<?> target) {
+	public Object convert(MagicScriptContext context, Object source, Class<?> target) {
 		return StreamExtension.asBean(source, target, target.isArray());
 	}
 }

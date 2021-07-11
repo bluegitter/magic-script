@@ -1,9 +1,8 @@
 package org.ssssssss.script.parsing.ast.statement;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.compile.MagicScriptCompiler;
+import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
-import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 
@@ -24,6 +23,13 @@ public class ClassConverter extends Expression {
 	private final List<Expression> arguments;
 
 	private final static Map<String, BiFunction<Object, Object[], Object>> converters = new HashMap<>();
+
+	public ClassConverter(Span span, String convert, Expression target, List<Expression> arguments) {
+		super(span);
+		this.convert = convert;
+		this.target = target;
+		this.arguments = arguments;
+	}
 
 
 	static {
@@ -46,12 +52,18 @@ public class ClassConverter extends Expression {
 		});
 	}
 
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		target.visitMethod(compiler);
+		arguments.forEach(it -> it.visitMethod(compiler));
+	}
+
 	private static void register(String target, Function<BigDecimal, Object> converter) {
 		register(target, (value, params) -> {
 			try {
 				return converter.apply(ObjectConvertExtension.asDecimal(value));
 			} catch (Exception e) {
-				return params.length > 0 ? params[0] : null;
+				return params != null && params.length > 0 ? params[0] : null;
 			}
 		});
 	}
@@ -60,27 +72,31 @@ public class ClassConverter extends Expression {
 		try {
 			return callback.get();
 		} catch (Exception e) {
-			return params.length > 0 ? params[0] : null;
+			return params != null && params.length > 0 ? params[0] : null;
 		}
 	}
 
-	public ClassConverter(Span span, String convert, Expression target, List<Expression> arguments) {
-		super(span);
-		this.convert = convert;
-		this.target = target;
-		this.arguments = arguments;
-	}
-
-	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		BiFunction<Object, Object[], Object> function = converters.get(convert);
-		if (function == null) {
-			MagicScriptError.error(String.format("找不到转换器[%s]", convert), getSpan());
+	public static Object process(Object object, String target, Object[] params) {
+		try {
+			BiFunction<Object, Object[], Object> function = converters.get(target);
+			if (function == null) {
+				throw new MagicScriptException(String.format("找不到转换器[%s]", target));
+			}
+			return function.apply(object, params);
+		} catch (Exception e) {
+			return params != null && params.length > 0 ? params[0] : null;
 		}
-		return function.apply(target.evaluate(context, scope), arguments.stream().map(it -> it.evaluate(context, scope)).toArray());
 	}
 
 	public static void register(String target, BiFunction<Object, Object[], Object> converter) {
 		converters.put(target, converter);
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		compiler.visit(target)
+				.ldc(convert)
+				.visit(arguments)
+				.call("type_cast", arguments.size() + 2);
 	}
 }

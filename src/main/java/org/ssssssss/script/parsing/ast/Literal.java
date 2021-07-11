@@ -1,7 +1,6 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 
 /**
@@ -9,7 +8,7 @@ import org.ssssssss.script.parsing.Span;
  */
 public abstract class Literal extends Expression {
 
-	private Object value;
+	protected Object value = null;
 
 	public Literal(Span span) {
 		super(span);
@@ -20,12 +19,12 @@ public abstract class Literal extends Expression {
 		this.value = value;
 	}
 
-	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		return value;
-	}
-
 	public void setValue(Object value) {
 		this.value = value;
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler context) {
+		context.ldc(value);
 	}
 }

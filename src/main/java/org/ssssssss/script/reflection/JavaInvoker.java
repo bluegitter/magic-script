@@ -1,7 +1,7 @@
 package org.ssssssss.script.reflection;
 
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.convert.ClassImplicitConvert;
-import org.ssssssss.script.parsing.Scope;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Executable;
@@ -60,11 +60,8 @@ public abstract class JavaInvoker<T extends Executable> {
 		return this.executable.isVarArgs();
 	}
 
-	public Object invoke0(Object target, Scope scope, Object... arguments) throws Throwable {
+	public Object invoke0(Object target, MagicScriptContext context, Object[] arguments) throws Throwable {
 		try {
-			if (scope != null) {
-				Scope.setTempScope(scope);
-			}
 			if (extension) {
 				int argumentLength = arguments == null ? 0 : arguments.length;
 				Object[] parameters = new Object[argumentLength + 1];
@@ -81,15 +78,12 @@ public abstract class JavaInvoker<T extends Executable> {
 				}
 				arguments = parameters;
 			}
-			return invoke(target, processArguments(arguments));
+			return invoke(target, processArguments(context, arguments));
 		} catch (InvocationTargetException e) {
 			throw e.getTargetException();
 		} catch (IllegalAccessException e1) {
 			throw e1;
 		} finally {
-			if(scope != null){
-				Scope.removeTempScope();
-			}
 		}
 	}
 
@@ -108,7 +102,7 @@ public abstract class JavaInvoker<T extends Executable> {
 	/**
 	 * 预处理参数，用来实现隐式转换
 	 */
-	protected Object[] processArguments(Object[] arguments) {
+	protected Object[] processArguments(MagicScriptContext context, Object[] arguments) {
 		if (isVarArgs()) {
 			int count = this.executable.getParameterCount();
 			Object[] args = new Object[count];
@@ -131,7 +125,7 @@ public abstract class JavaInvoker<T extends Executable> {
 		if (arguments != null) {
 			for (Map.Entry<Integer, ClassImplicitConvert> entry : converts.entrySet()) {
 				int index = entry.getKey();
-				arguments[index] = entry.getValue().convert(arguments[index], parameterTypes[index]);
+				arguments[index] = entry.getValue().convert(context, arguments[index], parameterTypes[index]);
 			}
 		}
 		return arguments;

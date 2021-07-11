@@ -1,9 +1,9 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.asm.Label;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
-import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.runtime.handle.OperatorHandle;
 
 public class TernaryOperation extends Expression {
 	private final Expression condition;
@@ -17,21 +17,24 @@ public class TernaryOperation extends Expression {
 		this.falseExpression = falseExpression;
 	}
 
-	public Expression getCondition() {
-		return condition;
-	}
-
-	public Expression getTrueExpression() {
-		return trueExpression;
-	}
-
-	public Expression getFalseExpression() {
-		return falseExpression;
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		condition.visitMethod(compiler);
+		trueExpression.visitMethod(compiler);
+		falseExpression.visitMethod(compiler);
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Object condition = getCondition().evaluate(context, scope);
-		return BooleanLiteral.isTrue(condition) ? getTrueExpression().evaluate(context, scope) : getFalseExpression().evaluate(context, scope);
+	public void compile(MagicScriptCompiler compiler) {
+		Label end = new Label();
+		Label falseValue = new Label();
+		compiler.compile(condition)
+				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)
+				.jump(IFEQ, falseValue)
+				.compile(trueExpression)
+				.jump(GOTO, end)
+				.label(falseValue)
+				.compile(falseExpression)
+				.label(end);
 	}
 }

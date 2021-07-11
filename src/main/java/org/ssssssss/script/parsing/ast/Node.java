@@ -1,45 +1,47 @@
 package org.ssssssss.script.parsing.ast;
 
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.asm.Opcodes;
 import org.ssssssss.script.parsing.Span;
 
 /**
  * 节点
  */
-public abstract class Node {
-    /**
-     * 对应的文本
-     */
-    private final Span span;
+public abstract class Node implements Opcodes {
+	/**
+	 * 对应的文本
+	 */
+	private final Span span;
 
 	/**
 	 * 在Linq中
 	 */
 	private boolean inLinq;
 
-    public Node(Span span) {
-        this.span = span;
-    }
+	public Node(Span span) {
+		this.span = span;
+	}
 
-    public Span getSpan() {
-        return span;
-    }
+	public Span getSpan() {
+		return span;
+	}
 
 	public boolean isInLinq() {
 		return inLinq;
 	}
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + ":" + span.getText();
-    }
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ":" + span.getText();
+	}
 
-    public abstract Object evaluate(MagicScriptContext context, Scope scope);
+	public void visitMethod(MagicScriptCompiler compiler){
 
-	public Object evaluate(MagicScriptContext context, Scope scope, boolean inLinq) {
-		this.inLinq = inLinq;
-		return evaluate(context, scope);
+	}
+
+	public void compile(MagicScriptCompiler compiler) {
+		throw new UnsupportedOperationException(this.getClass().getSimpleName() + "不支持编译");
 	}
 
 }

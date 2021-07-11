@@ -1,6 +1,5 @@
-var t = System.currentTimeMillis();
 var sum = 0L;
-for(val in range(0,10000000)){
-    sum = sum + val;
+for(index in range(1,100000000)){
+    sum = sum + index;
 }
-return sum + "   " + (System.currentTimeMillis() - t);
+return sum

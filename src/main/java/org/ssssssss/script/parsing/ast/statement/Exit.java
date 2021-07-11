@@ -1,8 +1,7 @@
 package org.ssssssss.script.parsing.ast.statement;
 
-import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.exception.MagicExitException;
-import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
@@ -20,20 +19,40 @@ public class Exit extends Node {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
+	public void visitMethod(MagicScriptCompiler compiler) {
+		expressions.forEach(it -> it.visitMethod(compiler));
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		compiler.typeInsn(NEW,MagicExitException.class)
+				.insn(DUP)
+				.typeInsn(NEW, Value.class)
+				.insn(DUP);
 		if(expressions == null){
-			throw new MagicExitException(new Value(new Object[0]));
+			compiler.invoke(INVOKESPECIAL, Value.class,"<init>", void.class);
+		}else{
+			compiler.visitInt(expressions.size())
+					.typeInsn(ANEWARRAY, Object.class);
+			for (int i = 0, size = expressions.size(); i < size; i++) {
+				compiler.insn(DUP)
+						.visitInt(i)
+						.visit(expressions.get(i))
+						.insn(AASTORE);
+			}
+			compiler.invoke(INVOKESPECIAL, Value.class,"<init>", void.class, Object[].class);
 		}
-		Object[] values = new Object[expressions.size()];
-		for (int i = 0,len = values.length; i < len; i++) {
-			values[i] = expressions.get(i).evaluate(context, scope);
-		}
-		throw new MagicExitException(new Value(values));
+		compiler.invoke(INVOKESPECIAL, MagicExitException.class,"<init>", void.class, Value.class)
+				.insn(ATHROW);
 	}
 
 	public static class Value{
 
 		private Object[] values;
+
+		public Value() {
+			this(new Object[0]);
+		}
 
 		public Value(Object[] values) {
 			this.values = values;

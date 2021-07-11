@@ -16,7 +16,7 @@ public class MagicScriptEngineFactory implements ScriptEngineFactory {
 
 	@Override
 	public String getEngineVersion() {
-		return "1.0";
+		return MagicScriptEngineFactory.class.getPackage().getImplementationVersion();
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package org.ssssssss.script.functions;
 
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
 
@@ -24,9 +25,19 @@ public class ClassExtension {
 		}
 		List<Constructor<?>> constructors = Arrays.asList(clazz.getConstructors());
 		JavaInvoker<Constructor> invoker = JavaReflection.findConstructorInvoker(constructors, parametersTypes);
-		if(invoker == null){
+		if (invoker == null) {
 			throw new RuntimeException(String.format("can not found constructor for [%s] with types: [%s]", clazz, Arrays.toString(parametersTypes)));
 		}
-		return invoker.invoke0(null, null, values);
+		return invoker.invoke0(null, MagicScriptContext.get(), values);
+	}
+
+	public static Object newInstance(Object target, Object... values) throws Throwable {
+		if(target == null){
+			throw new NullPointerException("NULL不能被new");
+		}
+		if (target instanceof Class) {
+			return newInstance((Class<?>)target, values);
+		}
+		return newInstance(target.getClass(), values);
 	}
 }

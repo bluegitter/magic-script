@@ -1,6 +1,7 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
@@ -20,12 +21,18 @@ public abstract class BinaryOperation extends Expression {
 		this.rightOperand = rightOperand;
 	}
 
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		leftOperand.visitMethod(compiler);
+		rightOperand.visitMethod(compiler);
+	}
+
 	public static Expression create(Expression left, Token operator, Expression right, int linqLevel) {
 		Expression expression = null;
 		Span span = operator.getSpan();
 		switch (operator.getType()) {
 			case Assignment:
-				expression = linqLevel == 0 ? new AssigmentOperation(left, span, right) : new EqualOperation(left, span, right,false);
+				expression = linqLevel == 0 ? new AssigmentOperation(left, span, right) : new EqualOperation(left, span, right, false);
 				break;
 			case Plus:
 				expression = new AddOperation(left, span, right);
@@ -43,19 +50,19 @@ public abstract class BinaryOperation extends Expression {
 				expression = new ModuloOperation(left, span, right);
 				break;
 			case PlusEqual:
-				expression = new PlusEqualOperation(left, span, right);
+				expression = new AssigmentOperation(left, span, new AddOperation(left, span, right));
 				break;
 			case MinusEqual:
-				expression = new MinusEqualOperation(left, span, right);
+				expression = new AssigmentOperation(left, span, new SubtractionOperation(left, span, right));
 				break;
 			case AsteriskEqual:
-				expression = new AsteriskEqualOperation(left, span, right);
+				expression = new AssigmentOperation(left, span, new MultiplicationOperation(left, span, right));
 				break;
 			case ForwardSlashEqual:
-				expression = new ForwardSlashEqualOperation(left, span, right);
+				expression = new AssigmentOperation(left, span, new DivisionOperation(left, span, right));
 				break;
 			case PercentEqual:
-				expression = new PercentEqualOperation(left, span, right);
+				expression = new AssigmentOperation(left, span, new ModuloOperation(left, span, right));
 				break;
 			case Less:
 				expression = new LessOperation(left, span, right);
@@ -70,17 +77,17 @@ public abstract class BinaryOperation extends Expression {
 				expression = new GreaterEqualOperation(left, span, right);
 				break;
 			case Equal:
-				expression = new EqualOperation(left, span, right,false);
+				expression = new EqualOperation(left, span, right, false);
 				break;
 			case EqualEqualEqual:
-				expression = new EqualOperation(left, span, right,true);
+				expression = new EqualOperation(left, span, right, true);
 				break;
 			case SqlNotEqual:
 			case NotEqual:
-				expression = new NotEqualOperation(left, span, right,false);
+				expression = new NotEqualOperation(left, span, right, false);
 				break;
 			case NotEqualEqual:
-				expression = new NotEqualOperation(left, span, right,true);
+				expression = new NotEqualOperation(left, span, right, true);
 				break;
 			case SqlAnd:
 			case And:

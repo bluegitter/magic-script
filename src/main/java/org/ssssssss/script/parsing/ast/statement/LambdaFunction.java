@@ -1,60 +1,65 @@
 package org.ssssssss.script.parsing.ast.statement;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.interpreter.AstInterpreter;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.Descriptor;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
 
 import java.util.List;
-import java.util.function.Function;
 
 public class LambdaFunction extends Expression {
-	private List<VarIndex> parameters;
-	private List<Node> childNodes;
-	private int varCount;
+	private final List<VarIndex> parameters;
+	private final List<Node> childNodes;
+	private String methodName;
 
-	public LambdaFunction(Span span, List<VarIndex> parameters, int varCount, List<Node> childNodes) {
+	private boolean async;
+
+	public LambdaFunction(Span span, List<VarIndex> parameters, List<Node> childNodes) {
 		super(span);
 		this.parameters = parameters;
 		this.childNodes = childNodes;
-		this.varCount = varCount;
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		return (Function<Object, Object>) args -> {
-			Object[] arguments;
-			if(args == null){
-				arguments = new Object[0];
-			}else if(args.getClass().isArray()){
-				arguments = (Object[])args;
-			}else{
-				arguments = new Object[]{args};
-			}
-			return evaluate(context, scope.create(varCount), arguments);
-		};
+	public void visitMethod(MagicScriptCompiler compiler) {
+		childNodes.forEach(it -> it.visitMethod(compiler));
+		this.methodName = (async ? "async_": "") + "lambda_" + compiler.getFunctionIndex();
+		compiler.createMethod(ACC_PRIVATE, methodName, Descriptor.make_descriptor(Object.class, MagicScriptContext.class,Object[].class))
+				.load1()
+				.load2()
+				// 构建参数
+				.visitInt(parameters.size())
+				.intInsn(NEWARRAY, T_INT);
+		for (int i = 0; i < parameters.size(); i++) {
+			compiler.insn(DUP)
+					.visitInt(i)
+					.visitInt(parameters.get(i).getIndex())
+					.insn(IASTORE);
+		}
+		compiler.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "copy", Object[].class, Object[].class, int[].class)
+				.store(2)
+				.compile(childNodes)
+				.pop();
+	}
+
+	public void setAsync(boolean async) {
+		this.async = async;
 	}
 
 	public List<VarIndex> getParameters() {
 		return parameters;
 	}
 
-	public int getVarCount() {
-		return varCount;
+	private void compileMethod(MagicScriptCompiler compiler){
+		compiler.load0()
+				.lambda(methodName);
 	}
 
-	Object evaluate(MagicScriptContext context, Scope scope, Object[] args) {
-		Object value;
-		for (int i = 0; i < parameters.size() && i < args.length; i++) {
-			scope.setValue(parameters.get(i), args[i]);
-		}
-		value = AstInterpreter.interpretNodeList(childNodes, context, scope);
-		if (value instanceof Return.ReturnValue) {
-			value = ((Return.ReturnValue) value).getValue();
-		}
-		return value;
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		compileMethod(compiler);
 	}
 }

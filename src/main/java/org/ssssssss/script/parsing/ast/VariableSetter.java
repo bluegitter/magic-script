@@ -1,8 +1,10 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 
 public interface VariableSetter {
-	public void setValue(MagicScriptContext context, Scope scope, Object value);
+
+	default void compile_visit_variable(MagicScriptCompiler compiler){
+		throw new UnsupportedOperationException("暂不支持编译" + this.getClass().getSimpleName());
+	}
 }

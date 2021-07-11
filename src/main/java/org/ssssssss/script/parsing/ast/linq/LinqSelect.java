@@ -1,14 +1,11 @@
 package org.ssssssss.script.parsing.ast.linq;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
-import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
 
 public class LinqSelect extends Expression {
 
@@ -37,7 +34,7 @@ public class LinqSelect extends Expression {
 		this.having = having;
 		this.orders = orders;
 	}
-
+/*
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		List<Object> objects = from.evaluateList(context, scope);
@@ -167,7 +164,7 @@ public class LinqSelect extends Expression {
 		}
 		return result.stream().sorted().map(SelectValue::getValue).collect(Collectors.toList());
 	}
-
+*/
 	static class Record {
 
 		private Object value;

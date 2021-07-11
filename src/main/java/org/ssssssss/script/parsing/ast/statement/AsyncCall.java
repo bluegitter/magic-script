@@ -1,21 +1,23 @@
 package org.ssssssss.script.parsing.ast.statement;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 异步调用
  */
 public class AsyncCall extends Expression {
 
-	private final Expression expression;
+	private final LambdaFunction expression;
 
 	/**
 	 * 默认线程池大小(CPU核心数 * 2)
@@ -26,7 +28,12 @@ public class AsyncCall extends Expression {
 
 	public AsyncCall(Span span, Expression expression) {
 		super(span);
-		this.expression = expression;
+		if(expression instanceof LambdaFunction){
+			this.expression = (LambdaFunction) expression;
+		}else{
+			this.expression = new LambdaFunction(span, Collections.emptyList(), Collections.singletonList(new Return(span, expression)));
+		}
+		this.expression.setAsync(true);
 	}
 
 	public static ThreadPoolExecutor setThreadPoolExecutorSize(int size) {
@@ -39,46 +46,38 @@ public class AsyncCall extends Expression {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		Object[] args = null;
-		if (expression instanceof LambdaFunction) {
-			LambdaFunction lambdaFunction = (LambdaFunction) expression;
-			List<VarIndex> parameters = lambdaFunction.getParameters();
-			scope = scope.create(lambdaFunction.getVarCount());
-			args = new Object[parameters.size()];
-			for (int i = 0; i < args.length; i++) {
-				VarIndex varIndex = parameters.get(i);
-				args[i] = scope.getValue(varIndex);
-			}
-		}
-		Object[] finalArgs = args;
-		Scope finalScope = scope;
+	public void visitMethod(MagicScriptCompiler compiler) {
+		expression.visitMethod(compiler);
+	}
+
+	public static FutureTask<Object> execute(MagicScriptLambdaFunction function, MagicScriptContext context, Object[] args) {
 		FutureTask<Object> futureTask = new FutureTask<>(() -> {
-			try {
-				MagicScriptContext.set(context);
-				context.setVarScope(finalScope);
-				if (expression instanceof LambdaFunction) {
-					return ((LambdaFunction) expression).evaluate(context, finalScope, finalArgs);
-				}
-				return expression.evaluate(context, finalScope);
-			} finally {
-				context.removeVarScope();
-				MagicScriptContext.remove();
-			}
+			Object value = function.apply(context, args);
+			context.restore();
+			return value;
 		});
-		//	判断当前是否在线程池中，如果是的话，没直接运行，防止线程嵌套造成的"死锁"
+		//	判断当前是否在线程池中，如果是的话，则直接运行，防止线程嵌套造成的"死锁"
 		if (Thread.currentThread().getThreadGroup() == AsyncThreadFactory.ASYNC_THREAD_GROUP) {
 			futureTask.run();
 		} else {
 			threadPoolExecutor.submit(futureTask);
 		}
-
 		return futureTask;
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		List<VarIndex> parameters = expression.getParameters();
+		compiler.compile(expression)
+				.load1();
+		parameters.forEach(compiler::load);
+		compiler.call("call_async", parameters.size() + 2);
+
 	}
 
 	static class AsyncThreadFactory implements ThreadFactory {
 
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
+		private final AtomicLong threadNumber = new AtomicLong(1);
 
 		private static final ThreadGroup ASYNC_THREAD_GROUP = new ThreadGroup("magic-async-group");
 		private final String namePrefix = "magic-async-";

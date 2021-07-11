@@ -1,5 +1,7 @@
 package org.ssssssss.script.convert;
 
+import org.ssssssss.script.MagicScriptContext;
+
 public interface ClassImplicitConvert {
 
 	/**
@@ -17,5 +19,5 @@ public interface ClassImplicitConvert {
 	/**
 	 * 转换
 	 */
-	Object convert(Object source, Class<?> target);
+	Object convert(MagicScriptContext context, Object source, Class<?> target);
 }

@@ -1,7 +1,6 @@
 package org.ssssssss.script.parsing.ast.statement;
 
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.parsing.Scope;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Node;
 
@@ -15,22 +14,25 @@ public class Return extends Node {
 	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		return new ReturnValue(returnValue == null ? null : returnValue.evaluate(context, scope));
+	public void visitMethod(MagicScriptCompiler compiler) {
+		returnValue.visitMethod(compiler);
 	}
 
-	/**
-	 * A sentital of which only one instance exists. Uses thread local storage to store an (optional) return value. See
-	 **/
-	public static class ReturnValue {
-		private Object value;
-
-		public ReturnValue(Object value) {
-			this.value = value;
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		if(returnValue == null){
+			if(compiler.finallyBlock() != null){
+				compiler.compile(compiler.getFinallyBlock());
+			}
+			compiler.insn(ACONST_NULL);
+		}else{
+			compiler.visit(returnValue);
+			if(compiler.finallyBlock() != null){
+				compiler.store(3)	// 保存返回结果
+						.compile(compiler.getFinallyBlock())	// 执行 finally
+						.load3();	// 加载返回结果
+			}
 		}
-
-		public Object getValue() {
-			return value;
-		}
+		compiler.insn(ARETURN);	 // 返回
 	}
 }

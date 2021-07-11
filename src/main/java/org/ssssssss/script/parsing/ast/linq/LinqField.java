@@ -3,7 +3,6 @@ package org.ssssssss.script.parsing.ast.linq;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.MapExtension;
 import org.ssssssss.script.functions.StreamExtension;
-import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Expression;
@@ -36,28 +35,28 @@ public class LinqField extends Expression implements VariableSetter {
 		return expression;
 	}
 
-	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		if (expression instanceof MemberAccess && ((MemberAccess) expression).isWhole()) {
-			return ((MemberAccess) expression).getObject().evaluate(context, scope);
-		}
-		return expression.evaluate(context, scope);
-	}
+//	@Override
+//	public Object evaluate(MagicScriptContext context) {
+//		if (expression instanceof MemberAccess && ((MemberAccess) expression).isWhole()) {
+//			 return ((MemberAccess) expression).getObject().evaluate(context, scope);
+//		}
+//		 return expression.evaluate(context, scope);
+//	}
 
 
-	public List<Object> evaluateList(MagicScriptContext context, Scope scope) {
-		Object target = expression.evaluate(context, scope);
-		List<Object> objects;
-		if (target instanceof Map) {
-			objects = (List<Object>) MapExtension.asList((Map<?, ?>) target, (entry) -> Collections.singletonMap(entry[0], entry[1]));
-		}
-		try {
-			objects = StreamExtension.arrayLikeToList(target);
-		} catch (Exception e) {
-			return Collections.singletonList(target);
-		}
-		return objects;
-	}
+//	public List<Object> evaluateList(MagicScriptContext context, Scope scope) {
+//		Object target = expression.evaluate(context, scope);
+//		List<Object> objects;
+//		if (target instanceof Map) {
+//			objects = (List<Object>) MapExtension.asList((Map<?, ?>) target, (entry) -> Collections.singletonMap(entry[0], entry[1]));
+//		}
+//		try {
+//			objects = StreamExtension.arrayLikeToList(target);
+//		} catch (Exception e) {
+//			return Collections.singletonList(target);
+//		}
+//		return objects;
+//	}
 
 	public boolean isHasAlias() {
 		return hasAlias;
@@ -67,10 +66,10 @@ public class LinqField extends Expression implements VariableSetter {
 		return aliasName;
 	}
 
-	@Override
-	public void setValue(MagicScriptContext context, Scope scope, Object value) {
-		if (hasAlias) {
-			scope.setValue(varIndex, value);
-		}
-	}
+//	@Override
+//	public void setValue(MagicScriptContext context, Scope scope, Object value) {
+//		if (hasAlias) {
+//			scope.setValue(varIndex, value);
+//		}
+//	}
 }

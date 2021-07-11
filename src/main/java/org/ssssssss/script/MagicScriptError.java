@@ -4,6 +4,10 @@ import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.TokenStream;
+import org.ssssssss.script.runtime.MagicScriptRuntime;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * All errors reported by the library go through the static functions of this class.
@@ -35,12 +39,12 @@ public class MagicScriptError {
 	 **/
 	public static void error(String message, Span location, Throwable cause) {
 		cause = unwrap(cause);
-		if(cause instanceof MagicExitException){
-			throw (MagicExitException)cause;
+		if (cause instanceof MagicExitException) {
+			throw (MagicExitException) cause;
 		}
 		if (cause instanceof MagicScriptException) {
 			MagicScriptException mse = ((MagicScriptException) cause);
-			if(mse.getLocation() == null){
+			if (mse.getLocation() == null) {
 				error(message, location, cause.getCause());
 				return;
 			}
@@ -82,6 +86,27 @@ public class MagicScriptError {
 			parent = parent.getCause();
 		}
 		return root;
+	}
+
+	public static void transfer(MagicScriptRuntime runtime, Throwable t) throws Throwable {
+		t.printStackTrace();
+		StackTraceElement[] elements = t.getStackTrace();
+		Throwable cause = t;
+		while (cause.getCause() != null) {
+			cause = cause.getCause();
+		}
+		Span span = null;
+		List<StackTraceElement> elementList = new ArrayList<>();
+		for (StackTraceElement element : elements) {
+			if (!elementList.isEmpty()) {
+				elementList.add(element);
+			} else if (element.getClassName().startsWith("MagicScript_")) {
+				span = runtime.getSpan(element.getLineNumber() - 1);
+				elementList.add(new StackTraceElement(element.getClassName(), element.getMethodName(), element.getFileName(), span.getLine().getLineNumber()));
+			}
+		}
+		cause.setStackTrace(elementList.toArray(new StackTraceElement[0]));
+		MagicScriptError.error("执行出错...", span, cause);
 	}
 
 }

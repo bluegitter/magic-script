@@ -1,8 +1,11 @@
 package org.ssssssss.script.parsing.ast.literal;
 
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Literal;
+
+import static org.ssssssss.script.compile.Descriptor.make_descriptor;
 
 /**
  * int常量
@@ -16,5 +19,11 @@ public class IntegerLiteral extends Literal {
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义int变量值不合法", literal, e);
 		}
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler context) {
+		context.visitInt((Integer) value)
+				.invoke(INVOKESTATIC, Integer.class,"valueOf", Integer.class,int.class);
 	}
 }

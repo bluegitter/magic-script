@@ -1,5 +1,6 @@
 package org.ssssssss.script;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.script.*;
@@ -11,11 +12,11 @@ public class LanguageTests extends BaseTest{
 	public void customLanguageTest(){
 		MagicResourceLoader.addScriptLanguageLoader((language)->{
 			if("custom".equalsIgnoreCase(language)){
-				return (context,content)-> "get name is " + context.get("name") + "\nscript content:\n" + content;
+				return (context,content)-> "get name is " + context.get("name");
 			}
 			return null;
 		});
-		System.out.println(execute("language/custom.ms"));
+		Assert.assertEquals("get name is hello",execute("language/custom.ms"));
 	}
 
 	@Test

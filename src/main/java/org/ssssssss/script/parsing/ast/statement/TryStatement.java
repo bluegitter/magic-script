@@ -1,9 +1,8 @@
 package org.ssssssss.script.parsing.ast.statement;
 
-import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.asm.Label;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.exception.MagicExitException;
-import org.ssssssss.script.interpreter.AstInterpreter;
-import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Node;
@@ -15,47 +14,66 @@ public class TryStatement extends Node {
 	private final List<Node> tryBlock;
 	private final List<Node> catchBlock;
 	private final List<Node> finallyBlock;
-	private final int tryVarCount;
-	private final int catchVarCount;
-	private final int finallyVarCount;
 
-	public TryStatement(Span span, VarIndex exceptionVarNode, List<Node> tryBlock, List<Node> catchBlock, List<Node> finallyBlock,int tryVarCount,int catchVarCount,int finallyVarCount) {
+	public TryStatement(Span span, VarIndex exceptionVarNode, List<Node> tryBlock, List<Node> catchBlock, List<Node> finallyBlock) {
 		super(span);
 		this.exceptionVarNode = exceptionVarNode;
 		this.tryBlock = tryBlock;
 		this.catchBlock = catchBlock;
 		this.finallyBlock = finallyBlock;
-		this.tryVarCount = tryVarCount;
-		this.catchVarCount = catchVarCount;
-		this.finallyVarCount = finallyVarCount;
-
 	}
 
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		tryBlock.forEach(it -> it.visitMethod(compiler));
+		catchBlock.forEach(it -> it.visitMethod(compiler));
+		finallyBlock.forEach(it -> it.visitMethod(compiler));
+	}
 
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		try {
-			Object value = AstInterpreter.interpretNodeList(tryBlock, context, scope.create(tryVarCount));
-			return value;
-		} catch (MagicExitException mee){
-			throw mee;
-		} catch (Throwable throwable) {
-			if (catchBlock != null && catchBlock.size() > 0) {
-				Scope catchScope = scope.create(catchVarCount);
-				if (exceptionVarNode != null) {
-					catchScope.setValue(exceptionVarNode, throwable);
-				}
-				return AstInterpreter.interpretNodeList(catchBlock, context, catchScope);
-			} else {
-				throw throwable;
-			}
-		} finally {
-			if (finallyBlock != null && finallyBlock.size() > 0) {
-				Object value = AstInterpreter.interpretNodeList(finallyBlock, context, scope.create(finallyVarCount));
-				if (value instanceof Return.ReturnValue) {
-					return value;
-				}
-			}
+	public void compile(MagicScriptCompiler compiler) {
+		Label l0 = new Label();
+		Label l1 = new Label();
+		Label l2 = new Label();
+		Label end = new Label();
+		boolean hasCatch = exceptionVarNode != null;
+		boolean hasFinally = !finallyBlock.isEmpty();
+		Label finallyLabel = new Label();
+		compiler.tryCatch(l0, l1, l1, MagicExitException.class);
+		if (hasCatch) {    // try catch
+			compiler.tryCatch(l0, l1, l2, Throwable.class);
 		}
+		if (hasFinally) { // try + catch + finally
+			compiler.tryCatch(l0, finallyLabel, finallyLabel, finallyBlock);
+		}
+		compiler.label(l0)
+				.compile(tryBlock);    // try
+		if (hasFinally && compiler.finallyBlock() == finallyBlock) {
+			compiler.compile(compiler.getFinallyBlock());
+		}
+		compiler.jump(GOTO, end);
+		compiler.label(l1)    // catch MagicExitException
+				.insn(ATHROW);    // throw e
+		if (hasCatch) {
+			compiler.label(l2) // catch Throwable
+					.store(3)
+					.pre_store(exceptionVarNode)
+					.load3()
+					.store()
+					.putFinallyBlock(finallyBlock)
+					.compile(catchBlock);
+			if (hasFinally && compiler.finallyBlock() == finallyBlock) {
+				compiler.compile(compiler.getFinallyBlock());
+			}
+			compiler.jump(GOTO, end);
+		}
+		if (hasFinally) {
+			compiler.label(finallyLabel)
+					.compile(finallyBlock);
+		}
+		while (compiler.finallyBlock() == finallyBlock) {
+			compiler.getFinallyBlock();
+		}
+		compiler.label(end);
 	}
 }

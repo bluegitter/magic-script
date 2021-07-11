@@ -24,7 +24,7 @@ public abstract class Literal extends Expression {
 	}
 
 	@Override
-	public void compile(MagicScriptCompiler context) {
-		context.ldc(value);
+	public void compile(MagicScriptCompiler compiler) {
+		compiler.ldc(value);
 	}
 }

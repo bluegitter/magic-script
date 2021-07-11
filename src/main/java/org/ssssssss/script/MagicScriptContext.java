@@ -25,9 +25,9 @@ public class MagicScriptContext {
 	/**
 	 * 保存脚本中的变量
 	 */
-	private Stack<Object[]> vars = new Stack<>();
+	private final Stack<Object[]> vars = new Stack<>();
 
-	private Stack<int[]> copied = new Stack<>();
+	private final Stack<int[]> copied = new Stack<>();
 
 	private MagicScriptRuntime runtime;
 

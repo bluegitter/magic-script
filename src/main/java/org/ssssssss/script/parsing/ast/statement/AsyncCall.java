@@ -60,7 +60,9 @@ public class AsyncCall extends Expression {
 		if (Thread.currentThread().getThreadGroup() == AsyncThreadFactory.ASYNC_THREAD_GROUP) {
 			futureTask.run();
 		} else {
-			threadPoolExecutor.submit(futureTask);
+			// TODO 目前async语句有点问题,先不走线程处理。
+			futureTask.run();
+			// threadPoolExecutor.submit(futureTask);
 		}
 		return futureTask;
 	}

@@ -3,11 +3,13 @@ package org.ssssssss.script.parsing.ast;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.compile.MagicScriptCompileException;
 import org.ssssssss.script.compile.MagicScriptCompiler;
+import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.TokenType;
 import org.ssssssss.script.parsing.ast.statement.VariableAccess;
 import org.ssssssss.script.runtime.handle.OperatorHandle;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -28,6 +30,11 @@ public class UnaryOperation extends Expression {
         this.operator = UnaryOperator.getOperator(operator);
         this.operand = operand;
         this.atAfter = atAfter;
+    }
+
+    @Override
+    public List<Span> visitSpan() {
+        return operand.visitSpan();
     }
 
     public UnaryOperator getOperator() {

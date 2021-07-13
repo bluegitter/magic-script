@@ -178,6 +178,8 @@ public class Parser {
 	}
 
 	private Span addSpan(Span opening, Span ending) {
+		addSpan(opening);
+		addSpan(ending);
 		return addSpan(new Span(opening, ending));
 	}
 
@@ -445,7 +447,7 @@ public class Parser {
 			Expression right = nextLevel == precedence.length ? parseUnaryOperator(stream, expectRightCurly) : parseBinaryOperator(stream, nextLevel, expectRightCurly);
 			left = BinaryOperation.create(left, operator, right, linqLevel);
 		}
-
+		addSpan(left.getSpan());
 		return left;
 	}
 

@@ -8,6 +8,9 @@ import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.VariableSetter;
 import org.ssssssss.script.parsing.ast.statement.VariableAccess;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * = 操作
  */
@@ -15,6 +18,15 @@ public class AssigmentOperation extends BinaryOperation {
 
 	public AssigmentOperation(Expression leftOperand, Span span, Expression rightOperand) {
 		super(leftOperand, span, rightOperand);
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		if(getLeftOperand() instanceof VariableAccess) {
+			return super.visitSpan();
+		}else{
+			return Collections.singletonList(getSpan());
+		}
 	}
 
 	@Override

@@ -29,6 +29,11 @@ public class ForStatement extends Node {
 	}
 
 	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(mapOrArray, body);
+	}
+
+	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
 		mapOrArray.visitMethod(compiler);
 		body.forEach(it -> it.visitMethod(compiler));

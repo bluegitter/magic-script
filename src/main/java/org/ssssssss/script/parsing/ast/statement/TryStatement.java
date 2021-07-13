@@ -24,6 +24,11 @@ public class TryStatement extends Node {
 	}
 
 	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(tryBlock, catchBlock, finallyBlock);
+	}
+
+	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
 		tryBlock.forEach(it -> it.visitMethod(compiler));
 		catchBlock.forEach(it -> it.visitMethod(compiler));
@@ -51,21 +56,21 @@ public class TryStatement extends Node {
 		if (hasFinally && compiler.finallyBlock() == finallyBlock) {
 			compiler.compile(compiler.getFinallyBlock());
 		}
-		compiler.jump(GOTO, end);	// 跳转至结束
+		compiler.jump(GOTO, end);    // 跳转至结束
 		compiler.label(l1)    // catch MagicExitException
 				.insn(ATHROW);    // throw e
 		if (hasCatch) {
 			compiler.label(l2) // catch Throwable
-					.store(3)	// 将异常保存至3号变量
-					.pre_store(exceptionVarNode)	//保存异常变量前准备
-					.load3()	// 将异常加载出来
-					.store()	// 保存至用户定义的变量中
-					.putFinallyBlock(finallyBlock)	// 压入finally快
-					.compile(catchBlock);	// 编译catch代码块
+					.store(3)    // 将异常保存至3号变量
+					.pre_store(exceptionVarNode)    //保存异常变量前准备
+					.load3()    // 将异常加载出来
+					.store()    // 保存至用户定义的变量中
+					.putFinallyBlock(finallyBlock)    // 压入finally快
+					.compile(catchBlock);    // 编译catch代码块
 			if (hasFinally && compiler.finallyBlock() == finallyBlock) {
-				compiler.compile(compiler.getFinallyBlock());	// 编译finally快
+				compiler.compile(compiler.getFinallyBlock());    // 编译finally快
 			}
-			compiler.jump(GOTO, end);	// 跳转至结束
+			compiler.jump(GOTO, end);    // 跳转至结束
 		}
 		if (hasFinally) {
 			compiler.label(finallyLabel)

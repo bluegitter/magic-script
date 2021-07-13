@@ -21,6 +21,11 @@ public class WhileStatement extends Node {
 	}
 
 	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(condition, trueBlock);
+	}
+
+	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
 		condition.visitMethod(compiler);
 		trueBlock.forEach(it -> it.visitMethod(compiler));

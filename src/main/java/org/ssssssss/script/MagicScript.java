@@ -43,7 +43,7 @@ public class MagicScript extends CompiledScript {
 		Parser parser = new Parser();
 		List<Node> nodes = parser.parse(source);
 		Set<VarIndex> varIndices = parser.getVarIndices();
-		return new MagicScript(nodes, parser.getSpans(), varIndices, scriptEngine);
+		return new MagicScript(nodes, Node.mergeSpans(nodes), varIndices, scriptEngine);
 	}
 
 	public Span getSpan(int index) {

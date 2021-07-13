@@ -8,7 +8,10 @@ import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.ast.binary.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public abstract class BinaryOperation extends Expression {
 
@@ -19,6 +22,11 @@ public abstract class BinaryOperation extends Expression {
 		super(span);
 		this.leftOperand = leftOperand;
 		this.rightOperand = rightOperand;
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(leftOperand, rightOperand);
 	}
 
 	@Override

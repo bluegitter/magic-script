@@ -5,6 +5,8 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.VariableSetter;
 
+import java.util.List;
+
 public class MapOrArrayAccess extends Expression implements VariableSetter {
 	private final Expression mapOrArray;
 	private final Expression keyOrIndex;
@@ -13,6 +15,11 @@ public class MapOrArrayAccess extends Expression implements VariableSetter {
 		super(span);
 		this.mapOrArray = mapOrArray;
 		this.keyOrIndex = keyOrIndex;
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(mapOrArray, keyOrIndex);
 	}
 
 	@Override

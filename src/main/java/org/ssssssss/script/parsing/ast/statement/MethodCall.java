@@ -27,6 +27,11 @@ public class MethodCall extends Expression {
 	}
 
 	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(method, arguments);
+	}
+
+	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
 		method.visitMethod(compiler);
 		arguments.forEach(it -> it.visitMethod(compiler));

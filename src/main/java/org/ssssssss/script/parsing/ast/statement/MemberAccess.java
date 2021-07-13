@@ -5,6 +5,8 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.VariableSetter;
 
+import java.util.List;
+
 public class MemberAccess extends Expression implements VariableSetter {
 	private final Expression object;
 	private final Span name;
@@ -33,6 +35,11 @@ public class MemberAccess extends Expression implements VariableSetter {
 
 	public Span getName() {
 		return name;
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(object, name);
 	}
 
 	@Override

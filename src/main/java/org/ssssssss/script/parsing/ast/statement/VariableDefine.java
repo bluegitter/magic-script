@@ -6,6 +6,8 @@ import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
 
+import java.util.List;
+
 public class VariableDefine extends Node {
 
 	private final Expression right;
@@ -16,6 +18,11 @@ public class VariableDefine extends Node {
 		super(span);
 		this.varIndex = varIndex;
 		this.right = right;
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		return right.visitSpan();
 	}
 
 	@Override

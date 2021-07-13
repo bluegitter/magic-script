@@ -19,6 +19,11 @@ public class NewStatement extends Expression {
 	}
 
 	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(target, arguments);
+	}
+
+	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
 		target.visitMethod(compiler);
 		arguments.forEach(it -> it.visitMethod(compiler));

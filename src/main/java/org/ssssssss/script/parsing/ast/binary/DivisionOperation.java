@@ -5,6 +5,8 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
 
+import java.util.List;
+
 /**
  * / 操作
  */
@@ -12,6 +14,11 @@ public class DivisionOperation extends BinaryOperation {
 
 	public DivisionOperation(Expression leftOperand, Span span, Expression rightOperand) {
 		super(leftOperand, span, rightOperand);
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(getSpan());
 	}
 
 	@Override

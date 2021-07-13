@@ -264,7 +264,7 @@ public class FunctionCallHandle {
 				} else {
 					methodName = text.toUpperCase();
 				}
-				JavaInvoker<Method> invoker = JavaReflection.getMethod(target, methodName, value);
+				JavaInvoker<Method> invoker = JavaReflection.getMethod(target, "set" + methodName, value);
 				if (invoker == null) {
 					throw new NoSuchMethodException(String.format("在%s中找不到属性%s或者方法set%s", target.getClass(), name, methodName));
 				}

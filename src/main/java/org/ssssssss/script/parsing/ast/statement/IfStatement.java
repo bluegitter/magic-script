@@ -24,6 +24,11 @@ public class IfStatement extends Node {
 	}
 
 	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(condition, trueBlock, elseIfs, falseBlock);
+	}
+
+	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
 		condition.visitMethod(compiler);
 		trueBlock.forEach(it -> it.visitMethod(compiler));
@@ -36,17 +41,17 @@ public class IfStatement extends Node {
 		Label end = new Label();
 		Label next = new Label();
 		compiler.visit(condition) // 访问表达式
-				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)	// 判断是否为true
+				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)    // 判断是否为true
 				.jump(IFEQ, next)
-				.compile(trueBlock)	// 编译true代码块
-				.jump(GOTO, end);	// 跳转至结束
+				.compile(trueBlock)    // 编译true代码块
+				.jump(GOTO, end);    // 跳转至结束
 		for (IfStatement elseIf : elseIfs) {
 			compiler.label(next)
-					.visit(elseIf.condition)	// 访问else if 表达式
-					.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class);	// 判断是否为true
+					.visit(elseIf.condition)    // 访问else if 表达式
+					.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class);    // 判断是否为true
 			next = new Label();
 			compiler.jump(IFEQ, next)
-					.compile(elseIf.trueBlock)	// 编译 else if true代码块
+					.compile(elseIf.trueBlock)    // 编译 else if true代码块
 					.jump(GOTO, end);
 		}
 		compiler.label(next);

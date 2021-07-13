@@ -24,6 +24,11 @@ public class LambdaFunction extends Expression {
 	}
 
 	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(parameters, childNodes);
+	}
+
+	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
 		childNodes.forEach(it -> it.visitMethod(compiler));
 		this.methodName = (async ? "async_": "") + "lambda_" + compiler.getFunctionIndex();

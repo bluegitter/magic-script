@@ -4,6 +4,9 @@ import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Node;
 
+import java.util.Collections;
+import java.util.List;
+
 public class Return extends Node {
 
 	private final Node returnValue;
@@ -11,6 +14,14 @@ public class Return extends Node {
 	public Return(Span span, Node returnValue) {
 		super(span);
 		this.returnValue = returnValue;
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		if(returnValue == null){
+			return Collections.emptyList();
+		}
+		return mergeSpans(returnValue);
 	}
 
 	@Override

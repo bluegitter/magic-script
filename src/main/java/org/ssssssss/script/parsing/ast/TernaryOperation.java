@@ -5,6 +5,8 @@ import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.runtime.handle.OperatorHandle;
 
+import java.util.List;
+
 public class TernaryOperation extends Expression {
 	private final Expression condition;
 	private final Expression trueExpression;
@@ -15,6 +17,11 @@ public class TernaryOperation extends Expression {
 		this.condition = condition;
 		this.trueExpression = trueExpression;
 		this.falseExpression = falseExpression;
+	}
+
+	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(condition, trueExpression, falseExpression);
 	}
 
 	@Override

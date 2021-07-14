@@ -414,7 +414,6 @@ public class Parser {
 				try {
 					while (stream.match(TokenType.Identifier, false)) {
 						Token identifier = stream.expect(TokenType.Identifier);
-						checkKeyword(identifier.getSpan());
 						parameters.add(forceAdd(identifier.getSpan().getText()));
 						if (stream.match(TokenType.Comma, true)) { //,
 							continue;

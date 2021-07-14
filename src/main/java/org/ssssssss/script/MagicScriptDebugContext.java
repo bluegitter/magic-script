@@ -7,34 +7,35 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class MagicScriptDebugContext extends MagicScriptContext {
 
 	private String id = UUID.randomUUID().toString().replace("-", "");
 
-	private static Map<String, MagicScriptDebugContext> contextMap = new ConcurrentHashMap<>();
+	private static final Map<String, MagicScriptDebugContext> contextMap = new ConcurrentHashMap<>();
 
 	public List<Integer> breakpoints;
 
-	private BlockingQueue<String> producer = new LinkedBlockingQueue<>();
+	private final BlockingQueue<String> producer = new LinkedBlockingQueue<>();
 
-	private BlockingQueue<String> consumer = new LinkedBlockingQueue<>();
+	private final BlockingQueue<String> consumer = new LinkedBlockingQueue<>();
 
-	private Object returnValue;
+	private Consumer<Map<String, Object>> callback;
 
 	private Span.Line line;
 
-	private boolean running = true;
-
-	private boolean exception = false;
-
 	private int timeout = 60;
 
-	private Runnable complete;
-
-	private Runnable start;
-
 	private boolean stepInto = false;
+
+	public MagicScriptDebugContext(List<Integer> breakpoints) {
+		this.breakpoints = breakpoints;
+	}
+
+	public void setCallback(Consumer<Map<String, Object>> callback) {
+		this.callback = callback;
+	}
 
 	public void setId(String id) {
 		String oldId = this.id;
@@ -58,6 +59,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 	public synchronized String pause(Span.Line line) throws InterruptedException {
 		this.line = line;
 		consumer.offer(this.id);
+		callback.accept(getDebugInfo());
 		return producer.poll(timeout, TimeUnit.SECONDS);
 	}
 
@@ -70,44 +72,12 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		await();
 	}
 
-	public Object getReturnValue() {
-		return returnValue;
-	}
-
-	public void onComplete(Runnable complete){
-		this.complete = complete;
-	}
-
-	public void start(){
-		if(this.start != null){
-			this.start.run();
-		}
-	}
-
-	public void onStart(Runnable start){
-		this.start = start;
-	}
-
-	public void setReturnValue(Object returnValue) {
-		this.running = false;
-		this.returnValue = returnValue;
-		contextMap.remove(this.id);
-		consumer.offer(this.id);
-		if(complete != null){
-			complete.run();
-		}
-	}
-
 	public boolean isStepInto() {
 		return stepInto;
 	}
 
 	public void setStepInto(boolean stepInto) {
 		this.stepInto = stepInto;
-	}
-
-	public boolean isRunning() {
-		return running;
 	}
 
 	public Map<String, Object> getDebugInfo() {
@@ -148,14 +118,6 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 
 	public String getId() {
 		return id;
-	}
-
-	public boolean isException() {
-		return exception;
-	}
-
-	public void setException(boolean exception) {
-		this.exception = exception;
 	}
 
 	public static MagicScriptDebugContext getDebugContext(String id) {

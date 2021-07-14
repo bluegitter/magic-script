@@ -57,12 +57,14 @@ public class StreamExtension {
 
 	@Comment(value = "向集合中添加元素", origin = true)
 	public Object push(Object target, @Comment("要添加的元素") Object item) {
-		if(target instanceof Collection){
-			if(item instanceof Collection){
-				((Collection)target).addAll((Collection)item);
-			}else{
-				((Collection)target).add(item);
+		if (target instanceof Collection) {
+			if (item instanceof Collection) {
+				((Collection) target).addAll((Collection) item);
+			} else {
+				((Collection) target).add(item);
 			}
+		} else {
+			throw new MagicScriptException("push方法不支持类型:" + target.getClass());
 		}
 		return target;
 	}
@@ -146,6 +148,16 @@ public class StreamExtension {
 		List<Object> objects = arrayLikeToList(target);
 		Collections.shuffle(objects);
 		return toOriginType(target, objects);
+	}
+
+	/**
+	 * 数组去重
+	 *
+	 * @since 1.4.6
+	 */
+	@Comment(value = "集合去重", origin = true)
+	public Object distinct(Object target) {
+		return toOriginType(target, arrayLikeToList(target).stream().distinct().collect(Collectors.toList()));
 	}
 
 	/**
@@ -236,7 +248,7 @@ public class StreamExtension {
 	 */
 	@Comment("对集合进行分组并转换")
 	public Map<Object, Object> group(Object target, @Comment("分组条件，如item=>item.xxx + '_' + item.yyy") Function<Object[], Object> condition,
-											@Comment("转换函数，如分组求和(list)=>list.sum()") Function<Object[], Object> mapping) {
+									 @Comment("转换函数，如分组求和(list)=>list.sum()") Function<Object[], Object> mapping) {
 		return arrayLikeToList(target).stream()
 				.collect(Collectors.groupingBy(item -> condition.apply(Stream.of(item).toArray()),
 						Collectors.collectingAndThen(Collectors.toList(), list -> mapping.apply(Stream.of(list).toArray()))
@@ -277,8 +289,8 @@ public class StreamExtension {
 	 */
 	@Comment("将两个集合关联并转换")
 	public List<Object> join(Object source, @Comment("另一个集合") Object target,
-									@Comment("关联条件，如:(left,right)=>left.xxx == right.xxx") Function<Object[], Object> condition,
-									@Comment("映射函数，如:(left,right)=>{xxx : left.xxx, yyy : right.yyy}") Function<Object[], Object> mapping) {
+							 @Comment("关联条件，如:(left,right)=>left.xxx == right.xxx") Function<Object[], Object> condition,
+							 @Comment("映射函数，如:(left,right)=>{xxx : left.xxx, yyy : right.yyy}") Function<Object[], Object> mapping) {
 		if (target == null) {
 			return null;
 		}

@@ -57,7 +57,13 @@ public class StreamExtension {
 
 	@Comment(value = "向集合中添加元素", origin = true)
 	public Object push(Object target, @Comment("要添加的元素") Object item) {
-		arrayLikeToList(target).add(item);
+		if(target instanceof Collection){
+			if(item instanceof Collection){
+				((Collection)target).addAll((Collection)item);
+			}else{
+				((Collection)target).add(item);
+			}
+		}
 		return target;
 	}
 

@@ -50,25 +50,6 @@ public class MagicScript extends CompiledScript {
 				MagicScriptContext rootContext = (MagicScriptContext) root;
 				rootContext.putMapIntoContext(MagicScriptEngine.getDefaultImports());
 				Scope scope = new Scope(new Scope(rootContext.getRootVariables()), topVarCount);
-				if (rootContext instanceof MagicScriptDebugContext) {
-					MagicScriptDebugContext debugContext = (MagicScriptDebugContext) rootContext;
-					Scope finalScope = scope;
-					new Thread(() -> {
-						try {
-							debugContext.start();
-							debugContext.setReturnValue(execute(debugContext, finalScope));
-						} catch (Exception e) {
-							debugContext.setException(true);
-							debugContext.setReturnValue(e);
-						}
-					}, "magic-script").start();
-					try {
-						debugContext.await();
-					} catch (InterruptedException e) {
-						throw new DebugTimeoutException(e);
-					}
-					return debugContext.isRunning() ? debugContext.getDebugInfo() : debugContext.getReturnValue();
-				}
 				return execute(rootContext, scope);
 			} else {
 				throw new MagicScriptException("参数不正确！");

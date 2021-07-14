@@ -59,7 +59,6 @@ public class AstInterpreter {
 					if (step || debugContext.getBreakpoints().contains(line.getLineNumber())) {
 						try {
 							if (debugContext.pause(line, scope) == null) {
-								debugContext.setReturnValue(null);
 								throw new DebugTimeoutException();
 							}
 							step = debugContext.isStepInto();

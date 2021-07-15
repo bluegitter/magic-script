@@ -11,6 +11,10 @@ import java.util.regex.Pattern;
 public class Tokenizer {
 
 	public static TokenStream tokenize(String source) {
+		return tokenize(source, false);
+	}
+
+	public static TokenStream tokenize(String source, boolean matchComment) {
 		CharacterStream stream = new CharacterStream(source, 0, source.length());
 		List<Token> tokens = new ArrayList<Token>();
 		int leftCount = 0;
@@ -18,12 +22,20 @@ public class Tokenizer {
 		outer:
 		while (stream.hasMore()) {
 			stream.skipWhiteSpace();
+			stream.startSpan();
 			if (stream.match("//", true)) {    //注释
 				stream.skipLine();
+				if(matchComment){
+					tokens.add(new Token(TokenType.Comment, stream.endSpan()));
+				}
 				continue;
 			}
+			stream.startSpan();
 			if (stream.match("/*", true)) {    //多行注释
 				stream.skipUntil("*/");
+				if(matchComment){
+					tokens.add(new Token(TokenType.Comment, stream.endSpan()));
+				}
 				continue;
 			}
 			if (stream.matchDigit(false)) {

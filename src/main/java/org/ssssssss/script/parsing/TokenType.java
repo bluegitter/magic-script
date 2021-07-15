@@ -74,6 +74,7 @@ public enum TokenType {
 	StringLiteral("a string"),
 	NullLiteral("null"),
 	Language("language"),
+	Comment("comment"),
 	Identifier("an identifier");
 	// @on
 

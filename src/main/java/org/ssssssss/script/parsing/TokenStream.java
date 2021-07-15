@@ -99,6 +99,10 @@ public class TokenStream {
 		}
 	}
 
+	public List<Span> comments(){
+		return tokens.stream().filter(it -> it.getType() == TokenType.Comment).map(Token::getSpan).collect(Collectors.toList());
+	}
+
 	/**
 	 * Checks if the next token has the give type and optionally consumes, or throws an error if the next token did not match the
 	 * type.

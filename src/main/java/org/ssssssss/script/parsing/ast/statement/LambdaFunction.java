@@ -25,7 +25,7 @@ public class LambdaFunction extends Expression {
 
 	@Override
 	public List<Span> visitSpan() {
-		return mergeSpans(parameters, childNodes);
+		return mergeSpans(childNodes);
 	}
 
 	@Override

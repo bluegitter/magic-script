@@ -6,6 +6,7 @@ import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
 
+import java.util.Collections;
 import java.util.List;
 
 public class VariableDefine extends Node {
@@ -22,6 +23,9 @@ public class VariableDefine extends Node {
 
 	@Override
 	public List<Span> visitSpan() {
+		if(right == null){
+			return Collections.emptyList();
+		}
 		return right.visitSpan();
 	}
 

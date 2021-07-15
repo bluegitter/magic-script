@@ -29,6 +29,11 @@ public class IssuesTests extends BaseTest {
 	public void bug_assigment() {
 		Assert.assertEquals(1, execute("issues/bug_assigment.ms"));
 	}
+	@Test
+	public void bug_push() {
+		Assert.assertEquals("[1, 2, 3]", execute("issues/bug_push.ms"));
+	}
+
 
 	@Test
 	public void i398nd() {

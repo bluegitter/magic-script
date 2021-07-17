@@ -71,6 +71,8 @@ public class MagicScriptCompiler implements Opcodes {
 
 	private int functionIndex = 0;
 
+	private int tempIndex = 4;
+
 	public MagicScriptCompiler(Set<VarIndex> varIndices, List<Span> spans) {
 		this.varIndices = varIndices;
 		this.spans = spans;
@@ -103,6 +105,10 @@ public class MagicScriptCompiler implements Opcodes {
 		finallyStack.push(null);
 		labelStack.push(new Label[2]);
 		return this;
+	}
+
+	public int getTempIndex(){
+		return tempIndex++;
 	}
 
 	/**
@@ -241,6 +247,15 @@ public class MagicScriptCompiler implements Opcodes {
 	}
 
 	/**
+	 * 加载context
+	 */
+	public MagicScriptCompiler newArrayList() {
+		return this.typeInsn(NEW, ArrayList.class)
+				.insn(DUP)
+				.invoke(INVOKESPECIAL, ArrayList.class, "<init>", void.class);
+	}
+
+	/**
 	 * 加载vars
 	 */
 	public MagicScriptCompiler load2() {
@@ -259,15 +274,31 @@ public class MagicScriptCompiler implements Opcodes {
 	/**
 	 * 加载变量（从数组中）
 	 */
-	public MagicScriptCompiler load(int index) {
+	public MagicScriptCompiler aaload(int index) {
 		return load2().visitInt(index).insn(AALOAD);
+	}
+
+	/**
+	 * 加载变量（从数组中）
+	 */
+	public MagicScriptCompiler load(int index) {
+		_this().visitVarInsn(ALOAD, index);
+		return this;
+	}
+
+	/**
+	 * 加载属性
+	 */
+	public MagicScriptCompiler getField(Class<?> owner,String name, Class<?> type) {
+		_this().visitFieldInsn(GETFIELD, getJvmType(owner), name, Type.getDescriptor(type));
+		return this;
 	}
 
 	/**
 	 * 加载变量
 	 */
 	public MagicScriptCompiler load(VarIndex varIndex) {
-		return load(varIndex.getIndex());
+		return aaload(varIndex.getIndex());
 	}
 
 	/**
@@ -277,7 +308,7 @@ public class MagicScriptCompiler implements Opcodes {
 	public MagicScriptCompiler load(String name) {
 		int index = vars.peek().indexOf(name) + 1;
 		if (index > 0) {	// 如果当前栈中有，则直接使用
-			return load(index);
+			return aaload(index);
 		} else {
 			// 从环境中获取
 			this.load1()

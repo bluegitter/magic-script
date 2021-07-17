@@ -1,7 +1,7 @@
 package org.ssssssss.script.runtime.handle;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.exception.MagicScriptException;
+import org.ssssssss.script.exception.MagicScriptRuntimeException;
 import org.ssssssss.script.functions.ClassExtension;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.parsing.ast.statement.ClassConverter;
@@ -39,7 +39,7 @@ public class FunctionCallHandle {
 		try {
 			MethodHandles.Lookup lookup = MethodHandles.lookup();
 			FALLBACK = lookup.findStatic(FunctionCallHandle.class, "fallback", methodType(Object.class, MethodCallSite.class, Object[].class));
-			INVOKE_METHOD = lookup.findStatic(FunctionCallHandle.class, "invoke_method", methodType(Object.class, Object.class, MagicScriptContext.class, String.class, boolean.class,boolean.class, Object[].class));
+			INVOKE_METHOD = lookup.findStatic(FunctionCallHandle.class, "invoke_method", methodType(Object.class, Object.class, MagicScriptContext.class, String.class, boolean.class, boolean.class, Object[].class));
 		} catch (NoSuchMethodException | IllegalAccessException e) {
 			throw new Error("FunctionCallHandle初始化失败", e);
 		}
@@ -73,7 +73,7 @@ public class FunctionCallHandle {
 	}
 
 	public static Object invoke_method(Object target, MagicScriptContext context, String name, boolean hasSpread, boolean optional, Object[] args) throws Throwable {
-		if(target == null && optional){
+		if (target == null && optional) {
 			return null;
 		}
 		JavaInvoker<Method> method;
@@ -107,7 +107,11 @@ public class FunctionCallHandle {
 		return source;
 	}
 
-	public static Object member_access(Object target, String name, boolean optional) throws Throwable {
+	public static Object member_access(Object target, String name, boolean optional) {
+		return member_access(target, name, optional, false);
+	}
+
+	public static Object member_access(Object target, String name, boolean optional, boolean inLinq) {
 		if (target == null) {
 			if (optional) {
 				return null;
@@ -130,17 +134,30 @@ public class FunctionCallHandle {
 				methodName = name.toUpperCase();
 			}
 			JavaInvoker<Method> invoker = JavaReflection.getMethod(target, "get" + methodName, EMPTY_ARGS);
-			if (invoker != null) {
-				return invoker.invoke0(target, null, EMPTY_ARGS);
-			} else if ((invoker = JavaReflection.getMethod(target, "get" + methodName, EMPTY_ARGS)) != null) {
-				return invoker.invoke0(target, null, EMPTY_ARGS);
+			try {
+				if (invoker != null) {
+					return invoker.invoke0(target, null, EMPTY_ARGS);
+				} else if ((invoker = JavaReflection.getMethod(target, "get" + methodName, EMPTY_ARGS)) != null) {
+					return invoker.invoke0(target, null, EMPTY_ARGS);
+				}
+			} catch (Throwable throwable) {
+				throw new MagicScriptRuntimeException(throwable);
 			}
 		}
 		Object innerClass = JavaReflection.getInnerClass(target, name);
 		if (innerClass != null) {
 			return innerClass;
 		}
-		throw new NoSuchMethodException(String.format("在%s中找不到属性%s或者方法get%s、方法is%s,内部类%s", target, name, methodName, methodName, name));
+		if (target instanceof List) {
+			List list = (List) target;
+			if (inLinq) {
+				return list.stream().map(it -> member_access(it, name, optional)).collect(Collectors.toList());
+			}else if(list.size() > 0){
+				return member_access(list.get(0), name, optional,false);
+			}
+			return null;
+		}
+		throw new MagicScriptRuntimeException(String.format("在%s中找不到属性%s或者方法get%s、方法is%s,内部类%s", target, name, methodName, methodName, name));
 	}
 
 	public static Object call_async(MagicScriptLambdaFunction function, MagicScriptContext context, Object... args) {
@@ -169,9 +186,9 @@ public class FunctionCallHandle {
 				} else if (res instanceof Collection) {
 					list.addAll(((Collection) res));
 				} else if (res instanceof Map) {
-					throw new MagicScriptException("不能在list中展开map");
+					throw new MagicScriptRuntimeException("不能在list中展开map");
 				} else {
-					throw new MagicScriptException("不能展开的类型:" + res.getClass());
+					throw new MagicScriptRuntimeException("不能展开的类型:" + res.getClass());
 				}
 			} else {
 				list.add(item);
@@ -190,7 +207,7 @@ public class FunctionCallHandle {
 		} else if (target.getClass().isArray()) {
 			return new ArrayValueIterator(target);
 		} else {
-			throw new UnsupportedOperationException("不支持循环" + target.getClass());
+			throw new MagicScriptRuntimeException("不支持循环" + target.getClass());
 		}
 	}
 
@@ -204,7 +221,7 @@ public class FunctionCallHandle {
 		} else if (target.getClass().isArray()) {
 			return new ArrayKeyValueIterator(target);
 		} else {
-			throw new UnsupportedOperationException("不支持循环" + target.getClass());
+			throw new MagicScriptRuntimeException("不支持循环" + target.getClass());
 		}
 	}
 
@@ -226,7 +243,7 @@ public class FunctionCallHandle {
 							map.put(String.valueOf(index++), obj);
 						}
 					} else {
-						throw new MagicScriptException("不能展开的类型:" + res.getClass());
+						throw new MagicScriptRuntimeException("不能展开的类型:" + res.getClass());
 					}
 					continue;
 				}
@@ -250,7 +267,7 @@ public class FunctionCallHandle {
 				// TODO NEW EXCEPTION
 				((List) target).set(((Number) name).intValue(), value);
 			} else {
-				throw new UnsupportedOperationException("不支持此赋值操作");
+				throw new MagicScriptRuntimeException("不支持此赋值操作");
 			}
 		} else {
 			String text = name.toString();
@@ -266,7 +283,7 @@ public class FunctionCallHandle {
 				}
 				JavaInvoker<Method> invoker = JavaReflection.getMethod(target, "set" + methodName, value);
 				if (invoker == null) {
-					throw new NoSuchMethodException(String.format("在%s中找不到属性%s或者方法set%s", target.getClass(), name, methodName));
+					throw new MagicScriptRuntimeException(String.format("在%s中找不到属性%s或者方法set%s", target.getClass(), name, methodName));
 				}
 				invoker.invoke0(target, null, new Object[]{value});
 			}
@@ -295,7 +312,7 @@ public class FunctionCallHandle {
 						pIndex += spreadLength;
 					}
 				} else {
-					throw new MagicScriptException("展开的不是一个集合");
+					throw new MagicScriptRuntimeException("展开的不是一个集合");
 				}
 			} else {
 				dest[pIndex++] = item;

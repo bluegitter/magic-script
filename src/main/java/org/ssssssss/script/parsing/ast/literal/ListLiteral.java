@@ -6,7 +6,6 @@ import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
 import org.ssssssss.script.parsing.ast.statement.Spread;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,9 +24,7 @@ public class ListLiteral extends Literal {
 	public void compile(MagicScriptCompiler compiler) {
 		int size = values.size();
 		if (size == 0) {
-			compiler.typeInsn(NEW, ArrayList.class)
-					.insn(DUP)
-					.invoke(INVOKESPECIAL, ArrayList.class, "<init>", void.class);
+			compiler.newArrayList();
 		} else {
 			compiler.insn(values.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
 					.asBoolean()

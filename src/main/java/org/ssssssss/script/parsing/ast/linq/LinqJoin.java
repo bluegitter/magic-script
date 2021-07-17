@@ -1,9 +1,12 @@
 package org.ssssssss.script.parsing.ast.linq;
 
+import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.compile.Descriptor;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
-
-import java.util.List;
+import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
+import org.ssssssss.script.runtime.linq.LinQBuilder;
 
 public class LinqJoin extends Expression {
 
@@ -13,7 +16,7 @@ public class LinqJoin extends Expression {
 
 	private final boolean leftJoin;
 
-	private List<Object> cachedValue;
+	private String methodName;
 
 	public LinqJoin(Span span, boolean leftJoin, LinqField target, Expression condition) {
 		super(span);
@@ -22,34 +25,37 @@ public class LinqJoin extends Expression {
 		this.condition = condition;
 	}
 
-	public boolean isLeftJoin() {
-		return leftJoin;
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		// private Object methodName(MagicScriptContext, Object[])
+		this.methodName = "linq_join_condition_" + compiler.getFunctionIndex();
+		compiler.createMethod(ACC_PRIVATE, methodName, Descriptor.make_descriptor(Object.class, MagicScriptContext.class,Object[].class))
+				.load1()	// MagicScriptContext
+				.load2()	// 传入的参数
+				// 构建参数
+				.visitInt(0)
+				.intInsn(NEWARRAY, T_INT);	// new int[parameters.size()]
+		// 复制变量
+		compiler.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "copy", Object[].class, Object[].class, int[].class)
+				.store(2)
+				.compile(condition)
+				.insn(ARETURN)
+				.pop();
 	}
 
 	public LinqField getTarget() {
 		return target;
 	}
 
-//	@Override
-//	public List<Object> evaluate(MagicScriptContext context, Scope scope) {
-//		if (cachedValue == null) {
-//			cachedValue = target.evaluateList(context, scope);
-//		}
-//		List<Object> result = leftJoin ? new ArrayList<>() : null;
-//		for (Object object : cachedValue) {
-//			target.setValue(context, scope, object);
-//			if (BooleanLiteral.isTrue(condition.evaluate(context, scope))) {
-//				if (isLeftJoin()) {
-//					result.add(object);
-//				} else {
-//					result = Collections.singletonList(object);
-//					target.setValue(context, scope, result);
-//					return result;
-//				}
-//			}
-//		}
-//		List<Object> value = isLeftJoin() ? result : Collections.emptyList();
-//		target.setValue(context, scope, value);
-//		return value;
-//	}
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		compiler.load0()
+				.lambda(methodName)
+				.visit(target.getExpression())
+				.insn(leftJoin ? ICONST_1 : ICONST_0)
+				.ldc(target.getAlias())
+				.visitInt(target.getVarIndex() == null ? -1 : target.getVarIndex().getIndex())
+				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "join", LinQBuilder.class, MagicScriptLambdaFunction.class, Object.class, boolean.class, String.class, int.class);
+	}
+
 }

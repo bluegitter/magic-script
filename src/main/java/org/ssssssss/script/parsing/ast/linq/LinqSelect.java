@@ -1,11 +1,13 @@
 package org.ssssssss.script.parsing.ast.linq;
 
+import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
-import org.ssssssss.script.parsing.ast.BinaryOperation;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
+import org.ssssssss.script.runtime.linq.LinQBuilder;
 
 import java.util.List;
-import java.util.Map;
 
 public class LinqSelect extends Expression {
 
@@ -15,16 +17,16 @@ public class LinqSelect extends Expression {
 
 	private final List<LinqJoin> joins;
 
-	private final Expression where;
+	private final LinqExpression where;
 
 	private final List<LinqField> groups;
 
-	private final Expression having;
+	private final LinqExpression having;
 
 	private final List<LinqOrder> orders;
 
 
-	public LinqSelect(Span span, List<LinqField> fields, LinqField from, List<LinqJoin> joins, Expression where, List<LinqField> groups, Expression having, List<LinqOrder> orders) {
+	public LinqSelect(Span span, List<LinqField> fields, LinqField from, List<LinqJoin> joins, LinqExpression where, List<LinqField> groups, LinqExpression having, List<LinqOrder> orders) {
 		super(span);
 		this.fields = fields;
 		this.from = from;
@@ -34,215 +36,46 @@ public class LinqSelect extends Expression {
 		this.having = having;
 		this.orders = orders;
 	}
-/*
+
 	@Override
-	public Object evaluate(MagicScriptContext context, Scope scope) {
-		List<Object> objects = from.evaluateList(context, scope);
-		List<SelectValue> result = new ArrayList<>();
-		Collection<Record> records = new ArrayList<>();
-		for (Object object : objects) {
-			from.setValue(context, scope, object);
-			List<List<Object>> joinValues = new ArrayList<>();
-			// 处理关联
-			for (LinqJoin join : joins) {
-				joinValues.add(join.evaluate(context, scope));
-			}
-			if (joins.isEmpty()) {
-				joinValues.add(Collections.singletonList(object));
-			}
-			// 处理where
-			if (where != null) {
-				int maxSize = joinValues.stream().mapToInt(List::size).sum();
-				for (int v = 0, size = joinValues.size(); v < size; v++) {
-					List<Object> values = joinValues.get(v);
-					if (!values.isEmpty()) {
-						LinqJoin join = joins.isEmpty() ? null : joins.get(v);
-						for (int i = 0; i < maxSize; i++) {
-							Object value = values.get(Math.min(values.size() - 1, i));
-							if (join != null) {
-								join.getTarget().setValue(context, scope, value);
-							}
-							if (BooleanLiteral.isTrue(where.evaluate(context, scope))) {
-								records.add(new Record(object, join, join == null ? null : value));
-							}
-						}
-					}
-				}
-			} else if (!joins.isEmpty()) {
-				for (int i = 0, size = joins.size(); i < size; i++) {
-					List<Object> values = joinValues.get(i);
-					if (joins.get(i).isLeftJoin()) {
-						if (!values.isEmpty()) {
-							for (Object value : values) {
-								records.add(new Record(object, joins.get(i), value));
-							}
-						} else {
-							records.add(new Record(object, joins.get(i), Collections.emptyMap()));
-						}
-					} else {
-						if (!values.isEmpty()) {
-							records.add(new Record(object, joins.get(i), values.get(0)));
-						}
-					}
-				}
-			} else {
-				records.add(new Record(object));
-			}
+	public void visitMethod(MagicScriptCompiler compiler) {
+		fields.forEach(it -> it.visitMethod(compiler));
+		joins.forEach(it -> it.visitMethod(compiler));
+		groups.forEach(it -> it.visitMethod(compiler));
+		orders.forEach(it -> it.visitMethod(compiler));
+		if(where != null){
+			where.visitMethod(compiler);
 		}
-
-		//  group
-		if (!groups.isEmpty()) {
-			Map<List<Object>, List<Record>> group = new LinkedHashMap<>();
-			for (Record record : records) {
-				from.setValue(context, scope, record.value);
-				if (record.join != null) {
-					record.join.getTarget().setValue(context, scope, record.joinValue);
-				}
-				List<Object> keys = groups.stream().map(field -> field.evaluate(context, scope)).collect(Collectors.toList());
-				List<Record> groupRecords = group.computeIfAbsent(keys, k -> new ArrayList<>());
-				groupRecords.add(record);
-			}
-			records = new ArrayList<>();
-			for (Map.Entry<List<Object>, List<Record>> entry : group.entrySet()) {
-				List<Record> value = entry.getValue();
-				Record record = value.get(0);
-				List<Object> values = new ArrayList<>(value.size());
-				List<Object> joinValues = new ArrayList<>(value.size());
-				for (Record item : value) {
-					values.add(item.value);
-					if (item.join != null) {
-						item.join.getTarget().setValue(context, scope, item.joinValue);
-						joinValues.add(item.joinValue);
-					}
-				}
-				boolean valid = having == null;
-				if (!valid) {
-					from.setValue(context, scope, values);
-					valid = BooleanLiteral.isTrue(having.evaluate(context, scope));
-				}
-				if (valid) {
-					record.value = values;
-					record.joinValue = joinValues;
-					records.add(record);
-				}
-			}
-		}
-
-		// 处理 select
-		for (Record record : records) {
-			Map<String, Object> row = new LinkedHashMap<>(fields.size());
-			from.setValue(context, scope, record.value);
-			if (record.join != null) {
-				record.join.getTarget().setValue(context, scope, record.joinValue);
-			}
-			for (LinqField field : fields) {
-				Object item;
-				if (field.getExpression() instanceof WholeLiteral) {    // *的特殊处理
-					// TODO 检查类型，不是Map的需要转换为Map
-					Map map = (Map) record.value;
-					map = map == null ? new LinkedHashMap() : map;
-					if (record.joinValue != null) {
-						map.putAll((Map) record.joinValue);
-					}
-					item = map;
-				} else {    // 获取单个字段
-					item = field.evaluate(context, scope);
-				}
-				if (item instanceof Map) {
-					row.putAll((Map) item);
-				} else {
-					row.put(field.getAlias(), item);
-				}
-			}
-			List<OrderValue> orderValues = new ArrayList<>();
-			if (!orders.isEmpty()) {
-				for (LinqOrder order : orders) {
-					orderValues.add(new OrderValue(order.evaluate(context, scope), order.getOrder()));
-				}
-			}
-			result.add(new SelectValue(row, orderValues));
-		}
-		return result.stream().sorted().map(SelectValue::getValue).collect(Collectors.toList());
-	}
-*/
-	static class Record {
-
-		private Object value;
-
-		private LinqJoin join;
-
-		private Object joinValue;
-
-		public Record(Object value) {
-			this.value = value;
-		}
-
-		public Record(Object value, LinqJoin join, Object joinValue) {
-			this.value = value;
-			this.join = join;
-			this.joinValue = joinValue;
-		}
-
-		@Override
-		public String toString() {
-			return "Record{" +
-					"value=" + value +
-					", join=" + join +
-					", joinValue=" + joinValue +
-					'}';
+		if(having != null){
+			having.visitMethod(compiler);
 		}
 	}
 
-	static class SelectValue implements Comparable<SelectValue> {
-
-		Map<String, Object> value;
-
-		List<OrderValue> orderValues;
-
-		boolean hasOrder;
-
-		public SelectValue(Map<String, Object> value, List<OrderValue> orderValues) {
-			this.value = value;
-			this.orderValues = orderValues;
-			this.hasOrder = !orderValues.isEmpty();
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		compiler.load1()
+				.invoke(INVOKESTATIC, LinQBuilder.class, "create", LinQBuilder.class, MagicScriptContext.class)
+				.visit(from.getExpression())
+				.visitInt(from.getVarIndex().getIndex())
+				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "from", LinQBuilder.class, Object.class, int.class);
+		if(where != null){
+			compiler.visit(where)
+					.invoke(INVOKEVIRTUAL, LinQBuilder.class, "where", LinQBuilder.class, MagicScriptLambdaFunction.class);
 		}
-
-		public Map<String, Object> getValue() {
-			return value;
+		if(having != null){
+			compiler.visit(where)
+					.invoke(INVOKEVIRTUAL, LinQBuilder.class, "having", LinQBuilder.class, MagicScriptLambdaFunction.class);
 		}
-
-		@Override
-		public int compareTo(SelectValue o2) {
-			if (!hasOrder) {
-				return 0;
-			}
-			for (int i = 0, size = orderValues.size(); i < size; i++) {
-				OrderValue ov1 = orderValues.get(i);
-				OrderValue ov2 = o2.orderValues.get(i);
-				int compareValue = BinaryOperation.compare(ov1.getValue(), ov2.getValue());
-				if (compareValue != 0) {
-					return compareValue * ov1.getOrder();
-				}
-			}
-			return 0;
-		}
-	}
-
-	static class OrderValue {
-		private Object value;
-		private int order;
-
-		public OrderValue(Object value, int order) {
-			this.value = value;
-			this.order = order;
-		}
-
-		public Object getValue() {
-			return value;
-		}
-
-		public int getOrder() {
-			return order;
-		}
+		groups.forEach(group -> compiler.visit(group)
+				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "group", LinQBuilder.class, MagicScriptLambdaFunction.class));
+		joins.forEach(compiler::visit);
+		fields.forEach(field-> compiler.visit(field)
+				.ldc(field.getAlias())
+				.visitInt(field.getVarIndex() == null ? -1 : field.getVarIndex().getIndex())
+				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "select", LinQBuilder.class, MagicScriptLambdaFunction.class, String.class, int.class));
+		orders.forEach(order -> compiler.visit(order)
+				.visitInt(order.getOrder())
+				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "order", LinQBuilder.class, MagicScriptLambdaFunction.class, int.class));
+		compiler.invoke(INVOKEVIRTUAL, LinQBuilder.class, "execute", Object.class);
 	}
 }

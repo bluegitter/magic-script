@@ -180,6 +180,14 @@ public class MagicScriptContext {
 	public Object[] getVars() {
 		return vars.peek();
 	}
+	/**
+	 * 获取变量值，此方法给编译后的类专用。
+	 */
+	public void setVarValue(int index, Object value) {
+		if(index > -1){
+			vars.peek()[index] = value;
+		}
+	}
 
 	/**
 	 * 复制变量值，此方法给编译后的类专用。
@@ -189,9 +197,14 @@ public class MagicScriptContext {
 	 * @return 复制结果
 	 */
 	public Object[] copy(Object[] target, int... args) {
-		Object[] vars = newVars();
-		for (int i = 0, len = args.length; i < len; i++) {
-			vars[args[i]] = target[i];
+		Object[] vars;
+		if(args.length > 0){
+			vars = newVars();
+			for (int i = 0, len = args.length; i < len; i++) {
+				vars[args[i]] = target[i];
+			}
+		}else{
+			vars = getVars();
 		}
 		setVars(vars);
 		copied.push(args);

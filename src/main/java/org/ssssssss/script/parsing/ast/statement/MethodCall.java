@@ -9,7 +9,7 @@ import java.util.List;
 public class MethodCall extends Expression {
 	private final MemberAccess method;
 	private final List<Expression> arguments;
-	private boolean inLinq;
+	private final boolean inLinq;
 
 	public MethodCall(Span span, MemberAccess method, List<Expression> arguments, boolean inLinq) {
 		super(span);
@@ -46,8 +46,14 @@ public class MethodCall extends Expression {
 				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)	// 是否是 (...xxx)
 				.asBoolean()
 				.insn(method.isOptional() ? ICONST_1 : ICONST_0)	// 是否允许可空调用
-				.asBoolean()
-				.visit(arguments)
-				.call("invoke_method",arguments.size() + 5);	// 调用方法
+				.asBoolean();
+		for (Expression argument : arguments) {
+			if(inLinq && argument instanceof MemberAccess){
+				((MemberAccess) argument).compileLinq(compiler);
+			}else{
+				argument.compile(compiler);
+			}
+		}
+		compiler.call("invoke_method",arguments.size() + 5);	// 调用方法
 	}
 }

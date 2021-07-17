@@ -571,14 +571,14 @@ public class Parser {
 		stream.expect("from", true);
 		LinqField from = parseLinqField(stream);
 		List<LinqJoin> joins = parseLinqJoins(stream);
-		Expression where = null;
+		LinqExpression where = null;
 		if (stream.match("where", true, true)) {
-			where = parseExpression(stream);
+			where = new LinqExpression(parseExpression(stream));
 		}
 		List<LinqField> groups = parseGroup(stream);
-		Expression having = null;
+		LinqExpression having = null;
 		if (stream.match("having", true, true)) {
-			having = parseExpression(stream);
+			having = new LinqExpression(parseExpression(stream));
 		}
 		List<LinqOrder> orders = parseLinqOrders(stream);
 		linqLevel--;

@@ -46,8 +46,14 @@ public class FunctionCall extends Expression {
 				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
 				.asBoolean()	// 是否有扩展参数(...xxx)
 				.insn(ICONST_0)	// 不可以可空调用 ?.
-				.asBoolean()
-				.visit(arguments)	// 访问参数
-				.call("invoke_method", arguments.size() + 5);	// 调用函数
+				.asBoolean();
+		for (Expression argument : arguments) {
+			if(inLinq && argument instanceof MemberAccess){
+				((MemberAccess) argument).compileLinq(compiler);
+			}else{
+				argument.compile(compiler);
+			}
+		}
+		compiler.call("invoke_method", arguments.size() + 5);	// 调用函数
 	}
 }

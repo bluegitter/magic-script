@@ -32,6 +32,10 @@ public class Import extends Node {
 	@Override
 	public Object evaluate(MagicScriptContext context, Scope scope) {
 		Object target;
+		if(packageName.endsWith(".*")){
+			context.addImport(packageName.substring(0, packageName.length() - 1));
+			return null;
+		}
 		if (this.module) {
 			target = MagicResourceLoader.loadModule(packageName);
 			if (target == null) {

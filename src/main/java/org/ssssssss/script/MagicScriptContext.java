@@ -7,9 +7,7 @@ import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Tokenizer;
 import org.ssssssss.script.parsing.ast.Expression;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 
 /**
@@ -30,6 +28,8 @@ public class MagicScriptContext {
 	private final ThreadLocal<Scope> CONTEXT_VAR_SCOPE = new InheritableThreadLocal<>();
 
 	private Map<String, Object> rootVariables = new HashMap<>();
+
+	private List<String> importPackages = new ArrayList<>();
 
 	public MagicScriptContext() {
 	}
@@ -57,6 +57,20 @@ public class MagicScriptContext {
 
 	public String getString(String name) {
 		return Objects.toString(get(name), null);
+	}
+
+	public void addImport(String packageName){
+		importPackages.add(packageName);
+	}
+
+	public Class<?> getImportClass(String simpleClassName){
+		for (int i = importPackages.size() - 1; i >= 0 ; i--) {
+			try {
+				return Class.forName(importPackages.get(i) + simpleClassName);
+			} catch (ClassNotFoundException ignored) {
+			}
+		}
+		return null;
 	}
 
 	public Object get(String name) {

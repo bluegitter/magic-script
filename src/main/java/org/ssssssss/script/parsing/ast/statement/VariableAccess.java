@@ -20,6 +20,7 @@ public class VariableAccess extends Expression implements VariableSetter {
     @Override
     public Object evaluate(MagicScriptContext context, Scope scope) {
         Object value = scope.getValue(varIndex);
+		value = value == null ? context.getImportClass(varIndex.getName()) : value;
         value = value == null ? MagicResourceLoader.findClass(varIndex.getName()) : value;
         return value == null ? MagicResourceLoader.loadModule(varIndex.getName()) : value;
     }

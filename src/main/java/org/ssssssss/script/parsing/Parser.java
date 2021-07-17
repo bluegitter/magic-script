@@ -104,9 +104,9 @@ public class Parser {
 			result = new Break(tokens.consume().getSpan());
 		} else if (tokens.match("exit", false)) {
 			result = parseExit(tokens);
-		}/* else if (tokens.match("assert", false)) {
+		} else if (tokens.match("assert", false)) {
 			result = parseAssert(tokens);
-		}*/ else {
+		} else {
 			result = parseExpression(tokens, expectRightCurly);
 		}
 		// consume semi-colons as statement delimiters
@@ -153,14 +153,20 @@ public class Parser {
 	}
 
 	private Node parseAssert(TokenStream stream) {
-		Span opening = stream.expect("assert").getSpan();
-		Expression condition = parseExpression(stream);
-		stream.expect(TokenType.Colon);
-		List<Expression> expressionList = new ArrayList<>();
-		do {
-			expressionList.add(parseExpression(stream));
-		} while (stream.match(TokenType.Comma, true));
-		return new Assert(new Span(opening, stream.getPrev().getSpan()), condition, expressionList);
+		int index = stream.makeIndex();
+		try {
+			Span opening = stream.expect("assert").getSpan();
+			Expression condition = parseExpression(stream);
+			stream.expect(TokenType.Colon);
+			List<Expression> expressionList = new ArrayList<>();
+			do {
+				expressionList.add(parseExpression(stream));
+			} while (stream.match(TokenType.Comma, true));
+			return new Assert(new Span(opening, stream.getPrev().getSpan()), condition, expressionList);
+		} catch (Exception e) {
+			stream.resetIndex(index);
+			return parseExpression(stream);
+		}
 	}
 
 	private Expression parseAsync(TokenStream stream) {
@@ -761,7 +767,7 @@ public class Parser {
 				} else {
 					MagicScriptError.error("Expected a variable, field or method.", stream);
 				}
-				if(isNew){
+				if (isNew) {
 					break;
 				}
 			}

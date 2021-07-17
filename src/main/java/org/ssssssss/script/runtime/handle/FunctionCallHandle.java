@@ -8,6 +8,7 @@ import org.ssssssss.script.parsing.ast.statement.ClassConverter;
 import org.ssssssss.script.parsing.ast.statement.Spread;
 import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
+import org.ssssssss.script.runtime.SpreadValue;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 import org.ssssssss.script.runtime.function.MagicScriptLanguageFunction;
 import org.ssssssss.script.runtime.lang.ArrayKeyValueIterator;
@@ -179,8 +180,8 @@ public class FunctionCallHandle {
 		List<Object> list = new ArrayList<>(args.length);
 		for (int i = 0, len = args.length; i < len; i++) {
 			Object item = args[i];
-			if (item instanceof Spread.Value) {
-				Object res = ((Spread.Value) item).getValue();
+			if (item instanceof SpreadValue) {
+				Object res = ((SpreadValue) item).getValue();
 				if (res == null) {
 					// 其实是因为该变量未定义
 				} else if (res instanceof Collection) {
@@ -230,8 +231,8 @@ public class FunctionCallHandle {
 		if (args != null) {
 			for (int i = 0, len = args.length; i < len; ) {
 				Object key = args[i++];
-				if (hasSpread && key instanceof Spread.Value) {
-					Object res = ((Spread.Value) key).getValue();
+				if (hasSpread && key instanceof SpreadValue) {
+					Object res = ((SpreadValue) key).getValue();
 					if (res == null) {
 						// 其实是因为该变量未定义
 					} else if (res instanceof Map) {
@@ -299,8 +300,8 @@ public class FunctionCallHandle {
 		Object[] dest = new Object[args.length];
 		for (int i = 0, n = args.length, pIndex = 0; i < n; i++) {
 			Object item = args[i];
-			if (item instanceof Spread.Value) {
-				Object value = ((Spread.Value) item).getValue();
+			if (item instanceof SpreadValue) {
+				Object value = ((SpreadValue) item).getValue();
 				if (value instanceof Collection) {
 					Object[] spreadValues = ((Collection<?>) value).toArray();
 					int spreadLength = spreadValues.length;

@@ -1,16 +1,16 @@
 package org.ssssssss.script.exception;
 
-import org.ssssssss.script.parsing.ast.statement.Exit;
+import org.ssssssss.script.runtime.ExitValue;
 
 public class MagicExitException extends RuntimeException{
 
-	private final Exit.Value exitValue;
+	private final ExitValue exitValue;
 
-	public MagicExitException(Exit.Value exitValue) {
+	public MagicExitException(ExitValue exitValue) {
 		this.exitValue = exitValue;
 	}
 
-	public Exit.Value getExitValue() {
+	public ExitValue getExitValue() {
 		return exitValue;
 	}
 }

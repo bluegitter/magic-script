@@ -3,6 +3,7 @@ package org.ssssssss.script.parsing.ast.statement;
 import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.runtime.SpreadValue;
 
 /**
  * 展开语法 Spread syntax (...)
@@ -24,24 +25,10 @@ public class Spread extends Expression {
 
     @Override
     public void compile(MagicScriptCompiler compiler) {
-        // 对于...xxx 的参数 统一转换为 new Spread.Value(object)
-        compiler.typeInsn(NEW, Value.class)
+        // 对于...xxx 的参数 统一转换为 new SpreadValue(object)
+        compiler.typeInsn(NEW, SpreadValue.class)
                 .insn(DUP)
                 .visit(target)
-                .invoke(INVOKESPECIAL, Value.class, "<init>", void.class, Object.class);
-    }
-
-    public static class Value{
-
-        private final Object value;
-
-        public Value(Object value) {
-            this.value = value;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-
+                .invoke(INVOKESPECIAL, SpreadValue.class, "<init>", void.class, Object.class);
     }
 }

@@ -39,7 +39,7 @@ public class WhileStatement extends Node {
 				.end(end)    // 标记 break 位置
 				.label(start)
 				// 判断是否为true
-				.compile(condition)
+				.visit(condition)
 				.invoke(INVOKESTATIC, OperatorHandle.class, "isTrue", boolean.class, Object.class)
 				// 值为false时，跳出循环
 				.jump(IFEQ, end)

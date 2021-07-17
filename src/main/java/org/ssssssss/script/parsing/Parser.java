@@ -40,7 +40,7 @@ public class Parser {
 
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "assert");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"/*, "assert"*/);
 
 	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
 
@@ -199,14 +199,20 @@ public class Parser {
 		return new Exit(addSpan(opening, stream.getPrev().getSpan()), expressionList);
 	}
 	private Node parserAssert(TokenStream stream) {
-		Span opening = stream.expect("assert").getSpan();
-		Expression condition = parseExpression(stream);
-		stream.expect(TokenType.Colon);
-		List<Expression> expressionList = new ArrayList<>();
-		do {
-			expressionList.add(parseExpression(stream));
-		} while (stream.match(TokenType.Comma, true));
-		return new Assert(addSpan(opening, stream.getPrev().getSpan()), condition, expressionList);
+		int index = stream.makeIndex();
+		try {
+			Span opening = stream.expect("assert").getSpan();
+			Expression condition = parseExpression(stream);
+			stream.expect(TokenType.Colon);
+			List<Expression> expressionList = new ArrayList<>();
+			do {
+				expressionList.add(parseExpression(stream));
+			} while (stream.match(TokenType.Comma, true));
+			return new Assert(addSpan(opening, stream.getPrev().getSpan()), condition, expressionList);
+		} catch (Exception e) {
+			stream.resetIndex(index);
+			return parseExpression(stream);
+		}
 	}
 
 	private Expression parseAsync(TokenStream stream) {

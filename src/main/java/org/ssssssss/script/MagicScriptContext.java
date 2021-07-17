@@ -29,6 +29,8 @@ public class MagicScriptContext {
 
 	private final Stack<int[]> copied = new Stack<>();
 
+	private final List<String> importPackages = new ArrayList<>();
+
 	private MagicScriptRuntime runtime;
 
 	public MagicScriptContext() {
@@ -67,6 +69,24 @@ public class MagicScriptContext {
 	 */
 	public String getString(String name) {
 		return Objects.toString(get(name), null);
+	}
+
+	/**
+	 * 添加 .* 的导包
+	 * @param packageName	包名 如 java.text.
+	 */
+	public void addImport(String packageName){
+		importPackages.add(packageName);
+	}
+
+	public Class<?> getImportClass(String simpleClassName){
+		for (int i = importPackages.size() - 1; i >= 0 ; i--) {
+			try {
+				return Class.forName(importPackages.get(i) + simpleClassName);
+			} catch (ClassNotFoundException ignored) {
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -152,6 +172,7 @@ public class MagicScriptContext {
 	 */
 	public Object getEnvironmentValue(String name) {
 		Object value = get(name);
+		value = value == null ? getImportClass(name) : value;
 		value = value == null ? MagicResourceLoader.findClass(name) : value;
 		return value == null ? MagicResourceLoader.loadModule(name) : value;
 	}

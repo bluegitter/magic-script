@@ -87,8 +87,6 @@ public class MagicScriptCompiler implements Opcodes {
 			.pop();
 		// 创建execute方法
 		createMethod(ACC_PUBLIC, "execute", make_descriptor(Object.class, MagicScriptContext.class));
-		// 初始化变量信息
-		loadVars();
 	}
 
 	/**

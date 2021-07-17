@@ -9,9 +9,13 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
+import org.ssssssss.script.parsing.ast.statement.Import;
 import org.ssssssss.script.parsing.ast.statement.Return;
 import org.ssssssss.script.runtime.MagicScriptClassLoader;
 import org.ssssssss.script.runtime.MagicScriptRuntime;
+
+import java.sql.*;
+import java.util.*;
 
 import javax.script.Bindings;
 import javax.script.CompiledScript;
@@ -20,7 +24,9 @@ import javax.script.ScriptEngine;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MagicScript extends CompiledScript {
 
@@ -61,10 +67,14 @@ public class MagicScript extends CompiledScript {
 		MagicScriptCompiler compiler = new MagicScriptCompiler(this.varIndices, this.spans);
 		if(nodes.size() == 1 && nodes.get(0) instanceof Expression){
 			Node node = nodes.get(0);
+			compiler.loadVars();
 			compiler.compile(new Return(node.getSpan(), node));
 		}else{
+			Map<Boolean, List<Node>> nodeMap = nodes.stream().collect(Collectors.partitioningBy(it -> it instanceof Import && ((Import) it).isImportPackage()));
 			nodes.forEach(node -> node.visitMethod(compiler));
-			compiler.compile(nodes);
+			compiler.compile(nodeMap.get(Boolean.TRUE));	// 先编译 import "xxx.xxx.x.*"
+			compiler.loadVars();
+			compiler.compile(nodeMap.get(Boolean.FALSE));
 		}
 		try {
 			Class<MagicScriptRuntime> clazz = classLoader.load(compiler.getClassName(), compiler.bytecode());

@@ -2,6 +2,7 @@ package org.ssssssss.script;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.ssssssss.script.parsing.ast.statement.Exit;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -151,6 +152,13 @@ public class GrammarTests extends BaseTest {
 	@Test
 	public void functionalTest() {
 		execute("grammar/functional.ms");
+	}
+
+	@Test
+	public void assertTest() {
+		Object value = execute("grammar/assert.ms");
+		Assert.assertTrue(value instanceof Exit.Value);
+		Assert.assertArrayEquals(new Object[]{2, 3, 4}, ((Exit.Value) value).getValues());
 	}
 
 }

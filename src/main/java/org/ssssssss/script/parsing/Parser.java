@@ -40,7 +40,7 @@ public class Parser {
 
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "assert");
 
 	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
 
@@ -104,6 +104,8 @@ public class Parser {
 			result = new Break(tokens.consume().getSpan());
 		} else if (tokens.match("exit", false)) {
 			result = parseExit(tokens);
+		} else if (tokens.match("assert", false)) {
+			result = parseAssert(tokens);
 		} else {
 			result = parseExpression(tokens, expectRightCurly);
 		}
@@ -148,6 +150,17 @@ public class Parser {
 			expressionList.add(parseExpression(stream));
 		} while (stream.match(TokenType.Comma, true));
 		return new Exit(new Span(opening, stream.getPrev().getSpan()), expressionList);
+	}
+
+	private Node parseAssert(TokenStream stream) {
+		Span opening = stream.expect("assert").getSpan();
+		Expression condition = parseExpression(stream);
+		stream.expect(TokenType.Colon);
+		List<Expression> expressionList = new ArrayList<>();
+		do {
+			expressionList.add(parseExpression(stream));
+		} while (stream.match(TokenType.Comma, true));
+		return new Assert(new Span(opening, stream.getPrev().getSpan()), condition, expressionList);
 	}
 
 	private Expression parseAsync(TokenStream stream) {

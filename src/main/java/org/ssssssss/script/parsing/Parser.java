@@ -40,7 +40,7 @@ public class Parser {
 
 	private static final TokenType[] unaryOperators = new TokenType[]{TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus};
 
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "assert");
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"/*, "assert"*/);
 
 	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
 
@@ -104,9 +104,9 @@ public class Parser {
 			result = new Break(tokens.consume().getSpan());
 		} else if (tokens.match("exit", false)) {
 			result = parseExit(tokens);
-		} else if (tokens.match("assert", false)) {
+		}/* else if (tokens.match("assert", false)) {
 			result = parseAssert(tokens);
-		} else {
+		}*/ else {
 			result = parseExpression(tokens, expectRightCurly);
 		}
 		// consume semi-colons as statement delimiters

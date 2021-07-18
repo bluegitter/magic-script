@@ -250,7 +250,7 @@ public class Tokenizer {
 				MagicScriptError.error("字符串没有结束符" + tokenType.getError(), stream.endSpan(), new StringLiteralException());
 			}
 			Span stringSpan = stream.endSpan();
-			stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
+			stringSpan = stream.getSpan(stringSpan.getStart(), stringSpan.getEnd() - tokenType.getLiteral().length());
 			tokens.add(new LiteralToken(TokenType.StringLiteral, stringSpan));
 			return true;
 		}

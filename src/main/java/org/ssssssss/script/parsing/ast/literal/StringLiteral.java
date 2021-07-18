@@ -15,8 +15,7 @@ public class StringLiteral extends Literal {
 
 	public StringLiteral(Span literal) {
 		super(literal);
-		String text = getSpan().getText();
-		String unescapedValue = text.substring(1, text.length() - 1);
+		String unescapedValue = getSpan().getText();
 		StringBuilder builder = new StringBuilder();
 
 		CharacterStream stream = new CharacterStream(unescapedValue);

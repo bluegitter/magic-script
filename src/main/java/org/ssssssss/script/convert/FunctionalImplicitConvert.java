@@ -1,15 +1,15 @@
 package org.ssssssss.script.convert;
 
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.function.Function;
 
 /**
- *	脚本内部lambda到Java函数式的转换
+ * 脚本内部lambda到Java函数式的转换
  */
 public class FunctionalImplicitConvert implements ClassImplicitConvert {
 
@@ -23,15 +23,28 @@ public class FunctionalImplicitConvert implements ClassImplicitConvert {
 	@Override
 	public Object convert(MagicScriptContext context, Object source, Class<?> target) {
 		MagicScriptLambdaFunction function = (MagicScriptLambdaFunction) source;
-		if(target == Function.class){
-			return (Function<Object[],Object>)args -> function.apply(context, args);
+		if (target == Function.class) {
+			return (Function<Object, Object>) args -> {
+				Object[] param;
+				if(args == null){
+					param = new Object[0];
+				}else{
+					try {
+						param = StreamExtension.arrayLikeToList(args).toArray();
+					} catch (Exception e) {
+						param = new Object[]{args};
+					}
+				}
+				return function.apply(context, param);
+			};
 		}
 		return Proxy.newProxyInstance(classLoader, new Class[]{target}, (proxy, method, args) -> {
-			if(Modifier.isAbstract(method.getModifiers())){
-				return function.apply(context, args == null ? new Object[0] : args);
+			if (Modifier.isAbstract(method.getModifiers())) {
+				return function.apply(context, args);
+
 			}
-			if("toString".equalsIgnoreCase(method.getName())){
-				return "Proxy(" + source + "," + target +")";
+			if ("toString".equalsIgnoreCase(method.getName())) {
+				return "Proxy(" + source + "," + target + ")";
 			}
 			return null;
 		});

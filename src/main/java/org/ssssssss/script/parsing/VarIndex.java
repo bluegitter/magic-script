@@ -2,11 +2,11 @@ package org.ssssssss.script.parsing;
 
 public class VarIndex {
 
-	private String name;
+	private final String name;
 
-	private int index;
+	private final int index;
 
-	private boolean reference;
+	private final boolean reference;
 
 	VarIndex(String name, int index, boolean reference) {
 		this.name = name;

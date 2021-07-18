@@ -1,10 +1,9 @@
 package org.ssssssss.script.parsing;
 
-/**
- * A token produced by the {@link Tokenizer}.
- */
 public class Token {
+
     private final TokenType type;
+
     private final Span span;
 
     public Token(TokenType type, Span span) {

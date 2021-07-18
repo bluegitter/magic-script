@@ -377,7 +377,7 @@ public class Parser {
 
 	private Expression parseTernaryOperator(TokenStream stream, boolean expectRightCurly) {
 		Expression condition = parseBinaryOperator(stream, 0, expectRightCurly);
-		if (stream.match(TokenType.Questionmark, true)) {
+		if (stream.match(TokenType.QuestionMark, true)) {
 			Expression trueExpression = parseTernaryOperator(stream, expectRightCurly);
 			stream.expect(TokenType.Colon);
 			Expression falseExpression = parseTernaryOperator(stream, expectRightCurly);

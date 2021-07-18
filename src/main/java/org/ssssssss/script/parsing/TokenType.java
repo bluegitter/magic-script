@@ -3,9 +3,7 @@ package org.ssssssss.script.parsing;
 import java.util.Arrays;
 
 /**
- * Enumeration of token types. A token type consists of a representation for error messages, and may optionally specify a literal
- * to be used by the {@link CharacterStream} to recognize the token. Token types are sorted by their literal length to easy
- * matching of token types with common prefixes, e.g. "<" and "<=". Token types with longer literals are matched first.
+ * Token类型
  */
 public enum TokenType {
 	// @off
@@ -26,7 +24,7 @@ public enum TokenType {
 	LeftBracket("[", "["),
 	RightBracket("]", "]"),
 	LeftCurly("{", "{"),
-	RightCurly("}"), // special treatment!
+	RightCurly("}","{"),
 	Less("<", "<"),
 	Greater(">", ">"),
 	LessEqual("<=", "<="),
@@ -57,8 +55,9 @@ public enum TokenType {
 	SqlOr("or", "or", true),
 	SqlNotEqual("<>", "<>", true),
 
-	Questionmark("?", "?"),
+	QuestionMark("?", "?"),
 	DoubleQuote("\"", "\""),
+	TripleQuote("\"\"\"", "\"\"\""),
 	SingleQuote("'", "'"),
 	Lambda("=>"),
 	RegexpLiteral("a regexp"),
@@ -78,10 +77,11 @@ public enum TokenType {
 	Identifier("an identifier");
 	// @on
 
-	private static TokenType[] values;
+	private static final TokenType[] values;
 
 	static {
 		values = TokenType.values();
+		// 根据字符长度排序
 		Arrays.sort(values, (o1, o2) -> {
 			if (o1.literal == null && o2.literal == null) {
 				return 0;
@@ -97,7 +97,9 @@ public enum TokenType {
 	}
 
 	private final String literal;
+
 	private final String error;
+
 	private final boolean inLinq;
 
 	TokenType(String error) {

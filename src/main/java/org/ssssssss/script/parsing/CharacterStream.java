@@ -1,20 +1,17 @@
 package org.ssssssss.script.parsing;
 
-import javax.xml.transform.Source;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Wraps a the content of a {@link Source} and handles traversing the contained characters. Manages a current {@link Span} via
- * the {@link #startSpan()} and {@link #endSpan()} methods.
+ * 对字符串进行封装，提供匹配、跳过方法，方便词法解析。
  */
 public class CharacterStream {
-	private final String source;
-	private final int end;
-	private int index = 0;
-	private int spanStart = 0;
 
-	private List<Integer> newLines = new ArrayList<>();
+	private final String source;
+
+	private final int end;
+
+	private int index;
+
+	private int spanStart = 0;
 
 	public CharacterStream(String source) {
 		this(source, 0, source.length());
@@ -36,41 +33,33 @@ public class CharacterStream {
 		this.source = source;
 		this.index = start;
 		this.end = end;
-		newLines.add(0);
-		for (int i = index; i < end; i++) {
-			if (this.source.charAt(i) == '\n') {
-				newLines.add(i);
-			}
-		}
 	}
 
+	/**
+	 * 截取字符串
+	 * @param startIndex	开始位置
+	 * @param endIndex	结束位置
+	 */
 	public String substring(int startIndex, int endIndex) {
 		return this.source.substring(startIndex, endIndex);
 	}
 
 	/**
-	 * Returns whether there are more characters in the stream
+	 * 是否有下一个字符
 	 **/
 	public boolean hasMore() {
 		return index < end;
 	}
 
 	/**
-	 * Returns the next character without advancing the stream
-	 **/
-	public char peek() {
-		if (!hasMore()) {
-			throw new RuntimeException("No more characters in stream.");
-		}
-		return source.charAt(index++);
-	}
-
+	 * 根据开始位置、结束位置返回Span
+	 */
 	public Span getSpan(int start, int end) {
 		return new Span(this.source, start, end);
 	}
 
 	/**
-	 * Returns the next character and advance the stream
+	 * 返回下一个字符
 	 **/
 	public char consume() {
 		if (!hasMore()) {
@@ -81,8 +70,7 @@ public class CharacterStream {
 
 
 	/**
-	 * Matches the given needle with the next characters. Returns true if the needle is matched, false otherwise. If there's a
-	 * match and consume is true, the stream is advanced by the needle's length.
+	 * 返回是否是以给定的字符串开头
 	 */
 	public boolean match(String needle, boolean consume) {
 		int needleLength = needle.length();
@@ -104,7 +92,7 @@ public class CharacterStream {
 	}
 
 	/**
-	 * Returns whether the next character is a digit and optionally consumes it.
+	 * 返回是否是数字
 	 **/
 	public boolean matchDigit(boolean consume) {
 		if (index >= end) {
@@ -121,8 +109,7 @@ public class CharacterStream {
 	}
 
 	/**
-	 * Returns whether the next character is the start of an identifier and optionally consumes it. Adheres to
-	 * {@link Character#isJavaIdentifierStart(char)}.
+	 * 返回是否以标识符开头
 	 **/
 	public boolean matchIdentifierStart(boolean consume) {
 		if (index >= end) {
@@ -139,8 +126,8 @@ public class CharacterStream {
 	}
 
 	/**
-	 * Returns whether the next character is the start of an identifier and optionally consumes it. Adheres to
-	 * {@link Character#isJavaIdentifierPart(char)}.
+	 * 返回是否是标识符部分
+	 * @param consume 是否消耗
 	 **/
 	public boolean matchIdentifierPart(boolean consume) {
 		if (index >= end) {
@@ -156,6 +143,9 @@ public class CharacterStream {
 		return false;
 	}
 
+	/**
+	 * 跳过一行
+	 */
 	public void skipLine() {
 		while (index < end) {
 			if (source.charAt(index++) == '\n') {
@@ -164,6 +154,9 @@ public class CharacterStream {
 		}
 	}
 
+	/**
+	 * 直到给定的字符串之前全部跳过
+	 */
 	public boolean skipUntil(String chars) {
 		while (index < end) {
 			boolean matched = true;
@@ -182,8 +175,8 @@ public class CharacterStream {
 	}
 
 	/**
-	 * Skips any number of successive whitespace characters.
-	 **/
+	 * 跳过空白字符
+	 */
 	public void skipWhiteSpace() {
 		while (index < end) {
 			char c = source.charAt(index);
@@ -196,29 +189,40 @@ public class CharacterStream {
 	}
 
 	/**
-	 * Start a new Span at the current stream position. Call {@link #endSpan()} to complete the span.
+	 * 记录当前位置为Span的开始位置
 	 **/
 	public void startSpan() {
 		spanStart = index;
 	}
 
 	/**
-	 * Completes the span started with {@link #startSpan()} at the current stream position.
+	 * 根据当前位置返回Span
 	 **/
 	public Span endSpan() {
 		return new Span(source, spanStart, index);
 	}
+
+	/**
+	 * 根据当前位置 - offset 返回 Span
+	 */
 	public Span endSpan(int offset) {
 		return new Span(source, spanStart, index + offset);
 	}
 
+	public Span endSpan(int start, int end) {
+		return new Span(source, start, end);
+	}
+
 	/**
-	 * Returns the current character position in the stream.
+	 * 返回当前位置
 	 **/
 	public int getPosition() {
 		return index;
 	}
 
+	/**
+	 * 重置当前位置
+	 */
 	public void reset(int position) {
 		index = position;
 	}

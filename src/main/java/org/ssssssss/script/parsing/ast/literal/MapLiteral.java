@@ -2,8 +2,6 @@ package org.ssssssss.script.parsing.ast.literal;
 
 import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
-import org.ssssssss.script.parsing.Token;
-import org.ssssssss.script.parsing.TokenType;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
 import org.ssssssss.script.parsing.ast.statement.Spread;
@@ -14,10 +12,10 @@ import java.util.List;
  * map常量
  */
 public class MapLiteral extends Literal {
-	private final List<Token> keys;
+	private final List<Expression> keys;
 	private final List<Expression> values;
 
-	public MapLiteral(Span span, List<Token> keys, List<Expression> values) {
+	public MapLiteral(Span span, List<Expression> keys, List<Expression> values) {
 		super(span);
 		this.keys = keys;
 		this.values = values;
@@ -30,25 +28,20 @@ public class MapLiteral extends Literal {
 		compiler.insn(values.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
 				.asBoolean();
 		for (int i = 0; i < size; i++) {
-			Token tokenKey = keys.get(i);
-			boolean dynamicKey = false;
-			String key = tokenKey.getSpan().getText();
-			if (key != null && key.startsWith("$")) {
-				key = key.substring(1);
-				dynamicKey = !key.startsWith("$");//如果是$$开头的变量，则认为是普通key..
-			}
+			Expression key = keys.get(i);
 			Expression expression = values.get(i);
 			if (expression instanceof Spread) {
 				compiler.visit(expression);
 				count++;
 			} else {
+				boolean dynamicKey = false;
+				if (key instanceof StringLiteral && !((StringLiteral) key).isTemplateString() && key.getSpan().getText().startsWith("$")) {
+					dynamicKey = !key.getSpan().getText().substring(1).startsWith("$");//如果是$$开头的变量，则认为是普通key..
+				}
 				if (dynamicKey) {
-					compiler.load(key);
+					compiler.load(key.getSpan().getText().substring(1));
 				} else {
-					if(tokenKey.getType() == TokenType.StringLiteral){
-						key = new StringLiteral(tokenKey.getSpan()).getValue();
-					}
-					compiler.ldc(key);
+					compiler.visit(key);
 				}
 				compiler.visit(expression);
 				count += 2;

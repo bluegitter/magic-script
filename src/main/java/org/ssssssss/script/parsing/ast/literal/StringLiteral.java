@@ -1,23 +1,67 @@
 package org.ssssssss.script.parsing.ast.literal;
 
+import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.CharacterStream;
-import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.Token;
+import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.StringJoiner;
 
 /**
  * String 常量
  */
 public class StringLiteral extends Literal {
 
-	private final String value;
+	private final Token token;
 
-	public StringLiteral(Span literal) {
-		super(literal);
-		String text = getSpan().getText();
-		String unescapedValue = text.substring(1, text.length() - 1);
+	private final List<Expression> expressionList;
+
+	public StringLiteral(Token token) {
+		this(token, null);
+	}
+
+	public StringLiteral(Token token, List<Expression> expressionList) {
+		super(token.getSpan());
+		this.token = token;
+		this.expressionList = expressionList;
+		if (!isTemplateString()) {
+			setValue(transferString(getSpan().getText()));
+		}
+	}
+
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		if (isTemplateString()) {
+			if (expressionList.isEmpty()) {
+				compiler.ldc("");
+			} else {
+				compiler.typeInsn(NEW, StringJoiner.class)
+						.insn(DUP)
+						.ldc("")
+						.invoke(INVOKESPECIAL, StringJoiner.class, "<init>", void.class, CharSequence.class);
+				expressionList.forEach(expression -> compiler.visit(expression)
+						.ldc("")
+						.invoke(INVOKESTATIC, Objects.class, "toString", String.class, Object.class, String.class)
+						.invoke(INVOKEVIRTUAL, StringJoiner.class, "add", StringJoiner.class, CharSequence.class));
+				compiler.invoke(INVOKEVIRTUAL, StringJoiner.class, "toString", String.class);
+			}
+		} else {
+			compiler.ldc(getValue());
+		}
+	}
+
+	public boolean isTemplateString() {
+		return expressionList != null;
+	}
+
+	private String transferString(String text) {
 		StringBuilder builder = new StringBuilder();
 
-		CharacterStream stream = new CharacterStream(unescapedValue);
+		CharacterStream stream = new CharacterStream(text);
 		// 处理转义符
 		while (stream.hasMore()) {
 			if (stream.match("\\\\", true)) {
@@ -36,12 +80,14 @@ public class StringLiteral extends Literal {
 				builder.append(stream.consume());
 			}
 		}
-		value = builder.toString();
-		setValue(value);
+		return builder.toString();
 	}
 
 	public String getValue() {
-		return value;
+		if (token.getTokenStream() != null) {
+			MagicScriptError.error("此处不支持模板字符串", getSpan());
+		}
+		return getSpan().getText();
 	}
 
 }

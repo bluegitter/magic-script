@@ -6,9 +6,17 @@ public class Token {
 
     private final Span span;
 
+    private TokenStream tokenStream;
+
     public Token(TokenType type, Span span) {
         this.type = type;
         this.span = span;
+    }
+
+    public Token(TokenType type, Span span, TokenStream tokenStream) {
+        this.type = type;
+        this.span = span;
+        this.tokenStream = tokenStream;
     }
 
     public TokenType getType() {
@@ -26,5 +34,9 @@ public class Token {
     @Override
     public String toString() {
         return "Token [type=" + type + ", span=" + span + "]";
+    }
+
+    public TokenStream getTokenStream() {
+        return tokenStream;
     }
 }

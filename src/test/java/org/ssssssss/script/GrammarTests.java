@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.ssssssss.script.runtime.ExitValue;
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 
 public class GrammarTests extends BaseTest {
@@ -149,7 +148,6 @@ public class GrammarTests extends BaseTest {
 	public void equalTest() {
 		Assert.assertEquals(true, execute("grammar/equal.ms"));
 	}
-
 	@Test
 	public void functionalTest() {
 		execute("grammar/functional.ms");
@@ -162,4 +160,9 @@ public class GrammarTests extends BaseTest {
 		Assert.assertArrayEquals(new Object[]{2, 3, 4}, ((ExitValue) value).getValues());
 	}
 
+
+	@Test
+	public void templateStringTest() {
+		Assert.assertEquals("111222333", execute("grammar/template_string.ms"));
+	}
 }

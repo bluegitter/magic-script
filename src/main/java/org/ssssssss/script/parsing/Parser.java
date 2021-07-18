@@ -236,7 +236,7 @@ public class Parser {
 			String packageName = null;
 			boolean isStringLiteral = expected.getType() == TokenType.StringLiteral;
 			if (isStringLiteral) {
-				packageName = new StringLiteral(expected.getSpan()).getValue();
+				packageName = createStringLiteral(expected).getValue();
 			} else if (expected.getType() == TokenType.Identifier) {
 				packageName = expected.getSpan().getText();
 			} else {
@@ -249,7 +249,7 @@ public class Parser {
 					checkKeyword(expected.getSpan());
 					varName = expected.getSpan().getText();
 				} else {
-					String temp = new StringLiteral(expected.getSpan()).getValue();
+					String temp = createStringLiteral(expected).getValue();
 					if (!temp.startsWith("@")) {
 						int index = temp.lastIndexOf(".");
 						if (index != -1) {
@@ -697,7 +697,7 @@ public class Parser {
 		} else if (stream.match(TokenType.LeftBracket, false)) {
 			expression = parseListLiteral();
 		} else if (stream.match(TokenType.StringLiteral, false)) {
-			expression = new StringLiteral(stream.expect(TokenType.StringLiteral).getSpan());
+			expression = createStringLiteral(stream.expect(TokenType.StringLiteral));
 		} else if (stream.match(TokenType.BooleanLiteral, false)) {
 			expression = new BooleanLiteral(stream.expect(TokenType.BooleanLiteral).getSpan());
 		} else if (stream.match(TokenType.DoubleLiteral, false)) {
@@ -735,19 +735,33 @@ public class Parser {
 		return parseConverterOrAccessOrCall(expression);
 	}
 
+	private StringLiteral createStringLiteral(Token token){
+		if(token.getTokenStream() == null){
+			return new StringLiteral(token);
+		}
+		TokenStream tempStream = this.stream;
+		this.stream = token.getTokenStream();
+		List<Expression> expressionList = new ArrayList<>();
+		while(this.stream.hasMore()){
+			expressionList.add(parseExpression());
+		}
+		this.stream = tempStream;
+		return new StringLiteral(token, expressionList);
+	}
+
 
 	private Expression parseMapLiteral() {
 		Span openCurly = stream.expect(TokenType.LeftCurly).getSpan();
 
-		List<Token> keys = new ArrayList<>();
+		List<Expression> keys = new ArrayList<>();
 		List<Expression> values = new ArrayList<>();
 		while (stream.hasMore() && !stream.match("}", false)) {
-			Token key;
+			Expression key;
 			if (stream.hasPrev()) {
 				Token prev = stream.getPrev();
 				if (stream.match(TokenType.Spread, false) && (prev.getType() == TokenType.LeftCurly || prev.getType() == TokenType.Comma)) {
 					Token spread = stream.expect(TokenType.Spread);
-					keys.add(spread);
+					keys.add(null);
 					values.add(parseSpreadAccess(spread));
 					if (stream.match(false, TokenType.Comma, TokenType.RightCurly)) {
 						stream.match(TokenType.Comma, true);
@@ -755,18 +769,19 @@ public class Parser {
 					continue;
 				}
 			}
-			if (stream.match(TokenType.StringLiteral, false)) {
-				key = stream.expect(TokenType.StringLiteral);
+			boolean isStringKey;
+			if (isStringKey = stream.match(TokenType.StringLiteral, false)) {
+				key = createStringLiteral(stream.expect(TokenType.StringLiteral));
 			} else {
-				key = stream.expect(TokenType.Identifier);
+				key = createStringLiteral(stream.expect(TokenType.Identifier));
 			}
 			keys.add(key);
 			if (stream.match(false, TokenType.Comma, TokenType.RightCurly)) {
 				stream.match(TokenType.Comma, true);
-				if (key.getType() == TokenType.Identifier) {
-					values.add(new VariableAccess(key.getSpan(), add(key.getText())));
+				if (!isStringKey) {
+					values.add(new VariableAccess(key.getSpan(), add(key.getSpan().getText())));
 				} else {
-					values.add(new StringLiteral(key.getSpan()));
+					values.add(key);
 				}
 			} else {
 				stream.expect(":");
@@ -799,7 +814,8 @@ public class Parser {
 	private Expression parseAccessOrCall(TokenType tokenType, boolean isNew) {
 		//Span identifier = stream.expect(TokenType.Identifier);
 		//Expression result = new VariableAccess(identifier);
-		Span identifier = stream.expect(tokenType).getSpan();
+		Token token = stream.expect(tokenType);
+		Span identifier = token.getSpan();
 		if (tokenType == TokenType.Identifier && "new".equals(identifier.getText())) {
 			return parseNewExpression(identifier);
 		}
@@ -810,7 +826,7 @@ public class Parser {
 			pop();
 			return expression;
 		}
-		Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) : new VariableAccess(identifier, add(identifier.getText()));
+		Expression result = tokenType == TokenType.StringLiteral ? createStringLiteral(token) : new VariableAccess(identifier, add(identifier.getText()));
 		return parseAccessOrCall(result, isNew);
 	}
 

@@ -28,6 +28,9 @@ public class Tokenizer {
 		while (stream.hasMore()) {
 			stream.skipWhiteSpace();
 			stream.startSpan();
+			if(except != null && stream.match(except, true)){
+				return tokens;
+			}
 			// // /* */
 			if (tokenizerComment(stream, tokens, matchComment)) {
 				continue;
@@ -36,10 +39,6 @@ public class Tokenizer {
 			if (tokenizerNumber(stream, tokens)) {
 				continue;
 			}
-			// template string
-//			if (tokenizerTemplateString(stream, tokens, matchComment)) {
-//				continue;
-//			}
 			// '' """ """ ""
 			if (tokenizerString(stream, TokenType.SingleQuote, tokens) || tokenizerString(stream, TokenType.TripleQuote, tokens) || tokenizerString(stream, TokenType.DoubleQuote, tokens)) {
 				continue;
@@ -51,6 +50,10 @@ public class Tokenizer {
 			}
 			// ``` ```
 			if (tokenizerLanguage(stream, tokens)) {
+				continue;
+			}
+			// template string
+			if (tokenizerTemplateString(stream, tokens, matchComment)) {
 				continue;
 			}
 			// Identifier, keyword, boolean literal, or null literal
@@ -111,7 +114,8 @@ public class Tokenizer {
 
 	private static boolean tokenizerTemplateString(CharacterStream stream, List<Token> tokens, boolean matchComment) {
 		if (stream.match("`", true)) {
-			int start = stream.getPosition();
+			int begin = stream.getPosition();
+			int start = begin;
 			boolean matchedEndQuote = false;
 			List<Token> subTokens = new ArrayList<>();
 			while (stream.hasMore()) {
@@ -125,17 +129,25 @@ public class Tokenizer {
 				}
 				if (stream.match("${", true)) {
 					int end = stream.getPosition();
-					subTokens.add(new LiteralToken(TokenType.StringLiteral, stream.endSpan(start, end)));
-					start = end;
+					if(start < end - 2){
+						subTokens.add(new LiteralToken(TokenType.StringLiteral, stream.endSpan(start, end - 2)));
+					}
 					subTokens.addAll(tokenizer(stream, new ArrayList<>(), matchComment, "}"));
+					start = stream.getPosition();
+					continue;
 				}
+				stream.consume();
 			}
 			if (!matchedEndQuote) {
 				MagicScriptError.error("模板字符串没有结束符`", stream.endSpan(), new StringLiteralException());
 			}
-			Span stringSpan = stream.endSpan(start, stream.getPosition());
+			Span stringSpan = stream.endSpan(begin, stream.getPosition());
+			int end = stream.getPosition() - 1;
+			if(end - start > 0){
+				subTokens.add(new LiteralToken(TokenType.StringLiteral, stream.endSpan(start, end)));
+			}
 			stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
-			// tokens.add(new TemplateStringToken(stringSpan, subTokens));
+			tokens.add(new LiteralToken(TokenType.StringLiteral, stringSpan, new TokenStream(subTokens)));
 			return true;
 		}
 		return false;
@@ -250,7 +262,7 @@ public class Tokenizer {
 				MagicScriptError.error("字符串没有结束符" + tokenType.getError(), stream.endSpan(), new StringLiteralException());
 			}
 			Span stringSpan = stream.endSpan();
-			stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
+			stringSpan = stream.getSpan(stringSpan.getStart(), stringSpan.getEnd() - tokenType.getLiteral().length());
 			tokens.add(new LiteralToken(TokenType.StringLiteral, stringSpan));
 			return true;
 		}

@@ -14,15 +14,11 @@ import org.ssssssss.script.parsing.ast.statement.Return;
 import org.ssssssss.script.runtime.MagicScriptClassLoader;
 import org.ssssssss.script.runtime.MagicScriptRuntime;
 
-import java.sql.*;
-import java.util.*;
-
 import javax.script.Bindings;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,11 +27,26 @@ import java.util.stream.Collectors;
 public class MagicScript extends CompiledScript {
 
 	private static final MagicScriptClassLoader classLoader = new MagicScriptClassLoader();
+
 	public static final String CONTEXT_ROOT = "ROOT";
+
+	/**
+	 * 所有语句
+	 */
 	private final List<Node> nodes;
+
 	private final ScriptEngine scriptEngine;
+
+	/**
+	 * 存放所有变量定义
+	 */
 	private final Set<VarIndex> varIndices;
+
 	private final List<Span> spans;
+
+	/**
+	 * 编译后的类
+	 */
 	private MagicScriptRuntime runtime;
 
 	private MagicScript(List<Node> nodes, List<Span> spans, Set<VarIndex> varIndices, ScriptEngine scriptEngine) {
@@ -45,6 +56,9 @@ public class MagicScript extends CompiledScript {
 		this.scriptEngine = scriptEngine;
 	}
 
+	/**
+	 * 创建MagicScript
+	 */
 	public static MagicScript create(String source, ScriptEngine scriptEngine) {
 		Parser parser = new Parser();
 		List<Node> nodes = parser.parse(source);
@@ -52,6 +66,9 @@ public class MagicScript extends CompiledScript {
 		return new MagicScript(nodes, Node.mergeSpans(nodes), varIndices, scriptEngine);
 	}
 
+	/**
+	 * 根据编号获得Span
+	 */
 	public Span getSpan(int index) {
 		return spans.get(index);
 	}
@@ -60,27 +77,37 @@ public class MagicScript extends CompiledScript {
 		return compile().execute(magicScriptContext);
 	}
 
+	/**
+	 * 编译
+	 */
 	public MagicScriptRuntime compile() throws MagicScriptCompileException {
 		if(runtime != null){
 			return runtime;
 		}
 		MagicScriptCompiler compiler = new MagicScriptCompiler(this.varIndices, this.spans);
+		// 如果只是一个表达式
 		if(nodes.size() == 1 && nodes.get(0) instanceof Expression){
 			Node node = nodes.get(0);
 			compiler.loadVars();
 			compiler.compile(new Return(node.getSpan(), node));
 		}else{
+			// 根据是否有 import "xxx.xx.xx.*" 来分组
 			Map<Boolean, List<Node>> nodeMap = nodes.stream().collect(Collectors.partitioningBy(it -> it instanceof Import && ((Import) it).isImportPackage()));
+			// 编译需要的方法
 			nodes.forEach(node -> node.visitMethod(compiler));
 			compiler.compile(nodeMap.get(Boolean.TRUE));	// 先编译 import "xxx.xxx.x.*"
+			// 加载变量信息
 			compiler.loadVars();
+			// 编译其它语句
 			compiler.compile(nodeMap.get(Boolean.FALSE));
 		}
 		try {
 			Class<MagicScriptRuntime> clazz = classLoader.load(compiler.getClassName(), compiler.bytecode());
 			Constructor<MagicScriptRuntime> constructor = clazz.getConstructor();
-			this.runtime = constructor.newInstance();
+			this.runtime = constructor.newInstance();	// 创建运行时实例
+			// 设置变量名字
 			runtime.setVarNames(varIndices.stream().map(VarIndex::getName).toArray(String[]::new));
+			// 设置所有Span
 			runtime.setSpans(this.spans);
 			return runtime;
 		} catch (Exception e) {

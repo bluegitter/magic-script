@@ -24,12 +24,12 @@ public class MagicResourceLoader {
 	/**
 	 * 函数加载器
 	 */
-	private static List<Function<String, Object>> FUNCTION_LOADERS = new ArrayList<>();
+	private static final List<Function<String, Object>> FUNCTION_LOADERS = new ArrayList<>();
 
 	/**
 	 * JSR223 脚本函数加载器
 	 */
-	private static List<Function<String, BiFunction<Map<String, Object>, String, Object>>> SCRIPT_LANGUAGE_LOADERS = new ArrayList<>();
+	private static final List<Function<String, BiFunction<Map<String, Object>, String, Object>>> SCRIPT_LANGUAGE_LOADERS = new ArrayList<>();
 
 	static {
 		// 默认导入 java.util.* 、java.lang.*

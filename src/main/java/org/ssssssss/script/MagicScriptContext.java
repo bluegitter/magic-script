@@ -29,6 +29,9 @@ public class MagicScriptContext {
 
 	private final Stack<int[]> copied = new Stack<>();
 
+	/**
+	 * 代码执行时，存放 import "xx.xx.xx.*" 的包
+	 */
 	private final List<String> importPackages = new ArrayList<>();
 
 	private MagicScriptRuntime runtime;
@@ -110,6 +113,11 @@ public class MagicScriptContext {
 		return this;
 	}
 
+	/**
+	 * 创建变量
+	 * @param runtime	脚本实例
+	 * @param size	数组大小（变量个数）
+	 */
 	public Object[] createVariables(MagicScriptRuntime runtime, int size) {
 		this.runtime = runtime;
 		Object[] variables = new Object[size];
@@ -139,6 +147,9 @@ public class MagicScriptContext {
 		}
 	}
 
+	/**
+	 * 获取当前变量信息
+	 */
 	public Map<String, Object> getVariables() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		String[] names = runtime.getVarNames();
@@ -152,6 +163,9 @@ public class MagicScriptContext {
 		return map;
 	}
 
+	/**
+	 * 获取调用时传入的变量信息
+	 */
 	public Map<String, Object> getRootVariables() {
 		return rootVariables;
 	}
@@ -232,7 +246,9 @@ public class MagicScriptContext {
 		return vars;
 	}
 
-
+	/**
+	 * 恢复被复制的变量（主要防止后续获取变量信息时，获取到非当前作用域的变量。）
+	 */
 	public void restore() {
 		Object[] dest = vars.pop();
 		Object[] src = getVars();

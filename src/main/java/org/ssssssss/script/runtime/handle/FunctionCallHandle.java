@@ -169,11 +169,11 @@ public class FunctionCallHandle {
 		return map == null && optional ? null : map.get(name);
 	}
 
-	public static Object invoke_new_instance(Object target, Object... args) throws Throwable {
+	public static Object invoke_new_instance(Object target, Object[] args) throws Throwable {
 		return ClassExtension.newInstance(target, args);
 	}
 
-	public static Object newArrayList(boolean hasSpread, Object... args) {
+	public static Object newArrayList(boolean hasSpread, Object[] args) {
 		if (!hasSpread) {
 			return Stream.of(args).collect(Collectors.toList());
 		}
@@ -226,7 +226,7 @@ public class FunctionCallHandle {
 		}
 	}
 
-	public static Object newLinkedHashMap(Boolean hasSpread, Object... args) {
+	public static Object newLinkedHashMap(Boolean hasSpread, Object[] args) {
 		Map<Object, Object> map = new LinkedHashMap<>();
 		if (args != null) {
 			for (int i = 0, len = args.length; i < len; ) {

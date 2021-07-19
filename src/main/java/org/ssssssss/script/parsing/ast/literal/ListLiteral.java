@@ -28,8 +28,8 @@ public class ListLiteral extends Literal {
 		} else {
 			compiler.insn(values.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
 					.asBoolean()
-					.visit(values)
-					.call("newArrayList", size + 1);
+					.newArray(values)
+					.call("newArrayList", 2);
 		}
 	}
 }

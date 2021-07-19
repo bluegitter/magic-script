@@ -32,15 +32,8 @@ public class Exit extends Node {
 		if (expressions == null) {
 			compiler.invoke(INVOKESPECIAL, ExitValue.class, "<init>", void.class);
 		} else {
-			compiler.visitInt(expressions.size())
-					.typeInsn(ANEWARRAY, Object.class);
-			for (int i = 0, size = expressions.size(); i < size; i++) {
-				compiler.insn(DUP)
-						.visitInt(i)
-						.visit(expressions.get(i))
-						.insn(AASTORE);
-			}
-			compiler.invoke(INVOKESPECIAL, ExitValue.class, "<init>", void.class, Object[].class);
+			compiler.newArray(expressions)
+					.invoke(INVOKESPECIAL, ExitValue.class, "<init>", void.class, Object[].class);
 		}
 		compiler.invoke(INVOKESPECIAL, MagicExitException.class, "<init>", void.class, ExitValue.class)
 				.insn(ATHROW);

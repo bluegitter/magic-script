@@ -506,6 +506,18 @@ public class MagicScriptCompiler implements Opcodes {
 	/**
 	 * 编译int值
 	 */
+	public MagicScriptCompiler newArray(List<Expression> values) {
+		int size = values.size();
+		visitInt(size).typeInsn(ANEWARRAY, Object.class);
+		for (int i = 0; i < size; i++) {
+			insn(DUP).visitInt(i).visit(values.get(i)).insn(AASTORE);
+		}
+		return this;
+	}
+
+	/**
+	 * 编译int值
+	 */
 	public MagicScriptCompiler visitInt(int value) {
 		if (value >= -1 && value <= 5) {
 			insn(ICONST[value + 1]);

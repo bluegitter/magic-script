@@ -7,6 +7,7 @@ import org.ssssssss.script.parsing.ast.Literal;
 import org.ssssssss.script.parsing.ast.statement.Spread;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * map常量
@@ -24,29 +25,36 @@ public class MapLiteral extends Literal {
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
 		int size = keys.size();
-		int count = 0;
 		compiler.insn(values.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
-				.asBoolean();
+				.asBoolean()
+				.visitInt((int) (size * 2 - keys.stream().filter(Objects::isNull).count()))
+				.typeInsn(ANEWARRAY, Object.class);
+		int index = 0;
 		for (int i = 0; i < size; i++) {
 			Expression key = keys.get(i);
 			Expression expression = values.get(i);
+			compiler.insn(DUP).visitInt(index++);
 			if (expression instanceof Spread) {
 				compiler.visit(expression);
-				count++;
 			} else {
-				boolean dynamicKey = false;
-				if (key instanceof StringLiteral && !((StringLiteral) key).isTemplateString() && key.getSpan().getText().startsWith("$")) {
-					dynamicKey = !key.getSpan().getText().substring(1).startsWith("$");//如果是$$开头的变量，则认为是普通key..
-				}
-				if (dynamicKey) {
+				if (isDynamicKey(key)) {
 					compiler.load(key.getSpan().getText().substring(1));
 				} else {
 					compiler.visit(key);
 				}
-				compiler.visit(expression);
-				count += 2;
+				compiler.insn(AASTORE)
+						.insn(DUP)
+						.visitInt(index++)
+						.visit(expression);
 			}
+			compiler.insn(AASTORE);
 		}
-		compiler.call("newLinkedHashMap", count + 1);
+		compiler.call("newLinkedHashMap", 2);
+	}
+
+	private boolean isDynamicKey(Expression key){
+		return key instanceof StringLiteral
+				&& !((StringLiteral) key).isTemplateString() && key.getSpan().getText().startsWith("$")	// $开头
+				&& !key.getSpan().getText().substring(1).startsWith("$");//如果是$$开头的变量，则认为是普通key..
 	}
 }

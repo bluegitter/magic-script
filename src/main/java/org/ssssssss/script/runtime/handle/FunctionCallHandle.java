@@ -181,8 +181,10 @@ public class FunctionCallHandle {
 		if (!hasSpread) {
 			ArrayList<Object> list = new ArrayList<>();
 			// 使用反射是因为不需要对数组进行clone操作，为了避免clone，故采用反射绕过。
-			JavaReflection.setFieldValue(list, ARRAYLIST_FIELD_ELEMENT_DATA, args);
-			JavaReflection.setFieldValue(list, ARRAYLIST_FIELD_SIZE, args.length);
+			if(args != null && args.length > 0){
+				JavaReflection.setFieldValue(list, ARRAYLIST_FIELD_ELEMENT_DATA, args);
+				JavaReflection.setFieldValue(list, ARRAYLIST_FIELD_SIZE, args.length);
+			}
 			return list;
 		}
 		List<Object> list = new ArrayList<>(args.length);

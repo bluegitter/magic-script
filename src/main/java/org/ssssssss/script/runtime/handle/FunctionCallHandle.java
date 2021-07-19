@@ -34,6 +34,10 @@ public class FunctionCallHandle {
 
 	private static final MethodHandle INVOKE_METHOD;
 
+	private static final Field ARRAYLIST_FIELD_ELEMENT_DATA = JavaReflection.getField(ArrayList.class, "elementData");
+
+	private static final Field ARRAYLIST_FIELD_SIZE = JavaReflection.getField(ArrayList.class, "size");
+
 	private static final Object[] EMPTY_ARGS = new Object[0];
 
 	static {
@@ -175,7 +179,11 @@ public class FunctionCallHandle {
 
 	public static Object newArrayList(boolean hasSpread, Object[] args) {
 		if (!hasSpread) {
-			return new ArrayList<>(Arrays.asList(args));
+			ArrayList<Object> list = new ArrayList<>();
+			// 使用反射是因为不需要对数组进行clone操作，为了避免clone，故采用反射绕过。
+			JavaReflection.setFieldValue(list, ARRAYLIST_FIELD_ELEMENT_DATA, args);
+			JavaReflection.setFieldValue(list, ARRAYLIST_FIELD_SIZE, args.length);
+			return list;
 		}
 		List<Object> list = new ArrayList<>(args.length);
 		for (int i = 0, len = args.length; i < len; i++) {

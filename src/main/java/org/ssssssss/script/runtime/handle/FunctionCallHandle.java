@@ -175,7 +175,7 @@ public class FunctionCallHandle {
 
 	public static Object newArrayList(boolean hasSpread, Object[] args) {
 		if (!hasSpread) {
-			return Stream.of(args).collect(Collectors.toList());
+			return new ArrayList<>(Arrays.asList(args));
 		}
 		List<Object> list = new ArrayList<>(args.length);
 		for (int i = 0, len = args.length; i < len; i++) {

@@ -504,7 +504,7 @@ public class MagicScriptCompiler implements Opcodes {
 	}
 
 	/**
-	 * 编译int值
+	 * 编译数组
 	 */
 	public MagicScriptCompiler newArray(List<Expression> values) {
 		int size = values.size();

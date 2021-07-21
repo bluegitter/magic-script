@@ -21,6 +21,10 @@ public class IntegerLiteral extends Literal {
 		}
 	}
 
+	public IntegerLiteral(Span span, Object value) {
+		super(span, value);
+	}
+
 	@Override
 	public void compile(MagicScriptCompiler context) {
 		context.visitInt((Integer) value)

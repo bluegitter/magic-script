@@ -28,7 +28,7 @@ public class Tokenizer {
 		while (stream.hasMore()) {
 			stream.skipWhiteSpace();
 			stream.startSpan();
-			if(except != null && stream.match(except, true)){
+			if (except != null && stream.match(except, true)) {
 				return tokens;
 			}
 			// // /* */
@@ -129,7 +129,7 @@ public class Tokenizer {
 				}
 				if (stream.match("${", true)) {
 					int end = stream.getPosition();
-					if(start < end - 2){
+					if (start < end - 2) {
 						subTokens.add(new LiteralToken(TokenType.StringLiteral, stream.endSpan(start, end - 2)));
 					}
 					subTokens.addAll(tokenizer(stream, new ArrayList<>(), matchComment, "}"));
@@ -143,7 +143,7 @@ public class Tokenizer {
 			}
 			Span stringSpan = stream.endSpan(begin, stream.getPosition());
 			int end = stream.getPosition() - 1;
-			if(end - start > 0){
+			if (end - start > 0) {
 				subTokens.add(new LiteralToken(TokenType.StringLiteral, stream.endSpan(start, end)));
 			}
 			stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
@@ -197,6 +197,37 @@ public class Tokenizer {
 	}
 
 	private static boolean tokenizerNumber(CharacterStream stream, List<Token> tokens) {
+		if (stream.match("0", false)) {
+			int index = stream.getPosition();
+			stream.startSpan();
+			stream.consume();
+			if (stream.matchAny(true, "x", "X")) {    // 0x 16进制
+				while (stream.matchDigit(true) || stream.matchAny(true, "A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f")) {
+					;
+				}
+				if (stream.matchAny(true, "L", "l")) {
+					Span span = stream.endSpan();
+					String text = span.getText();
+					tokens.add(new LiteralToken(TokenType.LongLiteral, span, Long.parseLong(text.substring(2, text.length() - 1), 16)));
+					return true;
+				}
+				tokens.add(autoNumberType(stream.endSpan(), 16));
+				return true;
+			} else if (stream.matchAny(true, "b", "B")) {    //二进制
+				while (stream.matchAny(true, "0", "1")) {
+					;
+				}
+				if (stream.matchAny(true, "L", "l")) {
+					Span span = stream.endSpan();
+					String text = span.getText();
+					tokens.add(new LiteralToken(TokenType.LongLiteral, span, Long.parseLong(text.substring(0, text.length() - 1), 2)));
+					return true;
+				}
+				tokens.add(autoNumberType(stream.endSpan(), 2));
+				return true;
+			}
+			stream.reset(index);
+		}
 		if (stream.matchDigit(false)) {
 			TokenType type = TokenType.IntegerLiteral;
 			stream.startSpan();
@@ -209,26 +240,26 @@ public class Tokenizer {
 					;
 				}
 			}
-			if (stream.match("b", true) || stream.match("B", true)) {
+			if (stream.matchAny(true, "b", "B")) {
 				if (type == TokenType.DoubleLiteral) {
 					MagicScriptError.error("Byte literal can not have a decimal point.", stream.endSpan());
 				}
 				type = TokenType.ByteLiteral;
-			} else if (stream.match("s", true) || stream.match("S", true)) {
+			} else if (stream.matchAny(true, "s", "S")) {
 				if (type == TokenType.DoubleLiteral) {
 					MagicScriptError.error("Short literal can not have a decimal point.", stream.endSpan());
 				}
 				type = TokenType.ShortLiteral;
-			} else if (stream.match("l", true) || stream.match("L", true)) {
+			} else if (stream.matchAny(true, "L", "l")) {
 				if (type == TokenType.DoubleLiteral) {
 					MagicScriptError.error("Long literal can not have a decimal point.", stream.endSpan());
 				}
 				type = TokenType.LongLiteral;
-			} else if (stream.match("f", true) || stream.match("F", true)) {
+			} else if (stream.matchAny(true, "f", "F")) {
 				type = TokenType.FloatLiteral;
-			} else if (stream.match("d", true) || stream.match("D", true)) {
+			} else if (stream.matchAny(true, "d", "D")) {
 				type = TokenType.DoubleLiteral;
-			} else if (stream.match("m", true) || stream.match("M", true)) {
+			} else if (stream.matchAny(true, "m", "M")) {
 				type = TokenType.DecimalLiteral;
 			}
 			Span numberSpan = stream.endSpan();
@@ -236,6 +267,17 @@ public class Tokenizer {
 			return true;
 		}
 		return false;
+	}
+
+	private static LiteralToken autoNumberType(Span span, int radix) {
+		long value = Long.parseLong(span.getText().substring(2), radix);
+		if (value > Integer.MAX_VALUE || value < Integer.MIN_VALUE) {
+			return new LiteralToken(TokenType.LongLiteral, span, value);
+		} else if (value > Byte.MAX_VALUE || value < Byte.MIN_VALUE) {
+			return new LiteralToken(TokenType.IntegerLiteral, span, (int) value);
+		} else {
+			return new LiteralToken(TokenType.ByteLiteral, span, (byte) value);
+		}
 	}
 
 	private static boolean tokenizerString(CharacterStream stream, TokenType tokenType, List<Token> tokens) {

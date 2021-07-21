@@ -12,7 +12,7 @@ import static org.ssssssss.script.compile.Descriptor.make_descriptor;
  */
 public class ByteLiteral extends Literal {
 
-	private int value;
+	private byte value;
 
 	public ByteLiteral(Span literal) {
 		super(literal);
@@ -21,6 +21,11 @@ public class ByteLiteral extends Literal {
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义byte变量值不合法", literal, e);
 		}
+	}
+
+	public ByteLiteral(Span span, Object value) {
+		super(span, value);
+		this.value = ((Number) value).byteValue();
 	}
 
 	@Override

@@ -92,6 +92,20 @@ public class CharacterStream {
 	}
 
 	/**
+	 * 匹配任意字符串
+	 * @param strs	任意字符串
+	 * @return
+	 */
+	public boolean matchAny(boolean consume, String ... strs){
+		for (String str : strs) {
+			if (match(str, consume)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * 返回是否是数字
 	 **/
 	public boolean matchDigit(boolean consume) {

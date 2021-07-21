@@ -705,13 +705,16 @@ public class Parser {
 		} else if (stream.match(TokenType.FloatLiteral, false)) {
 			expression = new FloatLiteral(stream.expect(TokenType.FloatLiteral).getSpan());
 		} else if (stream.match(TokenType.ByteLiteral, false)) {
-			expression = new ByteLiteral(stream.expect(TokenType.ByteLiteral).getSpan());
+			Token token = stream.expect(TokenType.ByteLiteral);
+			expression = token.getValue() != null ? new ByteLiteral(token.getSpan(), token.getValue()) : new ByteLiteral(token.getSpan());
 		} else if (stream.match(TokenType.ShortLiteral, false)) {
 			expression = new ShortLiteral(stream.expect(TokenType.ShortLiteral).getSpan());
 		} else if (stream.match(TokenType.IntegerLiteral, false)) {
-			expression = new IntegerLiteral(stream.expect(TokenType.IntegerLiteral).getSpan());
+			Token token = stream.expect(TokenType.IntegerLiteral);
+			expression = token.getValue() != null ? new IntegerLiteral(token.getSpan(), token.getValue()) : new IntegerLiteral(token.getSpan());
 		} else if (stream.match(TokenType.LongLiteral, false)) {
-			expression = new LongLiteral(stream.expect(TokenType.LongLiteral).getSpan());
+			Token token = stream.expect(TokenType.LongLiteral);
+			expression = token.getValue() != null ? new LongLiteral(token.getSpan(), token.getValue()) : new LongLiteral(token.getSpan());
 		} else if (stream.match(TokenType.DecimalLiteral, false)) {
 			expression = new BigDecimalLiteral(stream.expect(TokenType.DecimalLiteral).getSpan());
 		} else if (stream.match(TokenType.RegexpLiteral, false)) {

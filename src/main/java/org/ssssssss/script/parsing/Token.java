@@ -8,15 +8,25 @@ public class Token {
 
     private TokenStream tokenStream;
 
+    private final Object value;
+
     public Token(TokenType type, Span span) {
         this.type = type;
         this.span = span;
+        this.value = null;
+    }
+
+    public Token(TokenType type, Span span, Object value) {
+        this.type = type;
+        this.span = span;
+        this.value = value;
     }
 
     public Token(TokenType type, Span span, TokenStream tokenStream) {
         this.type = type;
         this.span = span;
         this.tokenStream = tokenStream;
+        this.value = null;
     }
 
     public TokenType getType() {
@@ -29,6 +39,10 @@ public class Token {
 
     public String getText() {
         return span.getText();
+    }
+
+    public Object getValue() {
+        return value;
     }
 
     @Override

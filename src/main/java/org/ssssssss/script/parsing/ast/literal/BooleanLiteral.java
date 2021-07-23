@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast.literal;
 
-import org.ssssssss.script.asm.Opcodes;
 import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Literal;

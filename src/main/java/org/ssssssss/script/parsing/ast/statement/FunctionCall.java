@@ -40,20 +40,20 @@ public class FunctionCall extends Expression {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.visit(function)	// 访问函数
-				.load1()	// 参数 MagicScriptContext
-				.ldc(getFunction().getSpan().getText())	// 函数名
+		compiler.visit(function)    // 访问函数
+				.load1()    // 参数 MagicScriptContext
+				.ldc(getFunction().getSpan().getText())    // 函数名
 				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)
-				.asBoolean()	// 是否有扩展参数(...xxx)
-				.insn(ICONST_0)	// 不可以可空调用 ?.
+				.asBoolean()    // 是否有扩展参数(...xxx)
+				.insn(ICONST_0)    // 不可以可空调用 ?.
 				.asBoolean();
 		for (Expression argument : arguments) {
-			if(inLinq && argument instanceof MemberAccess){
+			if (inLinq && argument instanceof MemberAccess) {
 				((MemberAccess) argument).compileLinq(compiler);
-			}else{
+			} else {
 				argument.compile(compiler);
 			}
 		}
-		compiler.call("invoke_method", arguments.size() + 5);	// 调用函数
+		compiler.call("invoke_method", arguments.size() + 5);    // 调用函数
 	}
 }

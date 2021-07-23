@@ -32,17 +32,36 @@ public class MapExtension {
 		return result;
 	}
 
-	@Comment(value = "循环Map", origin = true)
-	public Map<?, ?> each(Map<?, ?> source, @Comment("循环函数，如:(key,value,source)=>map['xx'] = key;") Function<Object[], Object> function) {
-		source.forEach((key, value) -> function.apply(new Object[]{key, value, source}));
-		return source;
-	}
-
 	@Comment("map转List")
 	public static List<?> asList(Map<?, ?> source, @Comment("映射函数，如:(key,value,source)=>{'k' : key,'v' : value}") Function<Object[], Object> mapping) {
 		List<Object> result = new ArrayList<>();
 		source.forEach((key, value) -> result.add(mapping.apply(new Object[]{key, value, source})));
 		return result;
+	}
+
+	private static void setFieldValue(Object object, Field field, Object value) {
+		if (field != null) {
+			try {
+				if (ObjectTypeConditionExtension.isCollection(field.getType())) {
+					Type genericType = field.getGenericType();
+					if (genericType instanceof ParameterizedType) {
+						Class<?> type = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
+						JavaReflection.setFieldValue(object, field, StreamExtension.asBean(value, type));
+					}
+				} else if (field.getType().isArray()) {
+					JavaReflection.setFieldValue(object, field, StreamExtension.asBean(value, field.getType().getComponentType(), true));
+				} else if (JavaReflection.isPrimitiveAssignableFrom(value.getClass(), field.getType()) || field.getType().isAssignableFrom(value.getClass())) {
+					JavaReflection.setFieldValue(object, field, value);
+				}
+			} catch (Exception ignored) {
+			}
+		}
+	}
+
+	@Comment(value = "循环Map", origin = true)
+	public Map<?, ?> each(Map<?, ?> source, @Comment("循环函数，如:(key,value,source)=>map['xx'] = key;") Function<Object[], Object> function) {
+		source.forEach((key, value) -> function.apply(new Object[]{key, value, source}));
+		return source;
 	}
 
 	@Comment("合并Map")
@@ -136,25 +155,5 @@ public class MapExtension {
 			result.put(functional.apply(new Object[]{entry.getKey()}), entry.getValue());
 		}
 		return result;
-	}
-
-
-	private static void setFieldValue(Object object, Field field, Object value) {
-		if (field != null) {
-			try {
-				if (ObjectTypeConditionExtension.isCollection(field.getType())) {
-					Type genericType = field.getGenericType();
-					if (genericType instanceof ParameterizedType) {
-						Class<?> type = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
-						JavaReflection.setFieldValue(object, field, StreamExtension.asBean(value, type));
-					}
-				} else if (field.getType().isArray()) {
-					JavaReflection.setFieldValue(object, field, StreamExtension.asBean(value, field.getType().getComponentType(), true));
-				} else if (JavaReflection.isPrimitiveAssignableFrom(value.getClass(), field.getType()) || field.getType().isAssignableFrom(value.getClass())) {
-					JavaReflection.setFieldValue(object, field, value);
-				}
-			} catch (Exception ignored) {
-			}
-		}
 	}
 }

@@ -14,14 +14,11 @@ import java.util.*;
 public class MagicScriptContext {
 
 	private final static ThreadLocal<MagicScriptContext> CONTEXT_THREAD_LOCAL = new InheritableThreadLocal<>();
-
+	private static final Object NULL_VALUE = new Object();
 	/**
 	 * 保存手动设置的环境变量
 	 */
 	private final Map<String, Object> rootVariables = new HashMap<>();
-
-	private static final Object NULL_VALUE = new Object();
-
 	/**
 	 * 保存脚本中的变量
 	 */
@@ -76,14 +73,15 @@ public class MagicScriptContext {
 
 	/**
 	 * 添加 .* 的导包
-	 * @param packageName	包名 如 java.text.
+	 *
+	 * @param packageName 包名 如 java.text.
 	 */
-	public void addImport(String packageName){
+	public void addImport(String packageName) {
 		importPackages.add(packageName);
 	}
 
-	public Class<?> getImportClass(String simpleClassName){
-		for (int i = importPackages.size() - 1; i >= 0 ; i--) {
+	public Class<?> getImportClass(String simpleClassName) {
+		for (int i = importPackages.size() - 1; i >= 0; i--) {
 			try {
 				return Class.forName(importPackages.get(i) + simpleClassName);
 			} catch (ClassNotFoundException ignored) {
@@ -115,8 +113,9 @@ public class MagicScriptContext {
 
 	/**
 	 * 创建变量
-	 * @param runtime	脚本实例
-	 * @param size	数组大小（变量个数）
+	 *
+	 * @param runtime 脚本实例
+	 * @param size    数组大小（变量个数）
 	 */
 	public Object[] createVariables(MagicScriptRuntime runtime, int size) {
 		this.runtime = runtime;
@@ -201,6 +200,12 @@ public class MagicScriptContext {
 		return dest;
 	}
 
+	/**
+	 * 获取变量表，此方法给编译后的类专用。
+	 */
+	public Object[] getVars() {
+		return vars.peek();
+	}
 
 	/**
 	 * 设置变量表的值，此方法给编译后的类专用。
@@ -210,16 +215,10 @@ public class MagicScriptContext {
 	}
 
 	/**
-	 * 获取变量表，此方法给编译后的类专用。
-	 */
-	public Object[] getVars() {
-		return vars.peek();
-	}
-	/**
 	 * 获取变量值，此方法给编译后的类专用。
 	 */
 	public void setVarValue(int index, Object value) {
-		if(index > -1){
+		if (index > -1) {
 			vars.peek()[index] = value;
 		}
 	}
@@ -233,12 +232,12 @@ public class MagicScriptContext {
 	 */
 	public Object[] copy(Object[] target, int... args) {
 		Object[] vars;
-		if(args.length > 0){
+		if (args.length > 0) {
 			vars = newVars();
 			for (int i = 0, len = args.length; i < len; i++) {
 				vars[args[i]] = target[i];
 			}
-		}else{
+		} else {
 			vars = getVars();
 		}
 		setVars(vars);

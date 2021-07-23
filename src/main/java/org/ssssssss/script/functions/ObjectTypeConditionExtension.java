@@ -16,6 +16,50 @@ public class ObjectTypeConditionExtension {
 	/**
 	 * 判断是否是目标类型
 	 */
+	@Comment("判断对象是否为指定类型的对象")
+	public static boolean is(Object target, @Comment("目标类型") Class<?> clazz) {
+		if (clazz == null) {
+			return false;
+		}
+		return clazz.isAssignableFrom(target.getClass());
+	}
+
+	/**
+	 * 判断是否是数组
+	 */
+	@Comment("判断对象是否是数组")
+	public static boolean isArray(Object target) {
+		if (target instanceof Class) {
+			return ((Class<?>) target).isArray();
+		}
+		return target.getClass().isArray();
+	}
+
+	/**
+	 * 判断是否是集合
+	 */
+	@Comment("判断对象是否是集合")
+	public static boolean isCollection(Object target) {
+		if (target instanceof Class) {
+			return Collection.class.isAssignableFrom((Class<?>) target);
+		}
+		return Collection.class.isAssignableFrom(target.getClass());
+	}
+
+	/**
+	 * 判断是否是Map
+	 */
+	@Comment("判断对象是否是Map")
+	public static boolean isMap(Object target) {
+		if (target instanceof Class) {
+			return Map.class.isAssignableFrom((Class<?>) target);
+		}
+		return Map.class.isAssignableFrom(target.getClass());
+	}
+
+	/**
+	 * 判断是否是目标类型
+	 */
 	@Comment("判断对象是否为指定类型的对象，type为null时 返回false，支持类名缩写")
 	public boolean is(Object target, @Comment("类名或全类名或string、int、double、float、long、byte、short、bigdecimal、boolean") String type) {
 		if (type == null) {
@@ -58,17 +102,6 @@ public class ObjectTypeConditionExtension {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * 判断是否是目标类型
-	 */
-	@Comment("判断对象是否为指定类型的对象")
-	public static boolean is(Object target, @Comment("目标类型") Class<?> clazz) {
-		if (clazz == null) {
-			return false;
-		}
-		return clazz.isAssignableFrom(target.getClass());
 	}
 
 	/**
@@ -143,18 +176,6 @@ public class ObjectTypeConditionExtension {
 		return is(target, Date.class);
 	}
 
-
-	/**
-	 * 判断是否是数组
-	 */
-	@Comment("判断对象是否是数组")
-	public static boolean isArray(Object target) {
-		if (target instanceof Class) {
-			return ((Class<?>) target).isArray();
-		}
-		return target.getClass().isArray();
-	}
-
 	/**
 	 * 判断是否是List
 	 */
@@ -164,27 +185,5 @@ public class ObjectTypeConditionExtension {
 			return List.class.isAssignableFrom((Class<?>) target);
 		}
 		return List.class.isAssignableFrom(target.getClass());
-	}
-
-	/**
-	 * 判断是否是集合
-	 */
-	@Comment("判断对象是否是集合")
-	public static boolean isCollection(Object target) {
-		if (target instanceof Class) {
-			return Collection.class.isAssignableFrom((Class<?>) target);
-		}
-		return Collection.class.isAssignableFrom(target.getClass());
-	}
-
-	/**
-	 * 判断是否是Map
-	 */
-	@Comment("判断对象是否是Map")
-	public static boolean isMap(Object target) {
-		if (target instanceof Class) {
-			return Map.class.isAssignableFrom((Class<?>) target);
-		}
-		return Map.class.isAssignableFrom(target.getClass());
 	}
 }

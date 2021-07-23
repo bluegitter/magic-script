@@ -32,11 +32,11 @@ public class ClassExtension {
 	}
 
 	public static Object newInstance(Object target, Object... values) throws Throwable {
-		if(target == null){
+		if (target == null) {
 			throw new NullPointerException("NULL不能被new");
 		}
 		if (target instanceof Class) {
-			return newInstance((Class<?>)target, values);
+			return newInstance((Class<?>) target, values);
 		}
 		return newInstance(target.getClass(), values);
 	}

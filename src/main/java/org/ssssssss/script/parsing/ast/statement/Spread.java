@@ -11,24 +11,24 @@ import org.ssssssss.script.runtime.SpreadValue;
 public class Spread extends Expression {
 
 
-    private final Expression target;
+	private final Expression target;
 
-    public Spread(Span span, Expression target) {
-        super(span);
-        this.target = target;
-    }
+	public Spread(Span span, Expression target) {
+		super(span);
+		this.target = target;
+	}
 
-    @Override
-    public void visitMethod(MagicScriptCompiler compiler) {
-        target.visitMethod(compiler);
-    }
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		target.visitMethod(compiler);
+	}
 
-    @Override
-    public void compile(MagicScriptCompiler compiler) {
-        // 对于...xxx 的参数 统一转换为 new SpreadValue(object)
-        compiler.typeInsn(NEW, SpreadValue.class)
-                .insn(DUP)
-                .visit(target)
-                .invoke(INVOKESPECIAL, SpreadValue.class, "<init>", void.class, Object.class);
-    }
+	@Override
+	public void compile(MagicScriptCompiler compiler) {
+		// 对于...xxx 的参数 统一转换为 new SpreadValue(object)
+		compiler.typeInsn(NEW, SpreadValue.class)
+				.insn(DUP)
+				.visit(target)
+				.invoke(INVOKESPECIAL, SpreadValue.class, "<init>", void.class, Object.class);
+	}
 }

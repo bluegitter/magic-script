@@ -16,21 +16,7 @@ import java.util.function.Supplier;
 
 public class ClassConverter extends Expression {
 
-	private final Expression target;
-
-	private final String convert;
-
-	private final List<Expression> arguments;
-
 	private final static Map<String, BiFunction<Object, Object[], Object>> converters = new HashMap<>();
-
-	public ClassConverter(Span span, String convert, Expression target, List<Expression> arguments) {
-		super(span);
-		this.convert = convert;
-		this.target = target;
-		this.arguments = arguments;
-	}
-
 
 	static {
 		register("int", BigDecimal::intValue);
@@ -52,10 +38,16 @@ public class ClassConverter extends Expression {
 		});
 	}
 
-	@Override
-	public void visitMethod(MagicScriptCompiler compiler) {
-		target.visitMethod(compiler);
-		arguments.forEach(it -> it.visitMethod(compiler));
+	private final Expression target;
+	private final String convert;
+	private final List<Expression> arguments;
+
+
+	public ClassConverter(Span span, String convert, Expression target, List<Expression> arguments) {
+		super(span);
+		this.convert = convert;
+		this.target = target;
+		this.arguments = arguments;
 	}
 
 	private static void register(String target, Function<BigDecimal, Object> converter) {
@@ -90,6 +82,12 @@ public class ClassConverter extends Expression {
 
 	public static void register(String target, BiFunction<Object, Object[], Object> converter) {
 		converters.put(target, converter);
+	}
+
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		target.visitMethod(compiler);
+		arguments.forEach(it -> it.visitMethod(compiler));
 	}
 
 	@Override

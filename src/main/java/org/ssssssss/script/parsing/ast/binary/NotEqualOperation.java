@@ -10,13 +10,13 @@ import org.ssssssss.script.parsing.ast.Expression;
 public class NotEqualOperation extends EqualOperation {
 
 	public NotEqualOperation(Expression leftOperand, Span span, Expression rightOperand, boolean accurate) {
-		super(leftOperand, span, rightOperand,accurate);
+		super(leftOperand, span, rightOperand, accurate);
 	}
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
 		compiler.compile(getLeftOperand())
 				.compile(getRightOperand())
-				.operator(accurate ? "not_accurate_equals": "not_equals");
+				.operator(accurate ? "not_accurate_equals" : "not_equals");
 	}
 }

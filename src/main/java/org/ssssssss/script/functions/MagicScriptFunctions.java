@@ -9,20 +9,20 @@ import java.util.UUID;
 
 public class MagicScriptFunctions {
 
-	@Comment("生成uuid字符串，不包含`-`")
-	@Function
-	public String uuid(){
-		return UUID.randomUUID().toString().replace("-","");
-	}
-
 	@Comment("导出当前变量信息")
 	@Function
-	public static void dump(){
+	public static void dump() {
 		MagicScriptContext context = MagicScriptContext.get();
-		if(context != null){
+		if (context != null) {
 			System.out.println(Arrays.toString(context.getVars()));
 		}
 
+	}
+
+	@Comment("生成uuid字符串，不包含`-`")
+	@Function
+	public String uuid() {
+		return UUID.randomUUID().toString().replace("-", "");
 	}
 
 }

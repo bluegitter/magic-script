@@ -16,6 +16,7 @@ public class EqualOperation extends BinaryOperation {
 		super(leftOperand, span, rightOperand);
 		this.accurate = accurate;
 	}
+
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
 		compiler.compile(getLeftOperand())

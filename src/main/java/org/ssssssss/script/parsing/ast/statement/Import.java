@@ -9,12 +9,9 @@ import org.ssssssss.script.parsing.ast.Node;
 
 public class Import extends Node {
 
-	private String packageName;
-
 	private final VarIndex varIndex;
-
 	private final boolean module;
-
+	private String packageName;
 	private boolean function;
 
 	public Import(Span span, String packageName, VarIndex varIndex, boolean module) {
@@ -28,7 +25,7 @@ public class Import extends Node {
 		}
 	}
 
-	public boolean isImportPackage(){
+	public boolean isImportPackage() {
 		return packageName.endsWith(".*");
 	}
 

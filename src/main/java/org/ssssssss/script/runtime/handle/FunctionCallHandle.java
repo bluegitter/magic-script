@@ -5,7 +5,6 @@ import org.ssssssss.script.exception.MagicScriptRuntimeException;
 import org.ssssssss.script.functions.ClassExtension;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.parsing.ast.statement.ClassConverter;
-import org.ssssssss.script.parsing.ast.statement.Spread;
 import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
 import org.ssssssss.script.runtime.SpreadValue;
@@ -24,7 +23,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.lang.invoke.MethodType.methodType;
 

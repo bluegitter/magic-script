@@ -4,7 +4,7 @@ import org.ssssssss.script.asm.Type;
 
 public class Descriptor {
 
-	public static String make_descriptor(Class<?> target,String methodName, Class<?> ... args){
+	public static String make_descriptor(Class<?> target, String methodName, Class<?>... args) {
 		try {
 			return Type.getMethodDescriptor(target.getMethod(methodName, args));
 		} catch (NoSuchMethodException e) {
@@ -12,7 +12,7 @@ public class Descriptor {
 		}
 	}
 
-	public static String make_descriptor(Class<?> type, Class<?> ... args){
+	public static String make_descriptor(Class<?> type, Class<?>... args) {
 		int len = args.length;
 		Type[] types = new Type[len];
 		for (int i = 0; i < len; i++) {

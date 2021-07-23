@@ -40,20 +40,20 @@ public class MethodCall extends Expression {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.visit(method.getObject())	// 访问目标对象
-				.load1()	// MagicScriptContext
-				.ldc(method.getName().getText())	// 方法名
-				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)	// 是否是 (...xxx)
+		compiler.visit(method.getObject())    // 访问目标对象
+				.load1()    // MagicScriptContext
+				.ldc(method.getName().getText())    // 方法名
+				.insn(arguments.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)    // 是否是 (...xxx)
 				.asBoolean()
-				.insn(method.isOptional() ? ICONST_1 : ICONST_0)	// 是否允许可空调用
+				.insn(method.isOptional() ? ICONST_1 : ICONST_0)    // 是否允许可空调用
 				.asBoolean();
 		for (Expression argument : arguments) {
-			if(inLinq && argument instanceof MemberAccess){
+			if (inLinq && argument instanceof MemberAccess) {
 				((MemberAccess) argument).compileLinq(compiler);
-			}else{
+			} else {
 				argument.compile(compiler);
 			}
 		}
-		compiler.call("invoke_method",arguments.size() + 5);	// 调用方法
+		compiler.call("invoke_method", arguments.size() + 5);    // 调用方法
 	}
 }

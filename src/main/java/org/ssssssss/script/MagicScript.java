@@ -26,10 +26,8 @@ import java.util.stream.Collectors;
 
 public class MagicScript extends CompiledScript {
 
-	private static final MagicScriptClassLoader classLoader = new MagicScriptClassLoader();
-
 	public static final String CONTEXT_ROOT = "ROOT";
-
+	private static final MagicScriptClassLoader classLoader = new MagicScriptClassLoader();
 	/**
 	 * 所有语句
 	 */
@@ -81,21 +79,21 @@ public class MagicScript extends CompiledScript {
 	 * 编译
 	 */
 	public MagicScriptRuntime compile() throws MagicScriptCompileException {
-		if(runtime != null){
+		if (runtime != null) {
 			return runtime;
 		}
 		MagicScriptCompiler compiler = new MagicScriptCompiler(this.varIndices, this.spans);
 		// 如果只是一个表达式
-		if(nodes.size() == 1 && nodes.get(0) instanceof Expression){
+		if (nodes.size() == 1 && nodes.get(0) instanceof Expression) {
 			Node node = nodes.get(0);
 			compiler.loadVars();
 			compiler.compile(new Return(node.getSpan(), node));
-		}else{
+		} else {
 			// 根据是否有 import "xxx.xx.xx.*" 来分组
 			Map<Boolean, List<Node>> nodeMap = nodes.stream().collect(Collectors.partitioningBy(it -> it instanceof Import && ((Import) it).isImportPackage()));
 			// 编译需要的方法
 			nodes.forEach(node -> node.visitMethod(compiler));
-			compiler.compile(nodeMap.get(Boolean.TRUE));	// 先编译 import "xxx.xxx.x.*"
+			compiler.compile(nodeMap.get(Boolean.TRUE));    // 先编译 import "xxx.xxx.x.*"
 			// 加载变量信息
 			compiler.loadVars();
 			// 编译其它语句
@@ -104,7 +102,7 @@ public class MagicScript extends CompiledScript {
 		try {
 			Class<MagicScriptRuntime> clazz = classLoader.load(compiler.getClassName(), compiler.bytecode());
 			Constructor<MagicScriptRuntime> constructor = clazz.getConstructor();
-			this.runtime = constructor.newInstance();	// 创建运行时实例
+			this.runtime = constructor.newInstance();    // 创建运行时实例
 			// 设置变量名字
 			runtime.setVarNames(varIndices.stream().map(VarIndex::getName).toArray(String[]::new));
 			// 设置所有Span

@@ -23,7 +23,7 @@ public class VariableDefine extends Node {
 
 	@Override
 	public List<Span> visitSpan() {
-		if(right == null){
+		if (right == null) {
 			return Collections.emptyList();
 		}
 		return right.visitSpan();
@@ -31,7 +31,7 @@ public class VariableDefine extends Node {
 
 	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
-		if(right != null){
+		if (right != null) {
 			right.visitMethod(compiler);
 		}
 	}
@@ -39,8 +39,8 @@ public class VariableDefine extends Node {
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
 		compiler.pre_store(varIndex)
-				.visit(right)	// 读取变量值
-				.store();	// 保存变量
+				.visit(right)    // 读取变量值
+				.store();    // 保存变量
 	}
 
 }

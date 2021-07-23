@@ -1,6 +1,5 @@
 package org.ssssssss.script.runtime.linq;
 
-import org.ssssssss.script.parsing.VarIndex;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
 import java.util.List;

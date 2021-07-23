@@ -17,20 +17,18 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class AsyncCall extends Expression {
 
-	private final LambdaFunction expression;
-
 	/**
 	 * 默认线程池大小(CPU核心数 * 2)
 	 */
 	private final static int size = Runtime.getRuntime().availableProcessors() * 2;
-
 	private static ThreadPoolExecutor threadPoolExecutor = setThreadPoolExecutorSize(size);
+	private final LambdaFunction expression;
 
 	public AsyncCall(Span span, Expression expression) {
 		super(span);
-		if(expression instanceof LambdaFunction){
+		if (expression instanceof LambdaFunction) {
 			this.expression = (LambdaFunction) expression;
-		}else{
+		} else {
 			this.expression = new LambdaFunction(span, Collections.emptyList(), Collections.singletonList(new Return(span, expression)));
 		}
 		this.expression.setAsync(true);
@@ -43,11 +41,6 @@ public class AsyncCall extends Expression {
 		}
 		return threadPoolExecutor;
 
-	}
-
-	@Override
-	public void visitMethod(MagicScriptCompiler compiler) {
-		expression.visitMethod(compiler);
 	}
 
 	public static FutureTask<Object> execute(MagicScriptLambdaFunction function, MagicScriptContext context, Object[] args) {
@@ -68,6 +61,11 @@ public class AsyncCall extends Expression {
 	}
 
 	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		expression.visitMethod(compiler);
+	}
+
+	@Override
 	public void compile(MagicScriptCompiler compiler) {
 		List<VarIndex> parameters = expression.getParameters();
 		compiler.compile(expression)
@@ -79,9 +77,8 @@ public class AsyncCall extends Expression {
 
 	static class AsyncThreadFactory implements ThreadFactory {
 
-		private final AtomicLong threadNumber = new AtomicLong(1);
-
 		private static final ThreadGroup ASYNC_THREAD_GROUP = new ThreadGroup("magic-async-group");
+		private final AtomicLong threadNumber = new AtomicLong(1);
 		private final String namePrefix = "magic-async-";
 
 		public Thread newThread(Runnable r) {

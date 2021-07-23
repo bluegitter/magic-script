@@ -1,11 +1,9 @@
 package org.ssssssss.script.parsing.ast.literal;
 
-import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Literal;
-
-import static org.ssssssss.script.compile.Descriptor.make_descriptor;
 
 /**
  * byte常量
@@ -30,6 +28,6 @@ public class ByteLiteral extends Literal {
 
 	@Override
 	public void compile(MagicScriptCompiler context) {
-		context.bipush(this.value).invoke(INVOKESTATIC, Byte.class, "valueOf", Byte.class,byte.class);
+		context.bipush(this.value).invoke(INVOKESTATIC, Byte.class, "valueOf", Byte.class, byte.class);
 	}
 }

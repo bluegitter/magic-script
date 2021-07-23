@@ -11,16 +11,11 @@ import java.util.function.Consumer;
 
 public class MagicScriptDebugContext extends MagicScriptContext {
 
-	private String id = UUID.randomUUID().toString().replace("-", "");
-
 	private static final Map<String, MagicScriptDebugContext> contextMap = new ConcurrentHashMap<>();
-
-	public List<Integer> breakpoints;
-
 	private final BlockingQueue<String> producer = new LinkedBlockingQueue<>();
-
 	private final BlockingQueue<String> consumer = new LinkedBlockingQueue<>();
-
+	public List<Integer> breakpoints;
+	private String id = UUID.randomUUID().toString().replace("-", "");
 	private Consumer<Map<String, Object>> callback;
 
 	private Span.Line line;
@@ -33,15 +28,12 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		this.breakpoints = breakpoints;
 	}
 
-	public void setCallback(Consumer<Map<String, Object>> callback) {
-		this.callback = callback;
+	public static MagicScriptDebugContext getDebugContext(String id) {
+		return contextMap.get(id);
 	}
 
-	public void setId(String id) {
-		String oldId = this.id;
-		this.id = id;
-		contextMap.put(this.id, this);
-		contextMap.remove(oldId);
+	public void setCallback(Consumer<Map<String, Object>> callback) {
+		this.callback = callback;
 	}
 
 	public void setTimeout(int timeout) {
@@ -90,7 +82,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 			if (value != null) {
 				variable.put("value", getValue(value));
 				variable.put("type", value.getClass());
-			}else{
+			} else {
 				variable.put("value", "null");
 			}
 			varList.add(variable);
@@ -98,10 +90,10 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		varList.sort((o1, o2) -> {
 			Object k1 = o1.get("name");
 			Object k2 = o2.get("name");
-			if(k1 == null){
+			if (k1 == null) {
 				return -1;
 			}
-			if(k2 == null){
+			if (k2 == null) {
 				return 1;
 			}
 			return k1.toString().compareTo(k2.toString());
@@ -120,18 +112,22 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		return id;
 	}
 
-	public static MagicScriptDebugContext getDebugContext(String id) {
-		return contextMap.get(id);
+	public void setId(String id) {
+		String oldId = this.id;
+		this.id = id;
+		contextMap.put(this.id, this);
+		contextMap.remove(oldId);
 	}
 
-	private Object getValue(Object object){
+	private Object getValue(Object object) {
 		try {
 			return object.toString();
 		} catch (Exception ex) {
-			if(object instanceof Cloneable){
+			if (object instanceof Cloneable) {
 				try {
 					return object.getClass().getMethod("clone").invoke(object).toString();
-				} catch (Exception ignored) {}
+				} catch (Exception ignored) {
+				}
 			}
 			return "can't get value";
 		}

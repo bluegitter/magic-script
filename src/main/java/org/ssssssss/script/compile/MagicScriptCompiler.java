@@ -12,6 +12,7 @@ import org.ssssssss.script.parsing.ast.statement.VariableAccess;
 import org.ssssssss.script.runtime.MagicScriptRuntime;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 import org.ssssssss.script.runtime.handle.ArithmeticHandle;
+import org.ssssssss.script.runtime.handle.BitHandle;
 import org.ssssssss.script.runtime.handle.FunctionCallHandle;
 import org.ssssssss.script.runtime.handle.OperatorHandle;
 
@@ -41,6 +42,11 @@ public class MagicScriptCompiler implements Opcodes {
 	 * < <= == === != !=== >= > 等操作符处理器
 	 */
 	private static final Handle OPERATOR_HANDLE = makeHandle(OperatorHandle.class);
+
+	/**
+	 * << >> >>> & ^ | 运算
+	 */
+	private static final Handle BIT_HANDLE = makeHandle(BitHandle.class);
 
 	/**
 	 * 方法调用、lambda调用、函数调用处理器
@@ -82,18 +88,19 @@ public class MagicScriptCompiler implements Opcodes {
 		classWriter.visitSource(getClassName() + ".ms", null);
 		createMethod(ACC_PUBLIC, "<init>", make_descriptor(void.class));
 		this.load0()
-			.invoke(INVOKESPECIAL, MagicScriptRuntime.class, "<init>", void.class)
-			.insn(RETURN)
-			.pop();
+				.invoke(INVOKESPECIAL, MagicScriptRuntime.class, "<init>", void.class)
+				.insn(RETURN)
+				.pop();
 		// 创建execute方法
 		createMethod(ACC_PUBLIC, "execute", make_descriptor(Object.class, MagicScriptContext.class));
 	}
 
 	/**
 	 * 创建方法
-	 * @param access	访问属性
-	 * @param methodName	方法名
-	 * @param descriptor	方法描述
+	 *
+	 * @param access     访问属性
+	 * @param methodName 方法名
+	 * @param descriptor 方法描述
 	 */
 	public MagicScriptCompiler createMethod(int access, String methodName, String descriptor) {
 		MethodVisitor visitor = classWriter.visitMethod(access, methodName, descriptor, null, null);
@@ -105,7 +112,7 @@ public class MagicScriptCompiler implements Opcodes {
 		return this;
 	}
 
-	public int getTempIndex(){
+	public int getTempIndex() {
 		return tempIndex++;
 	}
 
@@ -158,7 +165,7 @@ public class MagicScriptCompiler implements Opcodes {
 				return compile(node, true).compile(operation.getLeftOperand());
 			}
 		}
-		return compile(node,false);
+		return compile(node, false);
 	}
 
 	/**
@@ -170,10 +177,11 @@ public class MagicScriptCompiler implements Opcodes {
 
 	/**
 	 * 编译AST节点
-	 * @param node	AST节点
-	 * @param pop 是否需要弹出栈顶
+	 *
+	 * @param node AST节点
+	 * @param pop  是否需要弹出栈顶
 	 */
-	public MagicScriptCompiler compile(Node node,boolean pop) {
+	public MagicScriptCompiler compile(Node node, boolean pop) {
 		if (node == null) {
 			return insn(ACONST_NULL);
 		} else {
@@ -191,9 +199,9 @@ public class MagicScriptCompiler implements Opcodes {
 		// 对于赋值语句的特殊处理，因为赋值语句有两种
 		// 不带返回值的： a+=1
 		// 带返回值的 xxx.xx = 1
-		if(node instanceof AssigmentOperation){
+		if (node instanceof AssigmentOperation) {
 			AssigmentOperation operation = (AssigmentOperation) node;
-			if (operation.getLeftOperand() instanceof VariableSetter && operation.getLeftOperand() instanceof VariableAccess){
+			if (operation.getLeftOperand() instanceof VariableSetter && operation.getLeftOperand() instanceof VariableAccess) {
 				return this;
 			}
 		}
@@ -201,7 +209,7 @@ public class MagicScriptCompiler implements Opcodes {
 		return pop && node instanceof Expression ? insn(POP) : this;
 	}
 
-	public MagicScriptCompiler tryCatch(Label start, Label end, Label handle,Class<?> target) {
+	public MagicScriptCompiler tryCatch(Label start, Label end, Label handle, Class<?> target) {
 		_this().visitTryCatchBlock(start, end, handle, getJvmType(target));
 		return this;
 	}
@@ -287,7 +295,7 @@ public class MagicScriptCompiler implements Opcodes {
 	/**
 	 * 加载属性
 	 */
-	public MagicScriptCompiler getField(Class<?> owner,String name, Class<?> type) {
+	public MagicScriptCompiler getField(Class<?> owner, String name, Class<?> type) {
 		_this().visitFieldInsn(GETFIELD, getJvmType(owner), name, Type.getDescriptor(type));
 		return this;
 	}
@@ -301,24 +309,25 @@ public class MagicScriptCompiler implements Opcodes {
 
 	/**
 	 * 加载变量
-	 * @param name	变量名
+	 *
+	 * @param name 变量名
 	 */
 	public MagicScriptCompiler load(String name) {
 		int index = vars.peek().indexOf(name) + 1;
-		if (index > 0) {	// 如果当前栈中有，则直接使用
+		if (index > 0) {    // 如果当前栈中有，则直接使用
 			return aaload(index);
 		} else {
 			// 从环境中获取
 			this.load1()
-				.ldc(name)
-				.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "getEnvironmentValue", Object.class, String.class);
+					.ldc(name)
+					.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "getEnvironmentValue", Object.class, String.class);
 		}
 		return this;
 	}
 
 	public MagicScriptCompiler label(Label label) {
 		_this().visitLabel(label);
-		if(label == finallyStack.peek()){
+		if (label == finallyStack.peek()) {
 			finallyStack.pop();
 		}
 		return this;
@@ -410,6 +419,7 @@ public class MagicScriptCompiler implements Opcodes {
 
 	/**
 	 * 二元运算
+	 *
 	 * @param methodName 运算方法
 	 */
 	public MagicScriptCompiler operator(String methodName) {
@@ -418,7 +428,18 @@ public class MagicScriptCompiler implements Opcodes {
 	}
 
 	/**
+	 * 位运算
+	 *
+	 * @param methodName 运算方法
+	 */
+	public MagicScriptCompiler bit(String methodName) {
+		_this().visitInvokeDynamicInsn(methodName, MethodType.genericMethodType(2).toMethodDescriptorString(), BIT_HANDLE, 2);
+		return this;
+	}
+
+	/**
 	 * 将方法转为lambda
+	 *
 	 * @param methodName 方法名
 	 */
 	public MagicScriptCompiler lambda(String methodName) {
@@ -431,8 +452,9 @@ public class MagicScriptCompiler implements Opcodes {
 
 	/**
 	 * invokedynamic调用
-	 * @param methodName	方法名
-	 * @param arguments	参数个数
+	 *
+	 * @param methodName 方法名
+	 * @param arguments  参数个数
 	 */
 	public MagicScriptCompiler call(String methodName, int arguments) {
 		_this().visitInvokeDynamicInsn(methodName, MethodType.genericMethodType(arguments).toMethodDescriptorString(), FUNCTION_HANDLE, arguments);
@@ -441,7 +463,8 @@ public class MagicScriptCompiler implements Opcodes {
 
 	/**
 	 * 执行算术运算
-	 * @param methodName	方法名
+	 *
+	 * @param methodName 方法名
 	 */
 	public MagicScriptCompiler arithmetic(String methodName) {
 		_this().visitInvokeDynamicInsn(methodName, MethodType.genericMethodType(2).toMethodDescriptorString(), ARITHMETIC_HANDLE, 2);
@@ -464,11 +487,12 @@ public class MagicScriptCompiler implements Opcodes {
 
 	/**
 	 * 调用方法
-	 * @param opcode	调用类型
-	 * @param target	目标类
-	 * @param method	方法名
-	 * @param returnType	返回值类型
-	 * @param argumentTypes	参数类型
+	 *
+	 * @param opcode        调用类型
+	 * @param target        目标类
+	 * @param method        方法名
+	 * @param returnType    返回值类型
+	 * @param argumentTypes 参数类型
 	 */
 	public MagicScriptCompiler invoke(int opcode, Class<?> target, String method, Class<?> returnType, Class<?>... argumentTypes) {
 		return invoke(opcode, target, method, false, returnType, argumentTypes);
@@ -476,12 +500,13 @@ public class MagicScriptCompiler implements Opcodes {
 
 	/**
 	 * 调用方法
-	 * @param opcode	调用类型
-	 * @param target	目标类
-	 * @param method	方法名
-	 * @param isInterface	是否是接口
-	 * @param returnType	返回值类型
-	 * @param argumentTypes	参数类型
+	 *
+	 * @param opcode        调用类型
+	 * @param target        目标类
+	 * @param method        方法名
+	 * @param isInterface   是否是接口
+	 * @param returnType    返回值类型
+	 * @param argumentTypes 参数类型
 	 */
 	public MagicScriptCompiler invoke(int opcode, Class<?> target, String method, boolean isInterface, Class<?> returnType, Class<?>... argumentTypes) {
 		_this().visitMethodInsn(opcode, getJvmType(target), method, make_descriptor(returnType, argumentTypes), isInterface);
@@ -534,31 +559,31 @@ public class MagicScriptCompiler implements Opcodes {
 	public void loadVars() {
 		// var2 = context.createVariables(this, varIndices.size())
 		this.load1()
-			.load0()
-			.visitInt(varIndices.size())
-			.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "createVariables", Object[].class,MagicScriptRuntime.class, int.class)
-			.store(2);
+				.load0()
+				.visitInt(varIndices.size())
+				.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "createVariables", Object[].class, MagicScriptRuntime.class, int.class)
+				.store(2);
 		// 对于未定义变量值的，从环境中获取
 		// var2[xx] = super.getEnvironmentValue(varIndex.getName())
 		this.varIndices.stream().filter(VarIndex::isReference).forEach(varIndex -> this.load2()
-			.visitInt(varIndex.getIndex())
-			.load1()
-			.ldc(varIndex.getName())
-			.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "getEnvironmentValue", Object.class, String.class)
-			.store()
+				.visitInt(varIndex.getIndex())
+				.load1()
+				.ldc(varIndex.getName())
+				.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "getEnvironmentValue", Object.class, String.class)
+				.store()
 		);
 	}
 
-	public List<Node> finallyBlock(){
+	public List<Node> finallyBlock() {
 		return finallyStack.peek();
 	}
 
-	public MagicScriptCompiler putFinallyBlock(List<Node> finallyBlock){
+	public MagicScriptCompiler putFinallyBlock(List<Node> finallyBlock) {
 		finallyStack.push(finallyBlock);
 		return this;
 	}
 
-	public List<Node> getFinallyBlock(){
+	public List<Node> getFinallyBlock() {
 		return finallyStack.pop();
 	}
 

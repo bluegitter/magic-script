@@ -24,6 +24,6 @@ public class LanguageExpression extends Expression {
 				.insn(DUP)
 				.ldc(this.language)
 				.ldc(this.content)
-				.invoke(INVOKESPECIAL,MagicScriptLanguageFunction.class,"<init>", void.class, String.class, String.class);
+				.invoke(INVOKESPECIAL, MagicScriptLanguageFunction.class, "<init>", void.class, String.class, String.class);
 	}
 }

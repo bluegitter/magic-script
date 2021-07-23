@@ -2,7 +2,7 @@ package org.ssssssss.script.exception;
 
 import org.ssssssss.script.runtime.ExitValue;
 
-public class MagicExitException extends RuntimeException{
+public class MagicExitException extends RuntimeException {
 
 	private final ExitValue exitValue;
 

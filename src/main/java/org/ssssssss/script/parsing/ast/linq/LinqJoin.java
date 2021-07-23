@@ -29,12 +29,12 @@ public class LinqJoin extends Expression {
 	public void visitMethod(MagicScriptCompiler compiler) {
 		// private Object methodName(MagicScriptContext, Object[])
 		this.methodName = "linq_join_condition_" + compiler.getFunctionIndex();
-		compiler.createMethod(ACC_PRIVATE, methodName, Descriptor.make_descriptor(Object.class, MagicScriptContext.class,Object[].class))
-				.load1()	// MagicScriptContext
-				.load2()	// 传入的参数
+		compiler.createMethod(ACC_PRIVATE, methodName, Descriptor.make_descriptor(Object.class, MagicScriptContext.class, Object[].class))
+				.load1()    // MagicScriptContext
+				.load2()    // 传入的参数
 				// 构建参数
 				.visitInt(0)
-				.intInsn(NEWARRAY, T_INT);	// new int[parameters.size()]
+				.intInsn(NEWARRAY, T_INT);    // new int[parameters.size()]
 		// 复制变量
 		compiler.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "copy", Object[].class, Object[].class, int[].class)
 				.store(2)

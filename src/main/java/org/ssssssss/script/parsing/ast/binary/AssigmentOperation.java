@@ -22,26 +22,26 @@ public class AssigmentOperation extends BinaryOperation {
 
 	@Override
 	public List<Span> visitSpan() {
-		if(getLeftOperand() instanceof VariableAccess) {
+		if (getLeftOperand() instanceof VariableAccess) {
 			return super.visitSpan();
-		}else{
+		} else {
 			return Collections.singletonList(getSpan());
 		}
 	}
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		if(getLeftOperand() instanceof VariableAccess){
+		if (getLeftOperand() instanceof VariableAccess) {
 			compiler.pre_store(((VariableAccess) getLeftOperand()).getVarIndex())
 					.compile(getRightOperand());
-			if(getRightOperand() instanceof AssigmentOperation){
-				compiler.visit(((AssigmentOperation)getRightOperand()).getLeftOperand());
+			if (getRightOperand() instanceof AssigmentOperation) {
+				compiler.visit(((AssigmentOperation) getRightOperand()).getLeftOperand());
 			}
 			compiler.store();
-		}else if (getLeftOperand() instanceof VariableSetter) {
-			((VariableSetter)getLeftOperand()).compile_visit_variable(compiler);
-			compiler.compile(getRightOperand()).call("set_variable_value",3);
-		}else{
+		} else if (getLeftOperand() instanceof VariableSetter) {
+			((VariableSetter) getLeftOperand()).compile_visit_variable(compiler);
+			compiler.compile(getRightOperand()).call("set_variable_value", 3);
+		} else {
 			MagicScriptError.error("赋值目标应为变量", getLeftOperand().getSpan());
 		}
 	}

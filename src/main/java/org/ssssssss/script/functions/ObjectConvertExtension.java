@@ -14,14 +14,6 @@ public class ObjectConvertExtension {
 
 	/**
 	 * 转int
-	 */
-	@Comment("将值转换为int类型，转换失败时为0")
-	public int asInt(Object val) {
-		return asInt(val, 0);
-	}
-
-	/**
-	 * 转int
 	 *
 	 * @param defaultValue 默认值
 	 */
@@ -32,14 +24,6 @@ public class ObjectConvertExtension {
 		} catch (Exception e) {
 			return defaultValue;
 		}
-	}
-
-	/**
-	 * 转double
-	 */
-	@Comment("将对象转为double类型，转换失败时为0.0")
-	public double asDouble(Object val) {
-		return asDouble(val, 0.0);
 	}
 
 	/**
@@ -58,14 +42,6 @@ public class ObjectConvertExtension {
 
 	/**
 	 * 转long
-	 */
-	@Comment("将对象转为long类型，转换失败时为0L")
-	public long asLong(Object val) {
-		return asLong(val, 0L);
-	}
-
-	/**
-	 * 转long
 	 *
 	 * @param defaultValue 默认值
 	 */
@@ -73,72 +49,6 @@ public class ObjectConvertExtension {
 	public static long asLong(Object val, @Comment("转换失败时的默认值") long defaultValue) {
 		try {
 			return asDecimal(val).longValue();
-		} catch (Exception e) {
-			return defaultValue;
-		}
-	}
-
-	/**
-	 * 转byte
-	 */
-	@Comment("将对象转为byte类型，转换失败时默认为0")
-	public byte asByte(Object val) {
-		return asByte(val, (byte) 0);
-	}
-
-	/**
-	 * 转byte
-	 *
-	 * @param defaultValue 默认值
-	 */
-	@Comment("将对象转为byte类型")
-	public byte asByte(Object val, @Comment("转换失败时的默认值") byte defaultValue) {
-		try {
-			return asDecimal(val).byteValue();
-		} catch (Exception e) {
-			return defaultValue;
-		}
-	}
-
-	/**
-	 * 转short
-	 */
-	@Comment("将对象转为short类型，转换失败时默认为0")
-	public short asShort(Object val) {
-		return asShort(val, (short) 0);
-	}
-
-	/**
-	 * 转short
-	 *
-	 * @param defaultValue 默认值
-	 */
-	@Comment("将对象转为short类型")
-	public short asShort(Object val, @Comment("转换失败时的默认值") short defaultValue) {
-		try {
-			return asDecimal(val).shortValue();
-		} catch (Exception e) {
-			return defaultValue;
-		}
-	}
-
-	/**
-	 * 转float
-	 */
-	@Comment("将对象转为float类型，转换失败默认为0.0f")
-	public float asFloat(Object val) {
-		return asFloat(val, 0.0f);
-	}
-
-	/**
-	 * 转float
-	 *
-	 * @param defaultValue 默认值
-	 */
-	@Comment("将对象转为float类型")
-	public float asFloat(Object val, @Comment("转换失败时的默认值") float defaultValue) {
-		try {
-			return asDecimal(val).floatValue();
 		} catch (Exception e) {
 			return defaultValue;
 		}
@@ -224,5 +134,95 @@ public class ObjectConvertExtension {
 	@Comment("将对象转为String类型")
 	public static String asString(Object val, @Comment("转换失败时的默认值") String defaultValue) {
 		return val == null ? defaultValue : val.toString();
+	}
+
+	/**
+	 * 转int
+	 */
+	@Comment("将值转换为int类型，转换失败时为0")
+	public int asInt(Object val) {
+		return asInt(val, 0);
+	}
+
+	/**
+	 * 转double
+	 */
+	@Comment("将对象转为double类型，转换失败时为0.0")
+	public double asDouble(Object val) {
+		return asDouble(val, 0.0);
+	}
+
+	/**
+	 * 转long
+	 */
+	@Comment("将对象转为long类型，转换失败时为0L")
+	public long asLong(Object val) {
+		return asLong(val, 0L);
+	}
+
+	/**
+	 * 转byte
+	 */
+	@Comment("将对象转为byte类型，转换失败时默认为0")
+	public byte asByte(Object val) {
+		return asByte(val, (byte) 0);
+	}
+
+	/**
+	 * 转byte
+	 *
+	 * @param defaultValue 默认值
+	 */
+	@Comment("将对象转为byte类型")
+	public byte asByte(Object val, @Comment("转换失败时的默认值") byte defaultValue) {
+		try {
+			return asDecimal(val).byteValue();
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	/**
+	 * 转short
+	 */
+	@Comment("将对象转为short类型，转换失败时默认为0")
+	public short asShort(Object val) {
+		return asShort(val, (short) 0);
+	}
+
+	/**
+	 * 转short
+	 *
+	 * @param defaultValue 默认值
+	 */
+	@Comment("将对象转为short类型")
+	public short asShort(Object val, @Comment("转换失败时的默认值") short defaultValue) {
+		try {
+			return asDecimal(val).shortValue();
+		} catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	/**
+	 * 转float
+	 */
+	@Comment("将对象转为float类型，转换失败默认为0.0f")
+	public float asFloat(Object val) {
+		return asFloat(val, 0.0f);
+	}
+
+	/**
+	 * 转float
+	 *
+	 * @param defaultValue 默认值
+	 */
+	@Comment("将对象转为float类型")
+	public float asFloat(Object val, @Comment("转换失败时的默认值") float defaultValue) {
+		try {
+			return asDecimal(val).floatValue();
+		} catch (Exception e) {
+			return defaultValue;
+		}
 	}
 }

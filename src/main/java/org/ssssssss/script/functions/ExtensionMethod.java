@@ -5,7 +5,7 @@ import java.util.List;
 
 public interface ExtensionMethod {
 
-	default List<Class<?>> supports(){
+	default List<Class<?>> supports() {
 		return Collections.singletonList(support());
 	}
 

@@ -52,9 +52,9 @@ public class MapLiteral extends Literal {
 		compiler.call("newLinkedHashMap", 2);
 	}
 
-	private boolean isDynamicKey(Expression key){
+	private boolean isDynamicKey(Expression key) {
 		return key instanceof StringLiteral
-				&& !((StringLiteral) key).isTemplateString() && key.getSpan().getText().startsWith("$")	// $开头
+				&& !((StringLiteral) key).isTemplateString() && key.getSpan().getText().startsWith("$")    // $开头
 				&& !key.getSpan().getText().substring(1).startsWith("$");//如果是$$开头的变量，则认为是普通key..
 	}
 }

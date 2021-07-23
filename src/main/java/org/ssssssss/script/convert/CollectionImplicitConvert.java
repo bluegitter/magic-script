@@ -36,7 +36,7 @@ public class CollectionImplicitConvert implements ClassImplicitConvert {
 		Type type = target.getGenericSuperclass();
 		if (type instanceof ParameterizedType) {
 			type = ((ParameterizedType) type).getActualTypeArguments()[0];
-			if(type instanceof Class){
+			if (type instanceof Class) {
 				return (Class<?>) type;
 			}
 		}

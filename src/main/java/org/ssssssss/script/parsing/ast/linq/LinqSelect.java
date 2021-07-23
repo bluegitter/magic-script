@@ -43,10 +43,10 @@ public class LinqSelect extends Expression {
 		joins.forEach(it -> it.visitMethod(compiler));
 		groups.forEach(it -> it.visitMethod(compiler));
 		orders.forEach(it -> it.visitMethod(compiler));
-		if(where != null){
+		if (where != null) {
 			where.visitMethod(compiler);
 		}
-		if(having != null){
+		if (having != null) {
 			having.visitMethod(compiler);
 		}
 	}
@@ -58,18 +58,18 @@ public class LinqSelect extends Expression {
 				.visit(from.getExpression())
 				.visitInt(from.getVarIndex().getIndex())
 				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "from", LinQBuilder.class, Object.class, int.class);
-		if(where != null){
+		if (where != null) {
 			compiler.visit(where)
 					.invoke(INVOKEVIRTUAL, LinQBuilder.class, "where", LinQBuilder.class, MagicScriptLambdaFunction.class);
 		}
-		if(having != null){
+		if (having != null) {
 			compiler.visit(where)
 					.invoke(INVOKEVIRTUAL, LinQBuilder.class, "having", LinQBuilder.class, MagicScriptLambdaFunction.class);
 		}
 		groups.forEach(group -> compiler.visit(group)
 				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "group", LinQBuilder.class, MagicScriptLambdaFunction.class));
 		joins.forEach(compiler::visit);
-		fields.forEach(field-> compiler.visit(field)
+		fields.forEach(field -> compiler.visit(field)
 				.ldc(field.getAlias())
 				.visitInt(field.getVarIndex() == null ? -1 : field.getVarIndex().getIndex())
 				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "select", LinQBuilder.class, MagicScriptLambdaFunction.class, String.class, int.class));

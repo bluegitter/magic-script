@@ -90,7 +90,7 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 			}
 			scriptClass.setInterfaces(interfaceList);
 			appendMethod(clazz, scriptClass);
-			if(clazz.isEnum()){
+			if (clazz.isEnum()) {
 				scriptClass.setEnums(clazz.getEnumConstants());
 			}
 			classList.add(scriptClass);
@@ -105,7 +105,7 @@ public class MagicScriptEngine extends AbstractScriptEngine implements ScriptEng
 			if (method.getName().startsWith("get") && method.getParameters().size() == 0 && method.getName().length() > 3) {
 				String attributeName = method.getName().substring(3);
 				attributeName = attributeName.substring(0, 1).toLowerCase() + attributeName.substring(1);
-				if(!"class".equalsIgnoreCase(attributeName)){
+				if (!"class".equalsIgnoreCase(attributeName)) {
 					scriptClass.addAttribute(new ScriptAttribute(method.getReturnType(), attributeName));
 				}
 			}

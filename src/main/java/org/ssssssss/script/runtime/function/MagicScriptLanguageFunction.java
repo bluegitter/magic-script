@@ -3,8 +3,6 @@ package org.ssssssss.script.runtime.function;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptContext;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 

@@ -15,19 +15,6 @@ import java.util.stream.Stream;
 
 public class StreamExtension {
 
-	private Object toOriginType(Object target, List<Object> results) {
-		if (target instanceof Collection) {
-			return results;
-		} else if (target.getClass().isArray()) {
-			return results.toArray();
-		} else if (target instanceof Iterator) {
-			return results;
-		} else if (target instanceof Enumeration) {
-			return results;
-		}
-		return null;
-	}
-
 	/**
 	 * 将对象转为List
 	 */
@@ -53,6 +40,99 @@ public class StreamExtension {
 			return Collections.list(en);
 		}
 		throw new MagicScriptException("不支持的类型:" + arrayLike.getClass());
+	}
+
+	/**
+	 * 将list拼接起来
+	 */
+	@Comment("将集合使用连接符拼接起来")
+	public static String join(Object target, @Comment("拼接符，如`,`") String separator) {
+		List<Object> objects = arrayLikeToList(target);
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0, len = objects.size(); i < len; i++) {
+			sb.append(objects.get(i));
+			if (i + 1 < len) {
+				sb.append(separator);
+			}
+		}
+		return sb.toString();
+	}
+
+	@Comment("将集合转为JavaBean")
+	public static Object asBean(Object source, @Comment("目标类型") Class<?> target) {
+		return asBean(source, target, false);
+	}
+
+	@Comment("将集合转为JavaBean")
+	public static Object asBean(Object source, @Comment("目标类型") Class<?> target, @Comment("是否是数组") boolean isArray) {
+		Class<?> sourceClass = source.getClass();
+		List<Object> objects = arrayLikeToList(source);
+		int size = objects.size();
+		boolean isCollection = false;
+		boolean isMap = false;
+		boolean isOrigin = false;
+		boolean targetIsArray = false;
+		Class<?> innerClass = null;
+		if (size > 0) {
+			Object first = objects.get(0);
+			innerClass = first.getClass();
+			isCollection = ObjectTypeConditionExtension.isCollection(innerClass);
+			isMap = ObjectTypeConditionExtension.isMap(innerClass);
+			isOrigin = ObjectTypeConditionExtension.is(first, target);
+			isOrigin = isOrigin || JavaReflection.isPrimitiveAssignableFrom(first.getClass(), target);
+			targetIsArray = ObjectTypeConditionExtension.isArray(target);
+		}
+		if (isArray) {
+			Object result = Array.newInstance(target, objects.size());
+			for (int i = 0; i < size; i++) {
+				Object value = objects.get(i);
+				if (innerClass.isArray()) {
+					Array.set(result, i, asBean(value, innerClass.getComponentType(), true));
+				} else if (targetIsArray) {
+					Array.set(result, i, asBean(value, target.getComponentType(), true));
+				} else if (isCollection) {
+					Array.set(result, i, asBean(value, innerClass, false));
+				} else if (isMap) {
+					Array.set(result, i, MapExtension.asBean((Map<String, Object>) value, innerClass));
+				} else if (isOrigin) {
+					Array.set(result, i, value);
+				}
+			}
+			return result;
+		}
+		Collection<Object> collection;
+		if (List.class.isAssignableFrom(sourceClass)) {
+			collection = new ArrayList<>(size);
+		} else if (Set.class.isAssignableFrom(sourceClass)) {
+			collection = new HashSet<>(size);
+		} else {
+			throw new MagicScriptException("不支持的类型:" + sourceClass);
+		}
+		for (Object value : objects) {
+			if (isCollection) {
+				collection.add(asBean(value, target));
+			} else if (isMap) {
+				collection.add(MapExtension.asBean((Map<?, ?>) value, target));
+			} else if (isOrigin) {
+				collection.add(value);
+			} else {
+				break;
+			}
+		}
+		return collection;
+	}
+
+	private Object toOriginType(Object target, List<Object> results) {
+		if (target instanceof Collection) {
+			return results;
+		} else if (target.getClass().isArray()) {
+			return results.toArray();
+		} else if (target instanceof Iterator) {
+			return results;
+		} else if (target instanceof Enumeration) {
+			return results;
+		}
+		return null;
 	}
 
 	@Comment(value = "向集合中添加元素", origin = true)
@@ -166,22 +246,6 @@ public class StreamExtension {
 	@Comment("将集合使用`,`拼接起来")
 	public String join(Object target) {
 		return join(target, ",");
-	}
-
-	/**
-	 * 将list拼接起来
-	 */
-	@Comment("将集合使用连接符拼接起来")
-	public static String join(Object target, @Comment("拼接符，如`,`") String separator) {
-		List<Object> objects = arrayLikeToList(target);
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0, len = objects.size(); i < len; i++) {
-			sb.append(objects.get(i));
-			if (i + 1 < len) {
-				sb.append(separator);
-			}
-		}
-		return sb.toString();
 	}
 
 	/**
@@ -309,11 +373,6 @@ public class StreamExtension {
 				)).collect(Collectors.toList());
 	}
 
-	@Comment("将集合转为JavaBean")
-	public static Object asBean(Object source, @Comment("目标类型") Class<?> target) {
-		return asBean(source, target, false);
-	}
-
 	@Comment(value = "截取集合", origin = true)
 	public Object skip(Object source, @Comment("跳过的数量") int value) {
 		return toOriginType(source, arrayLikeToList(source).stream().skip(value).collect(Collectors.toList()));
@@ -372,64 +431,5 @@ public class StreamExtension {
 			result = reduceFunction.apply(new Object[]{result, objects.get(i)});
 		}
 		return result;
-	}
-
-	@Comment("将集合转为JavaBean")
-	public static Object asBean(Object source, @Comment("目标类型") Class<?> target, @Comment("是否是数组") boolean isArray) {
-		Class<?> sourceClass = source.getClass();
-		List<Object> objects = arrayLikeToList(source);
-		int size = objects.size();
-		boolean isCollection = false;
-		boolean isMap = false;
-		boolean isOrigin = false;
-		boolean targetIsArray = false;
-		Class<?> innerClass = null;
-		if (size > 0) {
-			Object first = objects.get(0);
-			innerClass = first.getClass();
-			isCollection = ObjectTypeConditionExtension.isCollection(innerClass);
-			isMap = ObjectTypeConditionExtension.isMap(innerClass);
-			isOrigin = ObjectTypeConditionExtension.is(first, target);
-			isOrigin = isOrigin || JavaReflection.isPrimitiveAssignableFrom(first.getClass(), target);
-			targetIsArray = ObjectTypeConditionExtension.isArray(target);
-		}
-		if (isArray) {
-			Object result = Array.newInstance(target, objects.size());
-			for (int i = 0; i < size; i++) {
-				Object value = objects.get(i);
-				if (innerClass.isArray()) {
-					Array.set(result, i, asBean(value, innerClass.getComponentType(), true));
-				} else if (targetIsArray) {
-					Array.set(result, i, asBean(value, target.getComponentType(), true));
-				} else if (isCollection) {
-					Array.set(result, i, asBean(value, innerClass, false));
-				} else if (isMap) {
-					Array.set(result, i, MapExtension.asBean((Map<String, Object>) value, innerClass));
-				} else if (isOrigin) {
-					Array.set(result, i, value);
-				}
-			}
-			return result;
-		}
-		Collection<Object> collection;
-		if (List.class.isAssignableFrom(sourceClass)) {
-			collection = new ArrayList<>(size);
-		} else if (Set.class.isAssignableFrom(sourceClass)) {
-			collection = new HashSet<>(size);
-		} else {
-			throw new MagicScriptException("不支持的类型:" + sourceClass);
-		}
-		for (Object value : objects) {
-			if (isCollection) {
-				collection.add(asBean(value, target));
-			} else if (isMap) {
-				collection.add(MapExtension.asBean((Map<?, ?>) value, target));
-			} else if (isOrigin) {
-				collection.add(value);
-			} else {
-				break;
-			}
-		}
-		return collection;
 	}
 }

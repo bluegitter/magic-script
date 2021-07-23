@@ -26,9 +26,9 @@ public class FunctionalImplicitConvert implements ClassImplicitConvert {
 		if (target == Function.class) {
 			return (Function<Object, Object>) args -> {
 				Object[] param;
-				if(args == null){
+				if (args == null) {
 					param = new Object[0];
-				}else{
+				} else {
 					try {
 						param = StreamExtension.arrayLikeToList(args).toArray();
 					} catch (Exception e) {

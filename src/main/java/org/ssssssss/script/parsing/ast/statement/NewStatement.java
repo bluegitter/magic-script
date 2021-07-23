@@ -31,8 +31,8 @@ public class NewStatement extends Expression {
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.visit(target)	// 访问目标
-				.newArray(arguments)	// 访问参数
-				.call("invoke_new_instance", 2);	// 执行new操作
+		compiler.visit(target)    // 访问目标
+				.newArray(arguments)    // 访问参数
+				.call("invoke_new_instance", 2);    // 执行new操作
 	}
 }

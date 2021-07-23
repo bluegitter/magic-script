@@ -1,20 +1,17 @@
 package org.ssssssss.script.runtime.handle;
 
-import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
-import org.ssssssss.script.functions.StreamExtension;
-import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
-import org.ssssssss.script.parsing.ast.statement.Spread;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static java.lang.invoke.MethodHandles.catchException;
 import static java.lang.invoke.MethodType.methodType;
@@ -32,7 +29,7 @@ public class OperatorHandle {
 		}
 	}
 
-	public static CallSite bootstrap(MethodHandles.Lookup caller, String name, MethodType type, int count) {
+	public static CallSite bootstrap(MethodHandles.Lookup caller, String name, MethodType type, int flags) {
 		MethodCallSite callSite = new MethodCallSite(caller, name, type, OperatorHandle.class);
 		MethodHandle fallback = FALLBACK.bindTo(callSite)
 				.asCollector(Object[].class, type.parameterCount())

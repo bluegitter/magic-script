@@ -19,7 +19,7 @@ public class ForStatement extends Node {
 	private final Expression mapOrArray;
 	private final List<Node> body;
 
-	public ForStatement(Span span, VarIndex indexOrKey, VarIndex value,VarIndex anonymousVariable, Expression mapOrArray, List<Node> body) {
+	public ForStatement(Span span, VarIndex indexOrKey, VarIndex value, VarIndex anonymousVariable, Expression mapOrArray, List<Node> body) {
 		super(span);
 		this.indexOrKey = indexOrKey;
 		this.anonymousVariable = anonymousVariable;

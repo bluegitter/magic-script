@@ -37,8 +37,9 @@ public class CharacterStream {
 
 	/**
 	 * 截取字符串
-	 * @param startIndex	开始位置
-	 * @param endIndex	结束位置
+	 *
+	 * @param startIndex 开始位置
+	 * @param endIndex   结束位置
 	 */
 	public String substring(int startIndex, int endIndex) {
 		return this.source.substring(startIndex, endIndex);
@@ -93,10 +94,11 @@ public class CharacterStream {
 
 	/**
 	 * 匹配任意字符串
-	 * @param strs	任意字符串
+	 *
+	 * @param strs 任意字符串
 	 * @return
 	 */
-	public boolean matchAny(boolean consume, String ... strs){
+	public boolean matchAny(boolean consume, String... strs) {
 		for (String str : strs) {
 			if (match(str, consume)) {
 				return true;
@@ -141,6 +143,7 @@ public class CharacterStream {
 
 	/**
 	 * 返回是否是标识符部分
+	 *
 	 * @param consume 是否消耗
 	 **/
 	public boolean matchIdentifierPart(boolean consume) {

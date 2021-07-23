@@ -8,7 +8,8 @@ public class MethodInvoker extends JavaInvoker<Method> {
 	public MethodInvoker(Method method) {
 		super(method);
 	}
-	public MethodInvoker(Method method,Object defaultTarget) {
+
+	public MethodInvoker(Method method, Object defaultTarget) {
 		super(method);
 		setDefaultTarget(defaultTarget);
 	}

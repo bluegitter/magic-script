@@ -8,8 +8,6 @@ import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.ast.binary.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -22,17 +20,6 @@ public abstract class BinaryOperation extends Expression {
 		super(span);
 		this.leftOperand = leftOperand;
 		this.rightOperand = rightOperand;
-	}
-
-	@Override
-	public List<Span> visitSpan() {
-		return mergeSpans(leftOperand, rightOperand);
-	}
-
-	@Override
-	public void visitMethod(MagicScriptCompiler compiler) {
-		leftOperand.visitMethod(compiler);
-		rightOperand.visitMethod(compiler);
 	}
 
 	public static Expression create(Expression left, Token operator, Expression right, int linqLevel) {
@@ -105,6 +92,42 @@ public abstract class BinaryOperation extends Expression {
 			case Or:
 				expression = new OrOperation(left, span, right);
 				break;
+			case LShift:
+				expression = new LShiftOperation(left, span, right);
+				break;
+			case RShift:
+				expression = new RShiftOperation(left, span, right);
+				break;
+			case Rshift2:
+				expression = new RShift2Operation(left, span, right);
+				break;
+			case Xor:
+				expression = new XorOperation(left, span, right);
+				break;
+			case BitAnd:
+				expression = new BitAndOperation(left, span, right);
+				break;
+			case BitOr:
+				expression = new BitOrOperation(left, span, right);
+				break;
+			case LShiftEqual:
+				expression = new AssigmentOperation(left, span, new LShiftOperation(left, span, right));
+				break;
+			case RShiftEqual:
+				expression = new AssigmentOperation(left, span, new RShiftOperation(left, span, right));
+				break;
+			case RShift2Equal:
+				expression = new AssigmentOperation(left, span, new RShift2Operation(left, span, right));
+				break;
+			case XorEqual:
+				expression = new AssigmentOperation(left, span, new XorOperation(left, span, right));
+				break;
+			case BitAndEqual:
+				expression = new AssigmentOperation(left, span, new BitAndOperation(left, span, right));
+				break;
+			case BitOrEqual:
+				expression = new AssigmentOperation(left, span, new BitOrOperation(left, span, right));
+				break;
 			default:
 				MagicScriptError.error("[" + operator.getText() + "]操作符未实现", span);
 		}
@@ -155,20 +178,31 @@ public abstract class BinaryOperation extends Expression {
 
 	}
 
-	public void setLeftOperand(Expression leftOperand) {
-		this.leftOperand = leftOperand;
+	@Override
+	public List<Span> visitSpan() {
+		return mergeSpans(leftOperand, rightOperand);
 	}
 
-	public void setRightOperand(Expression rightOperand) {
-		this.rightOperand = rightOperand;
+	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		leftOperand.visitMethod(compiler);
+		rightOperand.visitMethod(compiler);
 	}
 
 	public Expression getLeftOperand() {
 		return leftOperand;
 	}
 
+	public void setLeftOperand(Expression leftOperand) {
+		this.leftOperand = leftOperand;
+	}
+
 	public Expression getRightOperand() {
 		return rightOperand;
+	}
+
+	public void setRightOperand(Expression rightOperand) {
+		this.rightOperand = rightOperand;
 	}
 
 }

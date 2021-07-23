@@ -111,9 +111,9 @@ public class Span {
 	 * Returns the line this span is on. Does not return a correct result for spans across multiple lines.
 	 **/
 	public Line getLine() {
-	    if(this.line != null){
-	        return this.line;
-        }
+		if (this.line != null) {
+			return this.line;
+		}
 		int lineStart = start;
 		while (lineStart < end) {
 			if (lineStart < 0) {
@@ -154,16 +154,16 @@ public class Span {
 		lineNumber++;
 		idx = lineStart + 1;
 		int endLineNumber = lineNumber;
-        while (idx < lineEnd) {
-            char c = source.charAt(idx);
-            if (c == '\n') {
-                endLineNumber++;
-            }
-            idx++;
-        }
-        int startCol = this.start - lineStart + 1;
-        int endCol = startCol + this.end - this.start - 1;
-		this.line = new Line(source, lineStart, lineEnd, lineNumber,endLineNumber,startCol,endCol);
+		while (idx < lineEnd) {
+			char c = source.charAt(idx);
+			if (c == '\n') {
+				endLineNumber++;
+			}
+			idx++;
+		}
+		int startCol = this.start - lineStart + 1;
+		int endCol = startCol + this.end - this.start - 1;
+		this.line = new Line(source, lineStart, lineEnd, lineNumber, endLineNumber, startCol, endCol);
 		return this.line;
 	}
 
@@ -188,11 +188,11 @@ public class Span {
 		private final int start;
 		private final int end;
 		private final int lineNumber;
-        private final int endLineNumber;
+		private final int endLineNumber;
 		private final int startCol;
 		private final int endCol;
 
-		public Line(String source, int start, int end, int lineNumber,int endLineNumber,int startCol,int endCol) {
+		public Line(String source, int start, int end, int lineNumber, int endLineNumber, int startCol, int endCol) {
 			this.source = source;
 			this.start = start;
 			this.end = end;
@@ -202,15 +202,15 @@ public class Span {
 			this.endCol = endCol;
 		}
 
-        public int getStartCol() {
-            return startCol;
-        }
+		public int getStartCol() {
+			return startCol;
+		}
 
-        public int getEndCol() {
-            return endCol;
-        }
+		public int getEndCol() {
+			return endCol;
+		}
 
-        public String getSource() {
+		public String getSource() {
 			return source;
 		}
 
@@ -222,11 +222,11 @@ public class Span {
 			return end;
 		}
 
-        public int getEndLineNumber() {
-            return endLineNumber;
-        }
+		public int getEndLineNumber() {
+			return endLineNumber;
+		}
 
-        public int getLineNumber() {
+		public int getLineNumber() {
 			return lineNumber;
 		}
 

@@ -102,7 +102,7 @@ public class TokenStream {
 	/**
 	 * 期待下一个Token是给定的类型中之一
 	 */
-	public Token expect(TokenType ... types) {
+	public Token expect(TokenType... types) {
 		if (!match(true, types)) {
 			Token token = index < tokens.size() ? tokens.get(index) : null;
 			Span span = token != null ? token.getSpan() : null;
@@ -120,7 +120,7 @@ public class TokenStream {
 	/**
 	 * 获取全部注释
 	 */
-	public List<Span> comments(){
+	public List<Span> comments() {
 		return tokens.stream().filter(it -> it.getType() == TokenType.Comment).map(Token::getSpan).collect(Collectors.toList());
 	}
 
@@ -151,6 +151,7 @@ public class TokenStream {
 
 	/**
 	 * 期待匹配字符串
+	 *
 	 * @param ignoreCase 是否忽略大小写
 	 */
 	public Token expect(String text, boolean ignoreCase) {
@@ -171,6 +172,7 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定类型Token
+	 *
 	 * @param consume 匹配成功后是否改变当前位置
 	 */
 	public boolean match(TokenType type, boolean consume) {
@@ -188,6 +190,7 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定类型Token
+	 *
 	 * @param consume 匹配成功后是否改变当前位置
 	 */
 	public boolean match(List<String> texts, boolean consume) {
@@ -196,8 +199,9 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定字符串
-	 * @param consume	匹配成功后是否改变当前位置
-	 * @param ignoreCase	是否忽略大小写
+	 *
+	 * @param consume    匹配成功后是否改变当前位置
+	 * @param ignoreCase 是否忽略大小写
 	 */
 	public boolean match(List<String> texts, boolean consume, boolean ignoreCase) {
 		for (String text : texts) {
@@ -210,8 +214,9 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定字符串
-	 * @param consume	匹配成功后是否改变当前位置
-	 * @param ignoreCase	是否忽略大小写
+	 *
+	 * @param consume    匹配成功后是否改变当前位置
+	 * @param ignoreCase 是否忽略大小写
 	 */
 	public boolean match(String text, boolean consume, boolean ignoreCase) {
 		if (index >= end) {
@@ -229,7 +234,8 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定字符串
-	 * @param consume	匹配成功后是否改变当前位置
+	 *
+	 * @param consume 匹配成功后是否改变当前位置
 	 */
 	public boolean match(String text, boolean consume) {
 		return match(text, consume, false);
@@ -237,7 +243,8 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定Token
-	 * @param consume	匹配成功后是否改变当前位置
+	 *
+	 * @param consume 匹配成功后是否改变当前位置
 	 */
 	public boolean match(boolean consume, TokenType... types) {
 		for (TokenType type : types) {
@@ -250,7 +257,8 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定字符串
-	 * @param consume	匹配成功后是否改变当前位置
+	 *
+	 * @param consume 匹配成功后是否改变当前位置
 	 */
 	public boolean match(boolean consume, String... tokenTexts) {
 		return match(consume, false, tokenTexts);
@@ -258,8 +266,9 @@ public class TokenStream {
 
 	/**
 	 * 匹配指定字符串
-	 * @param consume	匹配成功后是否改变当前位置
-	 * @param ignoreCase	是否忽略大小写
+	 *
+	 * @param consume    匹配成功后是否改变当前位置
+	 * @param ignoreCase 是否忽略大小写
 	 */
 	public boolean match(boolean consume, boolean ignoreCase, String... tokenTexts) {
 		for (String text : tokenTexts) {

@@ -24,7 +24,7 @@ public enum TokenType {
 	LeftBracket("[", "["),
 	RightBracket("]", "]"),
 	LeftCurly("{", "{"),
-	RightCurly("}","{"),
+	RightCurly("}", "{"),
 	Less("<", "<"),
 	Greater(">", ">"),
 	LessEqual("<=", "<="),
@@ -50,7 +50,21 @@ public enum TokenType {
 	Or("||", "||"),
 	Xor("^", "^"),
 	Not("!", "!"),
+	// 1.5.0 start
+	BitAnd("&", "&"),
+	BitOr("|", "|"),
+	BitNot("~", "~"),
+	LShift("<<", "<<"),
+	RShift(">>", ">>"),
+	Rshift2(">>>", ">>>"),
 
+	XorEqual("^=", "^="),
+	BitAndEqual("&=", "&="),
+	BitOrEqual("|=", "|="),
+	LShiftEqual("<<=", "<<="),
+	RShiftEqual(">>=", ">>="),
+	RShift2Equal(">>>=", ">>>="),
+	// 1.5.0 end
 	SqlAnd("and", "and", true),
 	SqlOr("or", "or", true),
 	SqlNotEqual("<>", "<>", true),
@@ -116,14 +130,13 @@ public enum TokenType {
 		this.inLinq = inLinq;
 	}
 
-	public boolean isInLinq() {
-		return inLinq;
-	}
-
 	public static TokenType[] getSortedValues() {
 		return values;
 	}
 
+	public boolean isInLinq() {
+		return inLinq;
+	}
 
 	public String getLiteral() {
 		return literal;

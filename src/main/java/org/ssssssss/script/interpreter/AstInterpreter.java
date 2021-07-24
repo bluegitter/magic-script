@@ -12,22 +12,10 @@ import org.ssssssss.script.parsing.ast.Node;
 import org.ssssssss.script.parsing.ast.statement.Break;
 import org.ssssssss.script.parsing.ast.statement.Continue;
 import org.ssssssss.script.parsing.ast.statement.Return;
-import org.ssssssss.script.reflection.AbstractReflection;
 
 import java.util.List;
 
-/**
- * <p>
- * Interprets a Template given a MagicScriptContext to lookup variable values in and writes the evaluation results to an output
- * stream. Uses the global {@link AbstractReflection} instance as returned by {@link AbstractReflection#getInstance()} to access members and call
- * methods.
- * </p>
- *
- * <p>
- * The interpeter traverses the AST as stored in {@link MagicScript#getNodes()}. the interpeter has a method for each AST node type
- * be written to the output stream.
- * </p>
- **/
+
 public class AstInterpreter {
 	public static Object interpret(MagicScript magicScript, MagicScriptContext context, Scope scope) {
 		try {

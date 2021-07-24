@@ -16,15 +16,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class JavaReflection extends AbstractReflection {
-	private final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
-	private static List<ClassImplicitConvert> converts;
-	private final Map<Class<?>, Map<String, List<JavaInvoker<Method>>>> extensionmethodCache = new ConcurrentHashMap<>();
-	private final Map<Class<?>, Map<MethodSignature, JavaInvoker<Method>>> methodCache = new ConcurrentHashMap<>();
-	private static Map<Class<?>, List<Class<?>>> extensionMap;
-	private static List<JavaInvoker<Method>> functions;
+public class JavaReflection {
+	private static final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
+	private static final List<ClassImplicitConvert> converts = new ArrayList<>();
+	private static final Map<Class<?>, Map<String, List<JavaInvoker<Method>>>> extensionmethodCache = new ConcurrentHashMap<>();
+	private static final Map<Class<?>, Map<MethodSignature, JavaInvoker<Method>>> methodCache = new ConcurrentHashMap<>();
+	private static final Map<Class<?>, List<Class<?>>> extensionMap = new ConcurrentHashMap<>();
+	private static final List<JavaInvoker<Method>> functions = new ArrayList<>();
 
-	JavaReflection() {
+	static {
 		registerMethodExtension(Class.class, new ClassExtension());
 		StreamExtension streamExtension = new StreamExtension();
 		registerMethodExtension(Collection.class, streamExtension);
@@ -38,7 +38,6 @@ public class JavaReflection extends AbstractReflection {
 		registerMethodExtension(Number.class, new NumberExtension());
 		registerMethodExtension(Pattern.class, new PatternExtension());
 		registerMethodExtension(String.class, new StringExtension());
-		converts = new ArrayList<>();
 		// Map 到 Bean 隐式转换
 		registerImplicitConvert(new MapImplicitConvert());
 		// 集合 到 List<Bean> 的转换
@@ -48,7 +47,6 @@ public class JavaReflection extends AbstractReflection {
 		// 任意值 到 Boolean 的转换
 		registerImplicitConvert(new BooleanImplicitConvert());
 
-		functions = new ArrayList<>();
 		registerFunction(new AggregationFunctions());
 		registerFunction(new LinqFunctions());
 		registerFunction(new CollectionFunctions());
@@ -278,9 +276,7 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	/**
-	 * Returns whether the from type can be assigned to the to type, assuming either type is a (boxed) primitive type. We can
-	 * relax the type constraint a little, as we'll invoke a method via reflection. That means the from type will always be boxed,
-	 * as the {@link Method#invoke(Object, Object...)} method takes objects.
+	 * 是否可以自动装修拆箱
 	 **/
 	public static boolean isPrimitiveAssignableFrom(Class<?> from, Class<?> to) {
 		if ((from == Boolean.class || from == boolean.class) && (to == boolean.class || to == Boolean.class)) {
@@ -310,6 +306,9 @@ public class JavaReflection extends AbstractReflection {
 		return false;
 	}
 
+	/**
+	 * 获取String类型的参数描述
+	 */
 	public static String[] getStringTypes(Object[] objects) {
 		String[] parameterTypes = new String[objects == null ? 0 : objects.length];
 		if (objects != null) {
@@ -322,7 +321,7 @@ public class JavaReflection extends AbstractReflection {
 	}
 
 	/**
-	 * Returns whether the from type can be coerced to the to type. The coercion rules follow those of Java. See JLS 5.1.2
+	 * 是否可以自动隐式转换
 	 * https://docs.oracle.com/javase/specs/jls/se7/html/jls-5.html
 	 **/
 	private static boolean isCoercible(Class<?> from, Class<?> to) {
@@ -364,22 +363,33 @@ public class JavaReflection extends AbstractReflection {
 		return false;
 	}
 
-	@Override
-	public Object getInnerClass(Object obj, String name) {
+	/**
+	 * 获取内部类
+	 *
+	 * @param obj  目标对象，可以是实例，可以是Class
+	 * @param name 内部类名称
+	 */
+	public static Object getInnerClass(Object obj, String name) {
 		Class cls = obj instanceof Class ? (Class) obj : obj.getClass();
 		Class[] classes = cls.getDeclaredClasses();
 		for (int i = 0, len = classes.length; i < len; i++) {
 			Class clazz = classes[i];
-			if(name.equalsIgnoreCase(clazz.getSimpleName())){
+			if (name.equalsIgnoreCase(clazz.getSimpleName())) {
 				return clazz;
 			}
 		}
 		return null;
 	}
 
+	/**
+	 * 获取字段
+	 *
+	 * @param obj  目标对象可以是实例，可以是Class
+	 * @param name 字段名称
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
-	@Override
-	public Field getField(Object obj, String name) {
+	public static Field getField(Object obj, String name) {
 		Class cls = obj instanceof Class ? (Class) obj : obj.getClass();
 		Map<String, Field> fields = fieldCache.get(cls);
 		if (fields == null) {
@@ -423,16 +433,21 @@ public class JavaReflection extends AbstractReflection {
 		return field;
 	}
 
-	@Override
-	public void registerImplicitConvert(ClassImplicitConvert classImplicitConvert) {
+	/**
+	 * 注册隐式转换器
+	 */
+	public static void registerImplicitConvert(ClassImplicitConvert classImplicitConvert) {
 		converts.add(classImplicitConvert);
 	}
 
-	@Override
-	public void registerMethodExtension(Class<?> target, Object extensionObject) {
-		if (extensionMap == null) {
-			extensionMap = new ConcurrentHashMap<>();
-		}
+
+	/**
+	 * 注册扩展方法
+	 *
+	 * @param target          目标类
+	 * @param extensionObject 实现类
+	 */
+	public static void registerMethodExtension(Class<?> target, Object extensionObject) {
 		List<Class<?>> classList = extensionMap.get(target);
 		if (classList == null) {
 			classList = new ArrayList<>();
@@ -468,8 +483,7 @@ public class JavaReflection extends AbstractReflection {
 		}
 	}
 
-	@Override
-	public Object getFieldValue(Object obj, Field field) {
+	public static Object getFieldValue(Object obj, Field field) {
 		try {
 			return field.get(obj);
 		} catch (Throwable e) {
@@ -477,8 +491,7 @@ public class JavaReflection extends AbstractReflection {
 		}
 	}
 
-	@Override
-	public void setFieldValue(Object obj, Field field, Object value) {
+	public static void setFieldValue(Object obj, Field field, Object value) {
 		try {
 			field.set(obj, value);
 		} catch (Throwable e) {
@@ -486,7 +499,7 @@ public class JavaReflection extends AbstractReflection {
 		}
 	}
 
-	public JavaInvoker<Method> getExtensionMethod(Object obj, String name, Object... arguments) {
+	public static JavaInvoker<Method> getExtensionMethod(Object obj, String name, Object... arguments) {
 		boolean isClass = obj instanceof Class;
 		Class<?> cls = isClass ? Class.class : obj.getClass();
 		if (cls.isArray()) {
@@ -495,7 +508,7 @@ public class JavaReflection extends AbstractReflection {
 		return getExtensionMethod(cls, name, arguments);
 	}
 
-	private Class[] getParameterTypes(Class<?> cls, Object... arguments) {
+	private static Class[] getParameterTypes(Class<?> cls, Object... arguments) {
 		int begin = cls == null ? 0 : 1;
 		Class<?>[] parameterTypes = new Class[arguments.length + begin];
 		if (begin > 0) {
@@ -507,7 +520,7 @@ public class JavaReflection extends AbstractReflection {
 		return parameterTypes;
 	}
 
-	private JavaInvoker<Method> getExtensionMethod(Class<?> cls, String name, Object... arguments) {
+	private static JavaInvoker<Method> getExtensionMethod(Class<?> cls, String name, Object... arguments) {
 		if (cls == null) {
 			cls = Object.class;
 		}
@@ -533,8 +546,7 @@ public class JavaReflection extends AbstractReflection {
 		return null;
 	}
 
-	@Override
-	public JavaInvoker<Method> getMethod(Object obj, String name, Object... arguments) {
+	public static JavaInvoker<Method> getMethod(Object obj, String name, Object... arguments) {
 		boolean isClass = obj instanceof Class;
 		Class<?> cls = isClass ? (Class<?>) obj : (obj instanceof Function ? Function.class : obj.getClass());
 		Map<MethodSignature, JavaInvoker<Method>> methods = methodCache.get(cls);
@@ -593,18 +605,23 @@ public class JavaReflection extends AbstractReflection {
 		return invoker;
 	}
 
-	@Override
-	public JavaInvoker<Method> getFunction(String name, Object... arguments) {
+	public static JavaInvoker<Method> getFunction(String name, Object... arguments) {
 		List<JavaInvoker<Method>> methodList = functions.stream()
 				.filter(it -> it.getExecutable().getName().equals(name))
 				.collect(Collectors.toList());
 		return findMethodInvoker(methodList, getParameterTypes(null, arguments));
 	}
 
+	/**
+	 * NULL值
+	 */
 	public static final class Null {
 
 	}
 
+	/**
+	 * 方法签名
+	 */
 	private static class MethodSignature {
 		private final String name;
 		@SuppressWarnings("rawtypes")

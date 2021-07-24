@@ -11,7 +11,7 @@ import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Literal;
 import org.ssssssss.script.parsing.ast.VariableSetter;
 import org.ssssssss.script.parsing.ast.literal.StringLiteral;
-import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -55,19 +55,10 @@ public class MemberAccess extends Expression implements VariableSetter {
 		return name;
 	}
 
-	/**
-	 * Returns the cached member descriptor as returned by {@link AbstractReflection#getField(Object, String)} or
-	 **/
 	public Field getCachedMember() {
 		return cachedMember;
 	}
 
-	/**
-	 * Sets the member descriptor as returned by {@link AbstractReflection#getField(Object, String)} or
-	 * {@link AbstractReflection#getMethod(Object, String, Object...)} for faster member lookups. Called by {@link AstInterpreter} the
-	 * first time this node is evaluated. Subsequent evaluations can use the cached descriptor, avoiding a costly reflective
-	 * lookup.
-	 **/
 	public void setCachedMember(Field cachedMember) {
 		this.cachedMember = cachedMember;
 	}
@@ -106,13 +97,13 @@ public class MemberAccess extends Expression implements VariableSetter {
 		Field field = getCachedMember();
 		if (field != null) {
 			try {
-				return AbstractReflection.getInstance().getFieldValue(object, field);
+				return JavaReflection.getFieldValue(object, field);
 			} catch (Throwable t) {
 				// fall through
 			}
 		}
 		String text = getName().getText();
-		field = AbstractReflection.getInstance().getField(object, text);
+		field = JavaReflection.getField(object, text);
 		if (field == null) {
 			// [{a:1},{a:2}] --> list.a == 1
 			if (object instanceof Collection) {
@@ -171,7 +162,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 									, methodName), getSpan(), e);
 							return null;
 						}
-						Object innerClass = AbstractReflection.getInstance().getInnerClass(object, text);
+						Object innerClass = JavaReflection.getInnerClass(object, text);
 						if (innerClass != null) {
 							return innerClass;
 						} else {
@@ -187,7 +178,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 			}
 		}
 		setCachedMember(field);
-		return AbstractReflection.getInstance().getFieldValue(object, field);
+		return JavaReflection.getFieldValue(object, field);
 	}
 
 	@Override
@@ -202,13 +193,13 @@ public class MemberAccess extends Expression implements VariableSetter {
 			Field field = getCachedMember();
 			if (field != null) {
 				try {
-					AbstractReflection.getInstance().setFieldValue(object, field, value);
+					JavaReflection.setFieldValue(object, field, value);
 				} catch (Throwable t) {
 					// fall through
 				}
 			} else {
 				String text = getName().getText();
-				field = AbstractReflection.getInstance().getField(object, text);
+				field = JavaReflection.getField(object, text);
 				if (field == null) {
 					String methodName;
 					if (text.length() > 1) {
@@ -237,7 +228,7 @@ public class MemberAccess extends Expression implements VariableSetter {
 								, methodName), getSpan());
 					}
 				} else {
-					AbstractReflection.getInstance().setFieldValue(object, field, value);
+					JavaReflection.setFieldValue(object, field, value);
 				}
 			}
 		}

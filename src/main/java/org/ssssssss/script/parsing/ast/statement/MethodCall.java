@@ -7,7 +7,6 @@ import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
-import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
 import org.ssssssss.script.reflection.MethodInvoker;
@@ -57,18 +56,10 @@ public class MethodCall extends Expression {
 		return arguments;
 	}
 
-	/**
-	 * Returns the cached member descriptor as returned by {@link AbstractReflection#getMethod(Object, String, Object...)}. See
-	 **/
 	public JavaInvoker<Method> getCachedMethod() {
 		return cachedMethod;
 	}
 
-	/**
-	 * Sets the method descriptor as returned by {@link AbstractReflection#getMethod(Object, String, Object...)} for faster lookups.
-	 * Called by {@link AstInterpreter} the first time this node is evaluated. Subsequent evaluations can use the cached
-	 * descriptor, avoiding a costly reflective lookup.
-	 **/
 	public void setCachedMethod(JavaInvoker<Method> cachedMethod) {
 		this.cachedMethod = cachedMethod;
 	}
@@ -143,7 +134,7 @@ public class MethodCall extends Expression {
 				}
 			}
 
-			invoker = AbstractReflection.getInstance().getMethod(object, getMethod().getName().getText(), argumentValues);
+			invoker = JavaReflection.getMethod(object, getMethod().getName().getText(), argumentValues);
 			if (invoker != null) {
 				setCachedMethod(invoker);
 				try {
@@ -153,14 +144,14 @@ public class MethodCall extends Expression {
 					return null; // never reached
 				}
 			} else {
-				Field field = AbstractReflection.getInstance().getField(object, getMethod().getName().getText());
+				Field field = JavaReflection.getField(object, getMethod().getName().getText());
 				String className = object instanceof Class ? ((Class<?>) object).getName() : object.getClass().getName();
 				if (field == null) {
 					MagicScriptError.error("在'" + className + "'中找不到方法 " + getMethod().getName().getText() + "(" + String.join(",", JavaReflection.getStringTypes(argumentValues)) + ")",
 							getSpan());
 				}
-				Object function = AbstractReflection.getInstance().getFieldValue(object, field);
-				invoker = AbstractReflection.getInstance().getMethod(function, null, argumentValues);
+				Object function = JavaReflection.getFieldValue(object, field);
+				invoker = JavaReflection.getMethod(function, null, argumentValues);
 				if (invoker == null) {
 					MagicScriptError.error("在'" + className + "'中找不到方法 " + getMethod().getName().getText() + "(" + String.join(",", JavaReflection.getStringTypes(argumentValues)) + ")",
 							getSpan());

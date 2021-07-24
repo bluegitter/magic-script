@@ -7,6 +7,7 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 import org.ssssssss.script.parsing.ast.Node;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.runtime.ExitValue;
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class Assert extends Node {
 			for (int i = 0, len = values.length; i < len; i++) {
 				values[i] = expressions.get(i).evaluate(context, scope);
 			}
-			throw new MagicExitException(new Exit.Value(values));
+			throw new MagicExitException(new ExitValue(values));
 		}
 		return value;
 	}

@@ -4,7 +4,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.ssssssss.script.BaseTest;
-import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.util.Arrays;
 
@@ -12,7 +12,7 @@ public class MethodCallTests extends BaseTest {
 
 	@BeforeClass
 	public static void register() {
-		AbstractReflection.getInstance().registerMethodExtension(String.class, new MethodCallTests());
+		JavaReflection.registerMethodExtension(String.class, new MethodCallTests());
 	}
 
 	public static String call(String source, int val) {

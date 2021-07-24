@@ -123,6 +123,10 @@ public class MagicScriptContext {
 	public Map<String, Object> getRootVariables() {
 		return rootVariables;
 	}
+	
+	public Map<String, Object> getVariables(){
+		return CONTEXT_VAR_SCOPE.get().getVariables();
+	}
 
 	public void putMapIntoContext(Map<String, Object> map) {
 		if (map != null && !map.isEmpty()) {

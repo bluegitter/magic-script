@@ -3,13 +3,13 @@ package org.ssssssss.script.grammer;
 import org.junit.Assert;
 import org.junit.Test;
 import org.ssssssss.script.BaseTest;
-import org.ssssssss.script.parsing.ast.statement.Exit;
+import org.ssssssss.script.runtime.ExitValue;
 
 public class ExitTests extends BaseTest {
 
 	private Object doExecute(String filename){
 		Object object = execute(filename);
-		assert object instanceof Exit.Value;
+		assert object instanceof ExitValue;
 		return object;
 	}
 

@@ -22,6 +22,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.lang.invoke.MethodType.methodType;
@@ -91,6 +92,8 @@ public class FunctionCallHandle {
 				context.restore();
 			}
 			return value;
+		} else if (target instanceof Function){
+			return ((Function)target).apply(args);
 		} else {
 			method = JavaReflection.getMethod(target, name, args);
 		}
@@ -122,7 +125,7 @@ public class FunctionCallHandle {
 			throw new NullPointerException("target is null");
 		}
 		if ("class".equals(name)) {
-			return target instanceof Class ? target : target;
+			return target instanceof Class ? target : target.getClass();
 		} else if (target instanceof Map) {
 			return ((Map) target).get(name);
 		}

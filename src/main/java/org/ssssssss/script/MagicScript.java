@@ -58,8 +58,15 @@ public class MagicScript extends CompiledScript {
 	 * 创建MagicScript
 	 */
 	public static MagicScript create(String source, ScriptEngine scriptEngine) {
+		return create(false, source, scriptEngine);
+	}
+
+	/**
+	 * 创建MagicScript
+	 */
+	public static MagicScript create(boolean expression, String source, ScriptEngine scriptEngine) {
 		Parser parser = new Parser();
-		List<Node> nodes = parser.parse(source);
+		List<Node> nodes = parser.parse(expression ? "return " + source : source);
 		Set<VarIndex> varIndices = parser.getVarIndices();
 		return new MagicScript(nodes, Node.mergeSpans(nodes), varIndices, scriptEngine);
 	}

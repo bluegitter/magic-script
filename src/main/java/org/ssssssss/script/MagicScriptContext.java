@@ -134,7 +134,7 @@ public class MagicScriptContext {
 	 */
 	public Object eval(String script) {
 		try {
-			MagicScript magicScript = MagicScript.create(script, null);
+			MagicScript magicScript = MagicScript.create(true, script, null);
 			MagicScriptRuntime runtime = magicScript.compile();
 			return runtime.execute(new MagicScriptContext(MagicScriptContext.get().getVariables()));
 		} catch (Exception e) {

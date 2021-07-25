@@ -102,6 +102,14 @@ public class LinQBuilder {
 		return result.stream().sorted().map(SelectValue::getValue).collect(Collectors.toList());
 	}
 
+	private void processRow(Object item, Map<String, Object> row, SelectField field){
+		if (item instanceof Map) {
+			row.putAll((Map<String, Object>) item);
+		} else {
+			row.put(field.getAliasName(), item);
+		}
+	}
+
 	private List<SelectValue> processSelect(List<Record> records) {
 		List<SelectValue> result = new ArrayList<>();
 		int fieldSize = selects.size();
@@ -112,12 +120,17 @@ public class LinQBuilder {
 				context.setVarValue(record.getJoinIndex(), record.getJoinValue());
 			}
 			for (SelectField field : selects) {
-				Object item = field.getFunction().apply(context, EMPTY_PARAMETER);
-				if (item instanceof Map) {
-					row.putAll((Map<String, Object>) item);
-				} else {
-					row.put(field.getAliasName(), item);
+				MagicScriptLambdaFunction function = field.getFunction();
+				if(function == null){
+					processRow(record.getValue(), row, field);
+					if(record.getJoinValue() != null){
+						processRow(record.getJoinValue(), row, field);
+					}
+				}else{
+					Object item = function.apply(context, EMPTY_PARAMETER);
+					processRow(item, row, field);
 				}
+
 			}
 			List<OrderValue> orderValues = new ArrayList<>();
 			if (!orders.isEmpty()) {

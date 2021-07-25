@@ -3,6 +3,7 @@ package org.ssssssss.script;
 
 import org.ssssssss.script.compile.MagicScriptCompileException;
 import org.ssssssss.script.compile.MagicScriptCompiler;
+import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Parser;
 import org.ssssssss.script.parsing.Span;
@@ -79,7 +80,11 @@ public class MagicScript extends CompiledScript {
 	}
 
 	Object execute(MagicScriptContext magicScriptContext) {
-		return compile().execute(magicScriptContext);
+		try {
+			return compile().execute(magicScriptContext);
+		} catch (MagicExitException e) {
+			return e.getExitValue();
+		}
 	}
 
 	/**

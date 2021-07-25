@@ -39,6 +39,7 @@ public class LinqSelect extends Expression {
 
 	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
+		from.visitMethod(compiler);
 		fields.forEach(it -> it.visitMethod(compiler));
 		joins.forEach(it -> it.visitMethod(compiler));
 		groups.forEach(it -> it.visitMethod(compiler));

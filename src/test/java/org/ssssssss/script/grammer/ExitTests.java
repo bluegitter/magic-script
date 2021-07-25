@@ -22,4 +22,8 @@ public class ExitTests extends BaseTest {
 	public void exit_2() {
 		Assert.assertArrayEquals(new Object[]{200, "success"}, ((ExitValue) doExecute("grammar/exit/exit_2.ms")).getValues());
 	}
+	@Test
+	public void exit_3() {
+		Assert.assertArrayEquals(new Object[]{400, "参数填写有误"}, ((ExitValue) doExecute("grammar/exit/exit_3.ms")).getValues());
+	}
 }

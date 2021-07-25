@@ -23,6 +23,11 @@ public class MapLiteral extends Literal {
 	}
 
 	@Override
+	public void visitMethod(MagicScriptCompiler compiler) {
+		values.forEach(it -> it.visitMethod(compiler));
+	}
+
+	@Override
 	public void compile(MagicScriptCompiler compiler) {
 		int size = keys.size();
 		compiler.insn(values.stream().anyMatch(it -> it instanceof Spread) ? ICONST_1 : ICONST_0)

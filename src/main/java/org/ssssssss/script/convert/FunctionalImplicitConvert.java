@@ -35,12 +35,20 @@ public class FunctionalImplicitConvert implements ClassImplicitConvert {
 						param = new Object[]{args};
 					}
 				}
-				return function.apply(context, param);
+				try {
+					return function.apply(context, param);
+				} finally {
+					context.restore();
+				}
 			};
 		}
 		return Proxy.newProxyInstance(classLoader, new Class[]{target}, (proxy, method, args) -> {
 			if (Modifier.isAbstract(method.getModifiers())) {
-				return function.apply(context, args);
+				try {
+					return function.apply(context, args);
+				} finally {
+					context.restore();
+				}
 
 			}
 			if ("toString".equalsIgnoreCase(method.getName())) {

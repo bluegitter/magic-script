@@ -33,7 +33,10 @@ public class IssuesTests extends BaseTest {
 	public void bug_push() {
 		Assert.assertEquals("[1, 2, 3]", execute("issues/bug_push.ms"));
 	}
-
+	@Test
+	public void bug_scope() {
+		Assert.assertEquals("key1key2key3-6", execute("issues/bug_scope.ms"));
+	}
 
 	@Test
 	public void i398nd() {

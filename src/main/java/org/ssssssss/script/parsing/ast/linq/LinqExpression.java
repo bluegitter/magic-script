@@ -24,25 +24,32 @@ public class LinqExpression extends Expression {
 
 	@Override
 	public void visitMethod(MagicScriptCompiler compiler) {
-		this.methodName = "linq_expression_" + compiler.getFunctionIndex();
-		compiler.createMethod(ACC_PRIVATE, methodName, Descriptor.make_descriptor(Object.class, MagicScriptContext.class, Object[].class))
-				.load1()    // MagicScriptContext
-				.load2()    // 传入的参数
-				// 构建参数
-				.visitInt(0)
-				.intInsn(NEWARRAY, T_INT);    // new int[parameters.size()]
-		// 复制变量
-		compiler.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "copy", Object[].class, Object[].class, int[].class)
-				.store(2)
-				.compile(expression instanceof MemberAccess && ((MemberAccess) expression).isWhole() ? ((MemberAccess) expression).getObject() : expression)
-				.insn(ARETURN)
-				.pop();
+		expression.visitMethod(compiler);
+		if(!(expression instanceof WholeLiteral)){
+			this.methodName = "linq_expression_" + compiler.getFunctionIndex();
+			compiler.createMethod(ACC_PRIVATE, methodName, Descriptor.make_descriptor(Object.class, MagicScriptContext.class, Object[].class))
+					.load1()    // MagicScriptContext
+					.load2()    // 传入的参数
+					// 构建参数
+					.visitInt(0)
+					.intInsn(NEWARRAY, T_INT);    // new int[parameters.size()]
+			// 复制变量
+			compiler.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "copy", Object[].class, Object[].class, int[].class)
+					.store(2)
+					.compile(expression instanceof MemberAccess && ((MemberAccess) expression).isWhole() ? ((MemberAccess) expression).getObject() : expression)
+					.insn(ARETURN)
+					.pop();
+		}
 	}
 
 	@Override
 	public void compile(MagicScriptCompiler compiler) {
-		compiler.load0()
-				.lambda(methodName);
+		if(methodName != null){
+			compiler.load0()
+					.lambda(methodName);
+		}else{
+			compiler.insn(ACONST_NULL);
+		}
 	}
 
 	public Expression getExpression() {

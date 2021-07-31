@@ -693,14 +693,16 @@ public class Parser {
 		Expression expression = null;
 		if (expectRightCurly && stream.match("}", false)) {
 			return null;
-		} else if (stream.match("async", false)) {
-			expression = parseAsync();
-		} else if (stream.match("select", false, true)) {
-			expression = parseSelect();
 		} else if (stream.match(Spread, false)) {
 			expression = parseSpreadAccess();
 		} else if (stream.match(Identifier, false)) {
-			expression = parseAccessOrCall(Identifier, false);
+			if (stream.match("async", false)) {
+				expression = parseAsync();
+			} else if (stream.match("select", false, true)) {
+				expression = parseSelect();
+			}else{
+				expression = parseAccessOrCall(TokenType.Identifier, false);
+			}
 		} else if (stream.match(LeftCurly, false)) {
 			expression = parseMapLiteral();
 		} else if (stream.match(LeftBracket, false)) {

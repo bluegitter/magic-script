@@ -31,15 +31,15 @@ public enum TokenType {
 	GreaterEqual(">=", ">="),
 	Equal("==", "=="),
 	NotEqual("!=", "!="),
-	Assignment("=", "="),
+	Assignment(true, "=", "="),
 	// 1.3.0
-	PlusPlus("++", "++"),
-	MinusMinus("--", "--"),
-	PlusEqual("+=", "+="),
-	MinusEqual("-=", "-="),
-	AsteriskEqual("*=", "*="),
-	ForwardSlashEqual("/=", "/="),
-	PercentEqual("%=", "%="),
+	PlusPlus(true,"++", "++"),
+	MinusMinus(true,"--", "--"),
+	PlusEqual(true,"+=", "+="),
+	MinusEqual(true,"-=", "-="),
+	AsteriskEqual(true,"*=", "*="),
+	ForwardSlashEqual(true,"/=", "/="),
+	PercentEqual(true,"%=", "%="),
 	// 1.3.0 end
 	// 1.3.9
 	ColonColon("::", "::"),
@@ -58,12 +58,12 @@ public enum TokenType {
 	RShift(">>", ">>"),
 	Rshift2(">>>", ">>>"),
 
-	XorEqual("^=", "^="),
-	BitAndEqual("&=", "&="),
-	BitOrEqual("|=", "|="),
-	LShiftEqual("<<=", "<<="),
-	RShiftEqual(">>=", ">>="),
-	RShift2Equal(">>>=", ">>>="),
+	XorEqual(true,"^=", "^="),
+	BitAndEqual(true,"&=", "&="),
+	BitOrEqual(true,"|=", "|="),
+	LShiftEqual(true,"<<=", "<<="),
+	RShiftEqual(true,">>=", ">>="),
+	RShift2Equal(true,">>>=", ">>>="),
 	// 1.5.0 end
 	SqlAnd("and", "and", true),
 	SqlOr("or", "or", true),
@@ -116,18 +116,29 @@ public enum TokenType {
 
 	private final boolean inLinq;
 
+	private final boolean modifiable;
+
 	TokenType(String error) {
-		this(null, error, false);
+		this(null, error);
 	}
 
 	TokenType(String literal, String error) {
 		this(literal, error, false);
 	}
 
+	TokenType(boolean modifiable, String literal, String error) {
+		this(literal, error, false, modifiable);
+	}
+
 	TokenType(String literal, String error, boolean inLinq) {
+		this(literal, error, inLinq, false);
+	}
+
+	TokenType(String literal, String error, boolean inLinq, boolean modifiable) {
 		this.literal = literal;
 		this.error = error;
 		this.inLinq = inLinq;
+		this.modifiable = modifiable;
 	}
 
 	public static TokenType[] getSortedValues() {
@@ -136,6 +147,10 @@ public enum TokenType {
 
 	public boolean isInLinq() {
 		return inLinq;
+	}
+
+	public boolean isModifiable() {
+		return modifiable;
 	}
 
 	public String getLiteral() {

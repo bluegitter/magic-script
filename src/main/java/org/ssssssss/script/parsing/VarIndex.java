@@ -10,10 +10,17 @@ public class VarIndex {
 
 	private final boolean reference;
 
+	private final boolean readonly;
+
 	VarIndex(String name, int index, boolean reference) {
+		this(name, index,reference, false);
+	}
+
+	public VarIndex(String name, int index, boolean reference, boolean readonly) {
 		this.name = name;
 		this.index = index;
 		this.reference = reference;
+		this.readonly = readonly;
 	}
 
 	public String getName() {
@@ -26,6 +33,10 @@ public class VarIndex {
 
 	public boolean isReference() {
 		return reference;
+	}
+
+	public boolean isReadonly() {
+		return readonly;
 	}
 
 	@Override

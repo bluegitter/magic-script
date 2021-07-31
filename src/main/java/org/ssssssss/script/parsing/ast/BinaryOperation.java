@@ -6,6 +6,7 @@ import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
 import org.ssssssss.script.parsing.ast.binary.*;
+import org.ssssssss.script.parsing.ast.statement.VariableAccess;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -23,6 +24,9 @@ public abstract class BinaryOperation extends Expression {
 	}
 
 	public static Expression create(Expression left, Token operator, Expression right, int linqLevel) {
+		if(operator.getType().isModifiable() && left instanceof VariableAccess && ((VariableAccess) left).getVarIndex().isReadonly()){
+			MagicScriptError.error("const定义的变量不能被修改", new Span(left.getSpan(), right.getSpan()));
+		}
 		Expression expression = null;
 		Span span = operator.getSpan();
 		switch (operator.getType()) {

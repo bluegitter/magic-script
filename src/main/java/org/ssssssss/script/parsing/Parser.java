@@ -59,7 +59,7 @@ public class Parser {
 			new TokenType[]{ForwardSlash, Asterisk, Percentage}
 	};
 	private static final TokenType[] unaryOperators = new TokenType[]{MinusMinus, PlusPlus, BitNot, Minus, Plus, Not};
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"/*, "assert"*/);
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"/*, "assert"*/);
 	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
 	private final List<List<VarIndex>> varNames = new ArrayList<>();
 	private final List<Span> spans = new ArrayList<>();
@@ -108,7 +108,7 @@ public class Parser {
 		Node result;
 		if (stream.match("import", false)) {
 			result = parseImport();
-		} else if (stream.match("var", false)) {
+		} else if (stream.match(false,"var","let","const")) {
 			result = parseVarDefine();
 		} else if (stream.match("if", false)) {
 			result = parseIfStatement();
@@ -172,7 +172,11 @@ public class Parser {
 	}
 
 	private VarIndex forceAdd(String name) {
-		return add(new VarIndex(name, varCount++, false));
+		return forceAdd(name, false);
+	}
+
+	private VarIndex forceAdd(String name, boolean isConst) {
+		return add(new VarIndex(name, varCount++, false, isConst));
 	}
 
 	private void push() {
@@ -331,12 +335,15 @@ public class Parser {
 	}
 
 	private VariableDefine parseVarDefine() {
-		Span opening = stream.expect("var").getSpan();
+		Span opening = stream.consume().getSpan();
 		Token token = stream.expect(Identifier);
+		boolean isConst = "const".equals(opening.getText());
 		checkKeyword(token.getSpan());
 		String variableName = token.getSpan().getText();
 		if (stream.match(Assignment, true)) {
-			return new VariableDefine(addSpan(opening, stream.getPrev().getSpan()), forceAdd(variableName), parseExpression());
+			return new VariableDefine(addSpan(opening, stream.getPrev().getSpan()), forceAdd(variableName,isConst), parseExpression());
+		}else if (isConst){
+			MagicScriptError.error("const修饰的变量需要给初始值", stream.getPrev().getSpan());
 		}
 		return new VariableDefine(addSpan(opening, stream.getPrev().getSpan()), forceAdd(variableName), null);
 	}
@@ -700,7 +707,7 @@ public class Parser {
 				expression = parseAsync();
 			} else if (stream.match("select", false, true)) {
 				expression = parseSelect();
-			}else{
+			} else {
 				expression = parseAccessOrCall(TokenType.Identifier, false);
 			}
 		} else if (stream.match(LeftCurly, false)) {

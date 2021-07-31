@@ -28,6 +28,9 @@ public class UnaryOperation extends Expression {
 
 	public UnaryOperation(Token operator, Expression operand, boolean atAfter) {
 		super(operator.getSpan());
+		if(operator.getType().isModifiable() && operand instanceof VariableAccess && ((VariableAccess) operand).getVarIndex().isReadonly()){
+			MagicScriptError.error("const修饰的变量不能被修改", getSpan());
+		}
 		this.operator = UnaryOperator.getOperator(operator);
 		this.operand = operand;
 		this.atAfter = atAfter;

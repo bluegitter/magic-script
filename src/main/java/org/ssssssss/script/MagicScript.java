@@ -17,6 +17,7 @@ import java.util.List;
 public class MagicScript extends CompiledScript {
 
 	public static final String CONTEXT_ROOT = "ROOT";
+	public static final String DEBUG_MARK = ""; // 兼容asm分支处理。
 	private final List<Node> nodes;
 	private final ScriptEngine scriptEngine;
 	private final int topVarCount;

@@ -1,6 +1,7 @@
 package org.ssssssss.script.compile;
 
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.asm.*;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.VarIndex;
@@ -79,9 +80,14 @@ public class MagicScriptCompiler implements Opcodes {
 
 	private int tempIndex = 4;
 
-	public MagicScriptCompiler(Set<VarIndex> varIndices, List<Span> spans) {
+	private final boolean debug;
+
+	private int lastLineNumber = -1;
+
+	public MagicScriptCompiler(Set<VarIndex> varIndices, List<Span> spans, boolean debug) {
 		this.varIndices = varIndices;
 		this.spans = spans;
+		this.debug = debug;
 		// 创建类并继承 MagicScriptRuntime
 		classWriter = new ClassWriter(COMPUTE_FRAMES | COMPUTE_MAXS);
 		classWriter.visit(V1_8, ACC_PUBLIC | ACC_SUPER, getClassName(), null, getJvmType(MagicScriptRuntime.class), null);
@@ -189,9 +195,22 @@ public class MagicScriptCompiler implements Opcodes {
 			if (index > 0) {
 				MethodVisitor mv = _this();
 				Label label = new Label();
-				// 设置行号
+				// 设置行号（节点序号）
 				mv.visitLabel(label);
 				mv.visitLineNumber(index, label);
+			}
+			if (debug){
+				Span.Line currentLine = node.getSpan().getLine();
+				int line = currentLine.getLineNumber();
+				if(lastLineNumber != line){
+					this.load1()
+						.visitInt(line)
+						.visitInt(currentLine.getStartCol())
+						.visitInt(currentLine.getEndLineNumber())
+						.visitInt(currentLine.getEndCol())
+						.invoke(INVOKEVIRTUAL, MagicScriptDebugContext.class, "pause", void.class, int.class,int.class,int.class,int.class);
+					lastLineNumber = line;
+				}
 			}
 			// 编译该节点
 			node.compile(this);

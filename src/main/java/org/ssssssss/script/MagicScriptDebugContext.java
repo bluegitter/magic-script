@@ -18,7 +18,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 	private String id = UUID.randomUUID().toString().replace("-", "");
 	private Consumer<Map<String, Object>> callback;
 
-	private Span.Line line;
+	private int[] line;
 
 	private int timeout = 60;
 
@@ -48,11 +48,13 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		this.breakpoints = breakpoints;
 	}
 
-	public synchronized String pause(Span.Line line) throws InterruptedException {
-		this.line = line;
-		consumer.offer(this.id);
-		callback.accept(getDebugInfo());
-		return producer.poll(timeout, TimeUnit.SECONDS);
+	public synchronized void pause(int startRow, int startCol, int endRow, int endCol) throws InterruptedException {
+		if(stepInto || breakpoints.contains(startRow)){
+			this.line = new int[]{startRow, startCol, endRow, endCol};
+			consumer.offer(this.id);
+			callback.accept(getDebugInfo());
+			producer.poll(timeout, TimeUnit.SECONDS);
+		}
 	}
 
 	public void await() throws InterruptedException {
@@ -100,12 +102,8 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		});
 		Map<String, Object> info = new HashMap<>();
 		info.put("variables", varList);
-		info.put("range", Arrays.asList(line.getLineNumber(), line.getStartCol(), line.getEndLineNumber(), line.getEndCol()));
+		info.put("range", line);
 		return info;
-	}
-
-	public Span.Line getLine() {
-		return line;
 	}
 
 	public String getId() {

@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 public class MagicScript extends CompiledScript {
 
 	public static final String CONTEXT_ROOT = "ROOT";
+
+	public static final String DEBUG_MARK = "!# DEBUG\r\n";
+
 	private static final MagicScriptClassLoader classLoader = new MagicScriptClassLoader();
 	/**
 	 * 所有语句
@@ -48,11 +51,14 @@ public class MagicScript extends CompiledScript {
 	 */
 	private MagicScriptRuntime runtime;
 
-	private MagicScript(List<Node> nodes, List<Span> spans, Set<VarIndex> varIndices, ScriptEngine scriptEngine) {
+	private boolean debug = false;
+
+	private MagicScript(List<Node> nodes, List<Span> spans, Set<VarIndex> varIndices, ScriptEngine scriptEngine, boolean debug) {
 		this.nodes = nodes;
 		this.spans = spans;
 		this.varIndices = varIndices;
 		this.scriptEngine = scriptEngine;
+		this.debug = debug;
 	}
 
 	/**
@@ -67,9 +73,11 @@ public class MagicScript extends CompiledScript {
 	 */
 	public static MagicScript create(boolean expression, String source, ScriptEngine scriptEngine) {
 		Parser parser = new Parser();
+		boolean debug = source.startsWith(DEBUG_MARK);
+		source = debug ? source.substring(DEBUG_MARK.length()) : source;
 		List<Node> nodes = parser.parse(expression ? "return " + source : source);
 		Set<VarIndex> varIndices = parser.getVarIndices();
-		return new MagicScript(nodes, Node.mergeSpans(nodes), varIndices, scriptEngine);
+		return new MagicScript(nodes, Node.mergeSpans(nodes), varIndices, scriptEngine, debug);
 	}
 
 	/**
@@ -94,7 +102,7 @@ public class MagicScript extends CompiledScript {
 		if (runtime != null) {
 			return runtime;
 		}
-		MagicScriptCompiler compiler = new MagicScriptCompiler(this.varIndices, this.spans);
+		MagicScriptCompiler compiler = new MagicScriptCompiler(this.varIndices, this.spans, this.debug);
 		// 如果只是一个表达式
 		if (nodes.size() == 1 && nodes.get(0) instanceof Expression) {
 			Node node = nodes.get(0);

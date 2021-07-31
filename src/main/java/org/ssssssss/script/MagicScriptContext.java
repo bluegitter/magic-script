@@ -150,7 +150,7 @@ public class MagicScriptContext {
 	 * 获取当前变量信息
 	 */
 	public Map<String, Object> getVariables() {
-		Map<String, Object> map = new LinkedHashMap<>();
+		Map<String, Object> map = new LinkedHashMap<>(getRootVariables());
 		String[] names = runtime.getVarNames();
 		Object[] vars = getVars();
 		for (int i = 0, len = names.length; i < len; i++) {

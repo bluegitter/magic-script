@@ -48,6 +48,7 @@ public class LinqSelect extends Expression {
 			List<List<Object>> joinValues = new ArrayList<>();
 			// 处理关联
 			for (LinqJoin join : joins) {
+				join.setCachedValue(join.getTarget().evaluateList(context, scope));
 				joinValues.add(join.evaluate(context, scope));
 			}
 			if (joins.isEmpty()) {

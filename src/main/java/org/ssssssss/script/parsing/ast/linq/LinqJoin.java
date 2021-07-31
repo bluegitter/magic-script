@@ -35,11 +35,12 @@ public class LinqJoin extends Expression {
 		return target;
 	}
 
+	public void setCachedValue(List<Object> cachedValue) {
+		this.cachedValue = cachedValue;
+	}
+
 	@Override
 	public List<Object> evaluate(MagicScriptContext context, Scope scope) {
-		if (cachedValue == null) {
-			cachedValue = target.evaluateList(context, scope);
-		}
 		List<Object> result = leftJoin ? new ArrayList<>() : null;
 		for (Object object : cachedValue) {
 			target.setValue(context, scope, object);

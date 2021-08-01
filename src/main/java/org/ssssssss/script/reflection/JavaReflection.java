@@ -51,6 +51,7 @@ public class JavaReflection {
 		registerFunction(new LinqFunctions());
 		registerFunction(new CollectionFunctions());
 		registerFunction(new MathFunctions());
+		registerFunction(new StringFunctions());
 		registerFunction(new MagicScriptFunctions());
 	}
 

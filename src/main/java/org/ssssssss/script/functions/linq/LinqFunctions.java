@@ -35,5 +35,15 @@ public class LinqFunctions {
 		return new Date();
 	}
 
+	@Function
+	@Comment("取当前时间戳(秒)")
+	public long current_timestamp() {
+		return System.currentTimeMillis() / 1000;
+	}
 
+	@Function
+	@Comment("取当前时间戳(毫秒)")
+	public long current_timestamp_millis() {
+		return System.currentTimeMillis();
+	}
 }

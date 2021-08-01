@@ -38,7 +38,7 @@ public class MathFunctions {
 
 	@Comment("求百分比")
 	@Function
-	public String precent(@Comment("目标值") Number target) {
+	public String percent(@Comment("目标值") Number target) {
 		return NumberExtension.asPercent(target, 0);
 	}
 }

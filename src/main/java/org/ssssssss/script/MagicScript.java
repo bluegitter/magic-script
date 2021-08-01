@@ -1,7 +1,6 @@
 package org.ssssssss.script;
 
 
-import org.ssssssss.script.exception.DebugTimeoutException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Parser;

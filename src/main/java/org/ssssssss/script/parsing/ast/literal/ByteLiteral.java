@@ -15,7 +15,7 @@ public class ByteLiteral extends Literal {
 	public ByteLiteral(Span literal) {
 		super(literal);
 		try {
-			this.value = Byte.parseByte(literal.getText().substring(0, literal.getText().length() - 1));
+			this.value = Byte.parseByte(literal.getText().substring(0, literal.getText().length() - 1).replace("_",""));
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义byte变量值不合法", literal, e);
 		}

@@ -70,17 +70,13 @@ public class Parser {
 	private boolean requiredNew = true;
 	private TokenStream stream;
 
-	public List<Span> getSpans() {
-		return spans;
-	}
-
 	public Set<VarIndex> getVarIndices() {
 		return varIndices;
 	}
 
 
 	public List<Node> parse(String source) {
-		List<Node> nodes = new ArrayList<Node>();
+		List<Node> nodes = new ArrayList<>();
 		push();
 		stream = Tokenizer.tokenize(source);
 		while (stream.hasMore()) {
@@ -144,15 +140,7 @@ public class Parser {
 		return varNames.get(varListIndex);
 	}
 
-	private int processVarIndex(int index) {
-		for (int i = 0; i < varListIndex; i++) {
-			index += varNames.get(i).size();
-		}
-		return index;
-	}
-
 	private VarIndex add(String name) {
-		List<VarIndex> vars = _this();
 		for (int i = varListIndex; i >= 0; i--) {
 			List<VarIndex> varIndices = varNames.get(i);
 			for (int j = varIndices.size() - 1; j >= 0; j--) {
@@ -184,9 +172,8 @@ public class Parser {
 		varNames.add(new ArrayList<>());
 	}
 
-	private int pop() {
+	private void pop() {
 		varListIndex--;
-		return -1;
 	}
 
 	private Span addSpan(Span opening, Span ending) {

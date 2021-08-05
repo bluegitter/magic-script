@@ -13,7 +13,7 @@ public class ShortLiteral extends Literal {
 	public ShortLiteral(Span literal) {
 		super(literal);
 		try {
-			setValue(Short.parseShort(literal.getText().substring(0, literal.getText().length() - 1)));
+			setValue(Short.parseShort(literal.getText().substring(0, literal.getText().length() - 1).replace("_","")));
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义short变量值不合法", literal, e);
 		}

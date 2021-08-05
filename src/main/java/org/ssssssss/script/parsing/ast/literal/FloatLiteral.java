@@ -13,7 +13,7 @@ public class FloatLiteral extends Literal {
 	public FloatLiteral(Span literal) {
 		super(literal);
 		try {
-			setValue(Float.parseFloat(literal.getText().substring(0, literal.getText().length() - 1)));
+			setValue(Float.parseFloat(literal.getText().substring(0, literal.getText().length() - 1).replace("_","")));
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义float变量值不合法", literal, e);
 		}

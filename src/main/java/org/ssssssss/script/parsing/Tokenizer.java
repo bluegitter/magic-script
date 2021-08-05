@@ -202,25 +202,25 @@ public class Tokenizer {
 			stream.startSpan();
 			stream.consume();
 			if (stream.matchAny(true, "x", "X")) {    // 0x 16进制
-				while (stream.matchDigit(true) || stream.matchAny(true, "A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f")) {
+				while (stream.matchDigit(true) || stream.matchAny(true, "A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f", "_")) {
 					;
 				}
 				if (stream.matchAny(true, "L", "l")) {
 					Span span = stream.endSpan();
 					String text = span.getText();
-					tokens.add(new LiteralToken(TokenType.LongLiteral, span, Long.parseLong(text.substring(2, text.length() - 1), 16)));
+					tokens.add(new LiteralToken(TokenType.LongLiteral, span, Long.parseLong(text.substring(2, text.length() - 1).replace("_",""), 16)));
 					return true;
 				}
 				tokens.add(autoNumberType(stream.endSpan(), 16));
 				return true;
 			} else if (stream.matchAny(true, "b", "B")) {    //二进制
-				while (stream.matchAny(true, "0", "1")) {
+				while (stream.matchAny(true, "0", "1", "_")) {
 					;
 				}
 				if (stream.matchAny(true, "L", "l")) {
 					Span span = stream.endSpan();
 					String text = span.getText();
-					tokens.add(new LiteralToken(TokenType.LongLiteral, span, Long.parseLong(text.substring(0, text.length() - 1), 2)));
+					tokens.add(new LiteralToken(TokenType.LongLiteral, span, Long.parseLong(text.substring(0, text.length() - 1).replace("_",""), 2)));
 					return true;
 				}
 				tokens.add(autoNumberType(stream.endSpan(), 2));
@@ -231,12 +231,12 @@ public class Tokenizer {
 		if (stream.matchDigit(false)) {
 			TokenType type = TokenType.IntegerLiteral;
 			stream.startSpan();
-			while (stream.matchDigit(true)) {
+			while (stream.matchDigit(true) || stream.match("_", true)) {
 				;
 			}
 			if (stream.match(TokenType.Period.getLiteral(), true)) {
 				type = TokenType.DoubleLiteral;
-				while (stream.matchDigit(true)) {
+				while (stream.matchDigit(true) || stream.match("_", true)) {
 					;
 				}
 			}
@@ -270,7 +270,7 @@ public class Tokenizer {
 	}
 
 	private static LiteralToken autoNumberType(Span span, int radix) {
-		long value = Long.parseLong(span.getText().substring(2), radix);
+		long value = Long.parseLong(span.getText().substring(2).replace("_",""), radix);
 		if (value > Integer.MAX_VALUE || value < Integer.MIN_VALUE) {
 			return new LiteralToken(TokenType.LongLiteral, span, value);
 		} else if (value > Byte.MAX_VALUE || value < Byte.MIN_VALUE) {

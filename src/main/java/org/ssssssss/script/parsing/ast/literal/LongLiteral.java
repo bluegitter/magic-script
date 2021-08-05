@@ -10,7 +10,7 @@ import org.ssssssss.script.parsing.ast.Literal;
 public class LongLiteral extends Literal {
 
 	public LongLiteral(Span literal) {
-		this(literal, Long.parseLong(literal.getText().substring(0, literal.getText().length() - 1)));
+		this(literal, Long.parseLong(literal.getText().substring(0, literal.getText().length() - 1).replace("_","")));
 	}
 
 	public LongLiteral(Span span, Object value) {

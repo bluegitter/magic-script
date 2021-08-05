@@ -13,7 +13,7 @@ public class IntegerLiteral extends Literal {
 	public IntegerLiteral(Span literal) {
 		super(literal);
 		try {
-			setValue(Integer.parseInt(literal.getText()));
+			setValue(Integer.parseInt(literal.getText().replace("_","")));
 		} catch (NumberFormatException e) {
 			MagicScriptError.error("定义int变量值不合法", literal, e);
 		}

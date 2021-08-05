@@ -11,7 +11,7 @@ import java.math.BigDecimal;
  */
 public class BigDecimalLiteral extends Literal {
 	public BigDecimalLiteral(Span literal) {
-		super(literal, literal.getText().substring(0, literal.getText().length() - 1));
+		super(literal, literal.getText().substring(0, literal.getText().length() - 1).replace("_",""));
 	}
 
 	@Override

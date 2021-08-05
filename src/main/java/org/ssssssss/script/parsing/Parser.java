@@ -101,10 +101,10 @@ public class Parser {
 	}
 
 	private Node parseStatement(boolean expectRightCurly) {
-		Node result;
+		Node result = null;
 		if (stream.match("import", false)) {
 			result = parseImport();
-		} else if (stream.match(false,"var","let","const")) {
+		} else if (stream.match(false, "var", "let", "const")) {
 			result = parseVarDefine();
 		} else if (stream.match("if", false)) {
 			result = parseIfStatement();
@@ -127,7 +127,15 @@ public class Parser {
 		} else if (stream.match("assert", false)) {
 			result = parserAssert();
 		} else {
-			result = parseExpression(expectRightCurly);
+			int index = stream.makeIndex();
+			if (stream.match(Identifier, true) && stream.match(Identifier, false)){
+				stream.resetIndex(index);
+				result = parseVarDefine();
+			}
+			if(result == null){
+				stream.resetIndex(index);
+				result = parseExpression(expectRightCurly);
+			}
 		}
 		// consume semi-colons as statement delimiters
 		while (stream.match(";", true)) {
@@ -328,8 +336,8 @@ public class Parser {
 		checkKeyword(token.getSpan());
 		String variableName = token.getSpan().getText();
 		if (stream.match(Assignment, true)) {
-			return new VariableDefine(addSpan(opening, stream.getPrev().getSpan()), forceAdd(variableName,isConst), parseExpression());
-		}else if (isConst){
+			return new VariableDefine(addSpan(opening, stream.getPrev().getSpan()), forceAdd(variableName, isConst), parseExpression());
+		} else if (isConst) {
 			MagicScriptError.error("const修饰的变量需要给初始值", stream.getPrev().getSpan());
 		}
 		return new VariableDefine(addSpan(opening, stream.getPrev().getSpan()), forceAdd(variableName), null);

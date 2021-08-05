@@ -80,6 +80,8 @@ public abstract class JavaInvoker<T extends Executable> {
 					parameters[0] = objs;
 				}
 				arguments = parameters;
+			} else if (isVarArgs() && parameterTypes.length == 1 && arguments.length == 1 && (arguments[0] == null || arguments[0].getClass().isArray())){
+				return invoke(target, arguments);
 			}
 			return invoke(target, processArguments(arguments));
 		} catch (InvocationTargetException e) {

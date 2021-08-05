@@ -88,7 +88,7 @@ public class MagicScriptError {
 		return root;
 	}
 
-	public static void transfer(MagicScriptRuntime runtime, Throwable t) throws Throwable {
+	public static void transfer(MagicScriptRuntime runtime, Throwable t) {
 		StackTraceElement[] elements = t.getStackTrace();
 		Throwable cause = t;
 		while (cause.getCause() != null) {
@@ -103,7 +103,7 @@ public class MagicScriptError {
 			}
 		}
 		cause.setStackTrace(elementList.toArray(new StackTraceElement[0]));
-		MagicScriptError.error("执行出错...", span, cause);
+		MagicScriptError.error(t.getMessage(), span, cause);
 	}
 
 }

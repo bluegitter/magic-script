@@ -92,7 +92,10 @@ public class MagicScript extends CompiledScript {
 			return compile().execute(magicScriptContext);
 		} catch (MagicExitException e) {
 			return e.getExitValue();
+		} catch (Throwable t) {
+			MagicScriptError.transfer(runtime, t);
 		}
+		return null;
 	}
 
 	/**

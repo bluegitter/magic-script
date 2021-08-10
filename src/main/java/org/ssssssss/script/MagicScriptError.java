@@ -50,17 +50,20 @@ public class MagicScriptError {
 			}
 			throw mse;
 		}
-		Span.Line line = location.getLine();
-		String errorMessage = message + " at Row:";
-		errorMessage += line.getLineNumber() + "~" + line.getEndLineNumber() + ",Col:";
-		errorMessage += line.getStartCol() + "~" + line.getEndCol() + "\n\n";
-		errorMessage += line.getText();
-		errorMessage += "\n";
-		int errorStart = location.getStart() - line.getStart();
-		int errorEnd = errorStart + location.getText().length() - 1;
-		for (int i = 0, n = line.getText().length(); i < n; i++) {
-			boolean useTab = line.getText().charAt(i) == '\t';
-			errorMessage += i >= errorStart && i <= errorEnd ? "^" : useTab ? "\t" : " ";
+		String errorMessage = message;
+		if (location != null) {
+			Span.Line line = location.getLine();
+			errorMessage += " at Row:";
+			errorMessage += line.getLineNumber() + "~" + line.getEndLineNumber() + ",Col:";
+			errorMessage += line.getStartCol() + "~" + line.getEndCol() + "\n\n";
+			errorMessage += line.getText();
+			errorMessage += "\n";
+			int errorStart = location.getStart() - line.getStart();
+			int errorEnd = errorStart + location.getText().length() - 1;
+			for (int i = 0, n = line.getText().length(); i < n; i++) {
+				boolean useTab = line.getText().charAt(i) == '\t';
+				errorMessage += i >= errorStart && i <= errorEnd ? "^" : useTab ? "\t" : " ";
+			}
 		}
 		if (cause == null) {
 			throw new MagicScriptException(errorMessage, message, location);
@@ -100,6 +103,8 @@ public class MagicScriptError {
 			if (element.getLineNumber() > -1 && element.getClassName().startsWith("MagicScript_")) {
 				span = runtime.getSpan(element.getLineNumber() - 1);
 				elementList.add(new StackTraceElement(element.getClassName(), element.getMethodName(), element.getFileName(), span.getLine().getLineNumber()));
+			} else {
+				elementList.add(element);
 			}
 		}
 		cause.setStackTrace(elementList.toArray(new StackTraceElement[0]));

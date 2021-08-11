@@ -31,7 +31,7 @@ public class MagicScript extends CompiledScript {
 
 	public static final String DEBUG_MARK = "!# DEBUG\r\n";
 
-	private static final MagicScriptClassLoader classLoader = new MagicScriptClassLoader();
+	private static final MagicScriptClassLoader classLoader = new MagicScriptClassLoader(Thread.currentThread().getContextClassLoader());
 	/**
 	 * 所有语句
 	 */

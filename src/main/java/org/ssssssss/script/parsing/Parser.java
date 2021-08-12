@@ -61,7 +61,7 @@ public class Parser {
 	private static final TokenType[] unaryOperators = new TokenType[]{MinusMinus, PlusPlus, BitNot, Minus, Plus, Not};
 	private static final List<String> keywords = Arrays.asList("import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"/*, "assert"*/);
 	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
-	private final List<List<VarIndex>> varNames = new ArrayList<>();
+	private VarScope varNames = new VarScope();
 	private final List<Span> spans = new ArrayList<>();
 	private final Set<VarIndex> varIndices = new LinkedHashSet<>();
 	private int varListIndex = -1;
@@ -144,26 +144,22 @@ public class Parser {
 		return result;
 	}
 
-	private List<VarIndex> _this() {
-		return varNames.get(varListIndex);
-	}
-
 	private VarIndex add(String name) {
-		for (int i = varListIndex; i >= 0; i--) {
-			List<VarIndex> varIndices = varNames.get(i);
+		VarScope varIndices = varNames;
+		do {
 			for (int j = varIndices.size() - 1; j >= 0; j--) {
 				VarIndex varIndex = varIndices.get(j);
 				if (varIndex.getName().equals(name)) {
 					return varIndex;
 				}
 			}
-		}
+		}while((varIndices = varIndices.getParent())!= null);
 		return add(new VarIndex(name, varCount++, true));
 	}
 
 	private VarIndex add(VarIndex varIndex) {
 		varIndices.add(varIndex);
-		_this().add(varIndex);
+		varNames.add(varIndex);
 		return varIndex;
 	}
 
@@ -176,12 +172,11 @@ public class Parser {
 	}
 
 	private void push() {
-		varListIndex++;
-		varNames.add(new ArrayList<>());
+		varNames = varNames.push();
 	}
 
 	private void pop() {
-		varListIndex--;
+		varNames = varNames.pop();
 	}
 
 	private Span addSpan(Span opening, Span ending) {

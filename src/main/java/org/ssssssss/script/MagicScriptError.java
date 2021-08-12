@@ -101,8 +101,11 @@ public class MagicScriptError {
 		List<StackTraceElement> elementList = new ArrayList<>();
 		for (StackTraceElement element : elements) {
 			if (element.getLineNumber() > -1 && element.getClassName().startsWith("MagicScript_")) {
-				span = runtime.getSpan(element.getLineNumber() - 1);
-				elementList.add(new StackTraceElement(element.getClassName(), element.getMethodName(), element.getFileName(), span.getLine().getLineNumber()));
+				Span currentSpan = runtime.getSpan(element.getLineNumber() - 1);
+				elementList.add(new StackTraceElement(element.getClassName(), element.getMethodName(), element.getFileName(), currentSpan.getLine().getLineNumber()));
+				if(span == null){
+					span = currentSpan;
+				}
 			} else {
 				elementList.add(element);
 			}

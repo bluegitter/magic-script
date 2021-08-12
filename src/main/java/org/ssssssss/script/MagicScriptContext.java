@@ -263,4 +263,8 @@ public class MagicScriptContext {
 			src[i] = dest[i];
 		}
 	}
+
+	public void pause(int startRow, int startCol, int endRow, int endCol) throws InterruptedException {
+
+	}
 }

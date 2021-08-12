@@ -208,7 +208,7 @@ public class MagicScriptCompiler implements Opcodes {
 						.visitInt(currentLine.getStartCol())
 						.visitInt(currentLine.getEndLineNumber())
 						.visitInt(currentLine.getEndCol())
-						.invoke(INVOKEVIRTUAL, MagicScriptDebugContext.class, "pause", void.class, int.class,int.class,int.class,int.class);
+						.invoke(INVOKEVIRTUAL, MagicScriptContext.class, "pause", void.class, int.class,int.class,int.class,int.class);
 					lastLineNumber = line;
 				}
 			}

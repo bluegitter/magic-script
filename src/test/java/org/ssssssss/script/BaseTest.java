@@ -27,32 +27,24 @@ public class BaseTest {
 		String str = readScript(filename);
 		long t = System.currentTimeMillis();
 		MagicScript script = MagicScript.create(str, null);
+		MagicScriptRuntime runtime = script.compile();
+		System.out.println("编译耗时：" + (System.currentTimeMillis() - t) + "ms");
+		Object value = null;
+		t = System.currentTimeMillis();
+		MagicScriptContext context = new MagicScriptContext();
 		try {
-			MagicScriptRuntime runtime = script.compile();
-			System.out.println("编译耗时：" + (System.currentTimeMillis() - t) + "ms");
-			Object value = null;
-			t = System.currentTimeMillis();
-			MagicScriptContext context = new MagicScriptContext();
-			try {
-				MagicScriptContext.set(context);
-				value = runtime.execute(context);
-			} catch(MagicExitException mee){
-				value = mee.getExitValue();
-			} catch (Exception e) {
-				try {
-					MagicScriptError.transfer(runtime, e);
-				} catch (Throwable throwable) {
-					throwable.printStackTrace();
-				}
-			} finally {
-				MagicScriptContext.remove();
-			}
-			System.out.println("执行耗时：" + (System.currentTimeMillis() - t) + "ms");
-			System.out.println("执行结果：" + value);
-			System.out.println(Arrays.toString(context.getVars()));
-			return value;
+			MagicScriptContext.set(context);
+			value = runtime.execute(context);
+		} catch(MagicExitException mee){
+			value = mee.getExitValue();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			MagicScriptError.transfer(runtime, e);
+		} finally {
+			MagicScriptContext.remove();
 		}
+		System.out.println("执行耗时：" + (System.currentTimeMillis() - t) + "ms");
+		System.out.println("执行结果：" + value);
+		System.out.println(Arrays.toString(context.getVars()));
+		return value;
 	}
 }

@@ -1,34 +1,20 @@
 package org.ssssssss.script.parsing;
 
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.ast.*;
 import org.ssssssss.script.parsing.ast.binary.AssigmentOperation;
 import org.ssssssss.script.parsing.ast.linq.*;
-import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
-import org.ssssssss.script.parsing.ast.literal.ByteLiteral;
-import org.ssssssss.script.parsing.ast.literal.DoubleLiteral;
-import org.ssssssss.script.parsing.ast.literal.FloatLiteral;
-import org.ssssssss.script.parsing.ast.literal.IntegerLiteral;
-import org.ssssssss.script.parsing.ast.literal.LongLiteral;
-import org.ssssssss.script.parsing.ast.literal.NullLiteral;
-import org.ssssssss.script.parsing.ast.literal.RegexpLiteral;
-import org.ssssssss.script.parsing.ast.literal.ShortLiteral;
-import org.ssssssss.script.parsing.ast.literal.StringLiteral;
 import org.ssssssss.script.parsing.ast.literal.*;
-import org.ssssssss.script.parsing.ast.statement.Spread;
 import org.ssssssss.script.parsing.ast.statement.*;
 
-import javax.xml.transform.Source;
 import java.util.*;
 
 import static org.ssssssss.script.parsing.TokenType.*;
 
 
 /**
- * Parses a {@link Source} into a {@link MagicScript}. The implementation is a simple recursive descent parser with a lookahead of
- * 1.
+ * 语法解析器
  **/
 public class Parser {
 
@@ -59,12 +45,11 @@ public class Parser {
 			new TokenType[]{ForwardSlash, Asterisk, Percentage}
 	};
 	private static final TokenType[] unaryOperators = new TokenType[]{MinusMinus, PlusPlus, BitNot, Minus, Plus, Not};
-	private static final List<String> keywords = Arrays.asList("import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"/*, "assert"*/);
+	private static final List<String> keywords = Arrays.asList("import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "throw"/*, "assert"*/);
 	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
 	private VarScope varNames = new VarScope();
 	private final List<Span> spans = new ArrayList<>();
 	private final Set<VarIndex> varIndices = new LinkedHashSet<>();
-	private int varListIndex = -1;
 	private int varCount = 0;
 	private int linqLevel = 0;
 	private boolean requiredNew = true;
@@ -125,7 +110,9 @@ public class Parser {
 		} else if (stream.match("exit", false)) {
 			result = parseExit();
 		} else if (stream.match("assert", false)) {
-			result = parserAssert();
+			result = parseAssert();
+		} else if (stream.match("throw", false)) {
+			result = parseThrow();
 		} else {
 			int index = stream.makeIndex();
 			if (stream.match(Identifier, true) && stream.match(Identifier, false)){
@@ -203,7 +190,12 @@ public class Parser {
 		return new Exit(addSpan(opening, stream.getPrev().getSpan()), expressionList);
 	}
 
-	private Node parserAssert() {
+	private Node parseThrow() {
+		Span opening = stream.consume().getSpan();
+		Expression expression = parseExpression();
+		return new Throw(addSpan(opening, stream.getPrev().getSpan()), expression);
+	}
+	private Node parseAssert() {
 		int index = stream.makeIndex();
 		try {
 			Span opening = stream.expect("assert").getSpan();

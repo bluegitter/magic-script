@@ -432,4 +432,21 @@ public class StreamExtension {
 		}
 		return result;
 	}
+
+	@Comment("返回集合中的第一个元素")
+	public Object first(Object source){
+		List<Object> objects = arrayLikeToList(source);
+		return objects.size() > 0 ? objects.get(0) : null;
+	}
+
+	@Comment("返回集合中的最后一个元素")
+	public Object last(Object source){
+		List<Object> objects = arrayLikeToList(source);
+		return objects.size() > 0 ? objects.get(objects.size() - 1) : null;
+	}
+
+	@Comment("返回集合或数组的长度")
+	public int size(Object source){
+		return arrayLikeToList(source).size();
+	}
 }

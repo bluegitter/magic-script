@@ -269,11 +269,11 @@ public class OperatorHandle {
 	/* bigdecimal < 操作实现 */
 
 	public static Object less_fallback(Object a, Object b) {
-		if(a == null || b == null){
+		if (a == null || b == null) {
 			return false;
 		}
-		if(a.getClass() == b.getClass() && a instanceof Comparable){
-			return ((Comparable)(a)).compareTo(b) < 0;
+		if (a.getClass() == b.getClass() && a instanceof Comparable) {
+			return ((Comparable) (a)).compareTo(b) < 0;
 		}
 		return reject(a, b, "<");
 	}
@@ -489,21 +489,21 @@ public class OperatorHandle {
 	/* bigdecimal <= 操作实现 */
 
 	public static Object less_equals_fallback(Object a, Object b) {
-		if(a == null || b == null){
+		if (a == null || b == null) {
 			return false;
 		}
-		if(a.getClass() == b.getClass() && a instanceof Comparable){
-			return ((Comparable)(a)).compareTo(b) <=0;
+		if (a.getClass() == b.getClass() && a instanceof Comparable) {
+			return ((Comparable) (a)).compareTo(b) <= 0;
 		}
 		return reject(a, b, "<=");
 	}
 
 	/* == 操作实现 */
 	public static Object equals_fallback(Object a, Object b) {
-		if(Objects.equals(a,b)){
+		if (Objects.equals(a, b)) {
 			return true;
 		}
-		if(a == null || b == null){
+		if (a == null || b == null) {
 			return false;
 		}
 		if (a instanceof Number || b instanceof Number) {
@@ -513,19 +513,20 @@ public class OperatorHandle {
 		}
 		return false;
 	}
+
 	/* === 操作实现 */
 	public static Object accurate_equals_fallback(Object a, Object b) {
-		return Objects.equals(a,b);
+		return Objects.equals(a, b);
 	}
 
 	/* != 操作实现 */
 	public static Object not_equals_fallback(Object a, Object b) {
-		return !(boolean)equals_fallback(a, b);
+		return !(boolean) equals_fallback(a, b);
 	}
 
 	/* !== 操作实现 */
 	public static Object not_accurate_equals_fallback(Object a, Object b) {
-		return !Objects.equals(a,b);
+		return !Objects.equals(a, b);
 	}
 
 
@@ -740,11 +741,11 @@ public class OperatorHandle {
 	/* bigdecimal > 操作实现 */
 
 	public static Object greater_fallback(Object a, Object b) {
-		if(a == null || b == null){
+		if (a == null || b == null) {
 			return false;
 		}
-		if(a.getClass() == b.getClass() && a instanceof Comparable){
-			return ((Comparable)(a)).compareTo(b) >0;
+		if (a.getClass() == b.getClass() && a instanceof Comparable) {
+			return ((Comparable) (a)).compareTo(b) > 0;
 		}
 		return reject(a, b, ">");
 	}
@@ -929,7 +930,7 @@ public class OperatorHandle {
 	}
 	/* long >= 操作实现 */
 
-	/* bigecimal >= 操作实现 */
+	/* bigdecimal >= 操作实现 */
 	public static Object greater_equals(BigDecimal a, Byte b) {
 		return a.compareTo(new BigDecimal(b)) >= 0;
 	}
@@ -960,11 +961,11 @@ public class OperatorHandle {
 	/* bigdecimal >= 操作实现 */
 
 	public static Object greater_equals_fallback(Object a, Object b) {
-		if(a == null || b == null){
+		if (a == null || b == null) {
 			return false;
 		}
-		if(a.getClass() == b.getClass() && a instanceof Comparable){
-			return ((Comparable)(a)).compareTo(b) >=0;
+		if (a.getClass() == b.getClass() && a instanceof Comparable) {
+			return ((Comparable) (a)).compareTo(b) >= 0;
 		}
 		return reject(a, b, ">=");
 	}
@@ -981,57 +982,60 @@ public class OperatorHandle {
 		throw new IllegalArgumentException(String.format("操作符 `%s` 不支持 (%s,%s) 类型", symbol, a.getClass().getName(), b.getClass().getName()));
 	}
 
-	public static Object map_or_array_access(int[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(int[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(byte[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(byte[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(short[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(short[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(float[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(float[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(double[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(double[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(long[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(long[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(char[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(char[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(boolean[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(boolean[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(Object[] target, Number key){
-		return target[key.intValue()];
+	public static Object map_or_array_access(Object[] target, Number key) {
+		return key.intValue() < target.length ? target[key.intValue()] : null;
 	}
 
-	public static Object map_or_array_access(String target, Number key){
-		return target.charAt(key.intValue());
+	public static Object map_or_array_access(String target, Number key) {
+		return key.intValue() < target.length() ? target.charAt(key.intValue()) : null;
 	}
 
-	public static Object map_or_array_access_fallback(Object target, Object key){
-		if(target instanceof Map){
-			return ((Map)target).get(key);
-		}else if(key instanceof Number){
-			if(target instanceof List){
-				return ((List)target).get(((Number)key).intValue());
-			}else if(target.getClass().isArray()){
-				return Array.get(target, ((Number)key).intValue());
+	public static Object map_or_array_access_fallback(Object target, Object key) {
+		if (target instanceof Map) {
+			return ((Map) target).get(key);
+		} else if (key instanceof Number) {
+			int index = ((Number) key).intValue();
+			if (target instanceof List) {
+				List list = (List) target;
+				return index < list.size() ? list.get(index) : null;
+			} else if (target.getClass().isArray()) {
+				int length = Array.getLength(target);
+				return index < length ? Array.get(target, ((Number) key).intValue()) : null;
 			}
 		}
-		return reject(target,key,".或[]");
+		return reject(target, key, ".或[]");
 	}
 
 }

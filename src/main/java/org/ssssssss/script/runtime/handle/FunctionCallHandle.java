@@ -155,7 +155,7 @@ public class FunctionCallHandle {
 			return innerClass;
 		}
 		if (target instanceof List) {
-			List list = (List) target;
+			List<?> list = (List<?>) target;
 			if (inLinq) {
 				return list.stream().map(it -> member_access(it, name, optional)).collect(Collectors.toList());
 			}else if(list.size() > 0){
@@ -189,8 +189,7 @@ public class FunctionCallHandle {
 			return list;
 		}
 		List<Object> list = new ArrayList<>(args.length);
-		for (int i = 0, len = args.length; i < len; i++) {
-			Object item = args[i];
+		for (Object item : args) {
 			if (item instanceof SpreadValue) {
 				Object res = ((SpreadValue) item).getValue();
 				if (res == null) {

@@ -82,7 +82,7 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 			Map<String, Object> variable = new HashMap<>();
 			variable.put("name", entry.getKey());
 			if (value != null) {
-				variable.put("value", getValue(value));
+				variable.put("value", value);
 				variable.put("type", value.getClass());
 			} else {
 				variable.put("value", "null");
@@ -115,19 +115,5 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 		this.id = id;
 		contextMap.put(this.id, this);
 		contextMap.remove(oldId);
-	}
-
-	private Object getValue(Object object) {
-		try {
-			return object.toString();
-		} catch (Exception ex) {
-			if (object instanceof Cloneable) {
-				try {
-					return object.getClass().getMethod("clone").invoke(object).toString();
-				} catch (Exception ignored) {
-				}
-			}
-			return "can't get value";
-		}
 	}
 }

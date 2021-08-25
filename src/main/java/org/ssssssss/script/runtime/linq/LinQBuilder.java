@@ -2,12 +2,15 @@ package org.ssssssss.script.runtime.linq;
 
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.MapExtension;
+import org.ssssssss.script.functions.NumberExtension;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 import org.ssssssss.script.runtime.handle.OperatorHandle;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LinQBuilder {
 
@@ -30,6 +33,10 @@ public class LinQBuilder {
 	private final List<LinQJoinValue> joins = new ArrayList<>();
 
 	private final List<LinQOrder> orders = new ArrayList<>();
+
+	private long limit = Long.MIN_VALUE;
+
+	private long offset = Long.MIN_VALUE;
 
 	private LinQBuilder(MagicScriptContext context) {
 		this.context = context;
@@ -87,7 +94,22 @@ public class LinQBuilder {
 		return this;
 	}
 
-	public Object execute() {
+	public Object executeAndFetchFirst() {
+		List<?> list = execute();
+		return list.isEmpty() ? null : list.get(0);
+	}
+
+	public LinQBuilder limit(Object limit) {
+		this.limit = ObjectConvertExtension.asLong(limit, Long.MIN_VALUE);
+		return this;
+	}
+
+	public LinQBuilder offset(Object offset) {
+		this.limit = ObjectConvertExtension.asLong(offset, Long.MIN_VALUE);
+		return this;
+	}
+
+	public List<?> execute() {
 		List<Record> records = new ArrayList<>();
 		for (Object object : fromObjects) {
 			context.setVarValue(fromAliasIndex, object);
@@ -98,11 +120,17 @@ public class LinQBuilder {
 		records = processGroup(records);
 		// 处理 select
 		List<SelectValue> result = processSelect(records);
-
-		return result.stream().sorted().map(SelectValue::getValue).collect(Collectors.toList());
+		Stream<Map<String, Object>> stream = result.stream().sorted().map(SelectValue::getValue);
+		if(offset > 0){
+			stream = stream.skip(offset);
+		}
+		if(limit > 0){
+			stream = stream.limit(limit);
+		}
+		return stream.collect(Collectors.toList());
 	}
 
-	private void processRow(Object item, Map<String, Object> row, SelectField field){
+	private void processRow(Object item, Map<String, Object> row, SelectField field) {
 		if (item instanceof Map) {
 			row.putAll((Map<String, Object>) item);
 		} else {
@@ -121,12 +149,12 @@ public class LinQBuilder {
 			}
 			for (SelectField field : selects) {
 				MagicScriptLambdaFunction function = field.getFunction();
-				if(function == null){
+				if (function == null) {
 					processRow(record.getValue(), row, field);
-					if(record.getJoinValue() != null){
+					if (record.getJoinValue() != null) {
 						processRow(record.getJoinValue(), row, field);
 					}
-				}else{
+				} else {
 					Object item = function.apply(context, EMPTY_PARAMETER);
 					processRow(item, row, field);
 				}

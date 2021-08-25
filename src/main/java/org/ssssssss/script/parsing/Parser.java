@@ -8,6 +8,7 @@ import org.ssssssss.script.parsing.ast.linq.*;
 import org.ssssssss.script.parsing.ast.literal.*;
 import org.ssssssss.script.parsing.ast.statement.*;
 
+import java.io.File;
 import java.util.*;
 
 import static org.ssssssss.script.parsing.TokenType.*;
@@ -46,7 +47,7 @@ public class Parser {
 	};
 	private static final TokenType[] unaryOperators = new TokenType[]{MinusMinus, PlusPlus, BitNot, Minus, Plus, Not};
 	private static final List<String> keywords = Arrays.asList("import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "throw"/*, "assert"*/);
-	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on");
+	private static final List<String> linqKeywords = Arrays.asList("from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on", "limit", "offset");
 	private VarScope varNames = new VarScope();
 	private final List<Span> spans = new ArrayList<>();
 	private final Set<VarIndex> varIndices = new LinkedHashSet<>();
@@ -596,8 +597,17 @@ public class Parser {
 		}
 		List<LinqOrder> orders = parseLinqOrders();
 		linqLevel--;
+		Expression limit = null;
+		Expression offset = null;
+		if(stream.match("limit", true, true)){
+			limit = parseExpression();
+			if(stream.match("offset", true, true)){
+				offset = parseExpression();
+
+			}
+		}
 		Span close = stream.getPrev().getSpan();
-		return new LinqSelect(addSpan(opeing, close), fields, from, joins, where, groups, having, orders);
+		return new LinqSelect(addSpan(opeing, close), fields, from, joins, where, groups, having, orders, limit, offset);
 	}
 
 	private List<LinqField> parseGroup() {

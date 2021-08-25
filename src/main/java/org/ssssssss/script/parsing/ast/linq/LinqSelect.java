@@ -4,6 +4,7 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.compile.MagicScriptCompiler;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.parsing.ast.Literal;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 import org.ssssssss.script.runtime.linq.LinQBuilder;
 
@@ -25,8 +26,12 @@ public class LinqSelect extends Expression {
 
 	private final List<LinqOrder> orders;
 
+	private final Expression limit;
 
-	public LinqSelect(Span span, List<LinqField> fields, LinqField from, List<LinqJoin> joins, LinqExpression where, List<LinqField> groups, LinqExpression having, List<LinqOrder> orders) {
+	private final Expression offset;
+
+
+	public LinqSelect(Span span, List<LinqField> fields, LinqField from, List<LinqJoin> joins, LinqExpression where, List<LinqField> groups, LinqExpression having, List<LinqOrder> orders, Expression limit, Expression offset) {
 		super(span);
 		this.fields = fields;
 		this.from = from;
@@ -35,6 +40,8 @@ public class LinqSelect extends Expression {
 		this.groups = groups;
 		this.having = having;
 		this.orders = orders;
+		this.limit = limit;
+		this.offset = offset;
 	}
 
 	@Override
@@ -49,6 +56,12 @@ public class LinqSelect extends Expression {
 		}
 		if (having != null) {
 			having.visitMethod(compiler);
+		}
+		if (limit != null) {
+			limit.visitMethod(compiler);
+		}
+		if (offset != null) {
+			offset.visitMethod(compiler);
 		}
 	}
 
@@ -77,6 +90,18 @@ public class LinqSelect extends Expression {
 		orders.forEach(order -> compiler.visit(order)
 				.visitInt(order.getOrder())
 				.invoke(INVOKEVIRTUAL, LinQBuilder.class, "order", LinQBuilder.class, MagicScriptLambdaFunction.class, int.class));
-		compiler.invoke(INVOKEVIRTUAL, LinQBuilder.class, "execute", Object.class);
+		if(limit != null){
+			if(offset == null && limit instanceof Literal && "1".equals(limit.getSpan().getText())){
+				compiler.invoke(INVOKEVIRTUAL, LinQBuilder.class, "executeAndFetchFirst", Object.class);
+				return;
+			}
+			compiler.visit(limit)
+					.invoke(INVOKEVIRTUAL, LinQBuilder.class, "limit", LinQBuilder.class, Object.class);
+			if(offset != null){
+				compiler.visit(offset)
+						.invoke(INVOKEVIRTUAL, LinQBuilder.class, "offset", LinQBuilder.class, Object.class);
+			}
+		}
+		compiler.invoke(INVOKEVIRTUAL, LinQBuilder.class, "execute", List.class);
 	}
 }

@@ -1023,6 +1023,9 @@ public class OperatorHandle {
 	}
 
 	public static Object map_or_array_access_fallback(Object target, Object key) {
+		if(target == null){
+			return null;
+		}
 		if (target instanceof Map) {
 			return ((Map) target).get(key);
 		} else if (key instanceof Number) {

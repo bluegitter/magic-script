@@ -446,7 +446,25 @@ public class StreamExtension {
 	}
 
 	@Comment("返回集合或数组的长度")
-	public int size(Object source){
-		return arrayLikeToList(source).size();
+	public int size(Object arrayLike){
+		if (arrayLike instanceof Collection) {
+			return ((Collection<?>) arrayLike).size();
+		} else if (arrayLike.getClass().isArray()) {
+			return Array.getLength(arrayLike);
+		} else if (arrayLike instanceof Iterator) {
+			List<Object> list = new ArrayList<>();
+			Iterator<Object> it = (Iterator<Object>) arrayLike;
+			it.forEachRemaining(list::add);
+			return list.size();
+		} else if (arrayLike instanceof Enumeration) {
+			Enumeration<Object> en = (Enumeration<Object>) arrayLike;
+			return Collections.list(en).size();
+		}
+		throw new MagicScriptException("不支持的类型:" + arrayLike.getClass());
+	}
+
+	@Comment("返回集合或数组的长度")
+	public int getLength(Object source){
+		return size(source);
 	}
 }
